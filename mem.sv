@@ -1,4 +1,4 @@
-`include "define.sv"
+`include "define.vh"
 module mem(
     input wire  rst,
     input wire[`RegAddrBus] wd_i,

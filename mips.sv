@@ -1,7 +1,27 @@
-`include "define.sv"
+`include "define.vh"
 module mips(
-    input wire clk,
-    input wire rst
+    input clk,
+    input rst,
+
+    //inst sram-like 
+    output         inst_req     ,
+    output         inst_wr      ,
+    output  [1 :0] inst_size    ,
+    output  [31:0] inst_addr    ,
+    output  [31:0] inst_wdata   ,
+    input [31:0] inst_rdata   ,
+    input        inst_addr_ok ,
+    input        inst_data_ok ,
+    
+    //data sram-like 
+    output         data_req     ,
+    output         data_wr      ,
+    output  [1 :0] data_size    ,
+    output  [31:0] data_addr    ,
+    output  [31:0] data_wdata   ,
+    input [31:0] data_rdata   ,
+    input        data_addr_ok ,
+    input        data_data_ok
 );
 
     wire[`InstAddrBus] pc;

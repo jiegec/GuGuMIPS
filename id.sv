@@ -1,4 +1,4 @@
-`include "define.sv"
+`include "define.vh"
 module id(
     input wire rst,
     input wire[`InstAddrBus] pc_i,
@@ -43,8 +43,8 @@ module id(
         wd_o = `NOPRegAddr;
         wreg_o = `WriteDisable;
         instvalid = `InstValid;
-        reg1_read_o = 1'0;
-        reg2_read_o = 1'0;
+        reg1_read_o = 1'b0;
+        reg2_read_o = 1'b0;
         reg1_addr_o = `NOPRegAddr;
         reg2_addr_o = `NOPRegAddr;
         imm = `ZeroWord;
@@ -54,8 +54,8 @@ module id(
         wd_o = inst_i[15:11]; // default to rd
         wreg_o = `WriteDisable;
         instvalid = `InstInvalid;
-        reg1_read_o = 1'0;
-        reg2_read_o = 1'0;
+        reg1_read_o = 1'b0;
+        reg2_read_o = 1'b0;
         reg1_addr_o = inst_i[25:21]; // default to rs
         reg2_addr_o = inst_i[20:16]; // default to rt
         imm = `ZeroWord;
@@ -199,8 +199,8 @@ module id(
             wreg_o = `WriteEnable;
             aluop_o = `EXE_OR_OP;
             alusel_o = `EXE_RES_LOGIC;
-            reg1_read_o = 1'1; // read source from rs
-            reg2_read_o = 1'0; // use imm
+            reg1_read_o = 1'b1; // read source from rs
+            reg2_read_o = 1'b0; // use imm
             // unsigned extend
             imm = {16'h0, inst_i[15:0]};
             wd_o = inst_i[20:16];
@@ -210,8 +210,8 @@ module id(
             wreg_o = `WriteEnable;
             aluop_o = `EXE_AND_OP;
             alusel_o = `EXE_RES_LOGIC;
-            reg1_read_o = 1'1; // read source from rs
-            reg2_read_o = 1'0; // use imm
+            reg1_read_o = 1'b1; // read source from rs
+            reg2_read_o = 1'b0; // use imm
             // unsigned extend
             imm = {16'h0, inst_i[15:0]};
             wd_o = inst_i[20:16];
@@ -221,8 +221,8 @@ module id(
             wreg_o = `WriteEnable;
             aluop_o = `EXE_XOR_OP;
             alusel_o = `EXE_RES_LOGIC;
-            reg1_read_o = 1'1; // read source from rs
-            reg2_read_o = 1'0; // use imm
+            reg1_read_o = 1'b1; // read source from rs
+            reg2_read_o = 1'b0; // use imm
             // unsigned extend
             imm = {16'h0, inst_i[15:0]};
             wd_o = inst_i[20:16];
@@ -232,8 +232,8 @@ module id(
             wreg_o = `WriteEnable;
             aluop_o = `EXE_OR_OP;
             alusel_o = `EXE_RES_LOGIC;
-            reg1_read_o = 1'1; // read source from rs
-            reg2_read_o = 1'0; // use imm
+            reg1_read_o = 1'b1; // read source from rs
+            reg2_read_o = 1'b0; // use imm
             // raise to upper
             imm = {inst_i[15:0], 16'h0};
             wd_o = inst_i[20:16];
@@ -244,8 +244,8 @@ module id(
             wreg_o = `WriteDisable;
             aluop_o = `EXE_NOR_OP;
             alusel_o = `EXE_RES_NOP;
-            reg1_read_o = 1'0;
-            reg2_read_o = 1'0;
+            reg1_read_o = 1'b0;
+            reg2_read_o = 1'b0;
             instvalid = `InstValid;
           end
           default: begin

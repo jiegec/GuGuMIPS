@@ -1,4 +1,4 @@
-`include "define.sv"
+`include "define.vh"
 module id_ex(
   input wire clk,
   input wire rst,
