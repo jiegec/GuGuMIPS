@@ -32,6 +32,8 @@ module mem_wb(
         wb_whilo <= `WriteDisable;
         wb_hi <= `ZeroWord;
         wb_lo <= `ZeroWord;
+
+        wb_pc <= 0;
       end else begin
         wb_wd <= mem_wd;
         wb_wreg <= mem_wreg;
@@ -40,6 +42,8 @@ module mem_wb(
         wb_whilo <= mem_whilo;
         wb_hi <= mem_hi;
         wb_lo <= mem_lo;
+
+        wb_pc <= mem_pc;
       end
     end
 
