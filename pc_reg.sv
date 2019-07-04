@@ -2,6 +2,7 @@
 module pc_reg (
     input wire clk,
     input wire rst,
+    input wire en,
 
     output reg[`InstAddrBus] pc,
     output reg ce
@@ -17,8 +18,8 @@ module pc_reg (
 
     always_ff @ (posedge clk) begin
       if (ce == `ChipDisable) begin
-        pc <= 32'h00000000;
-      end else begin
+        pc <= 32'hbfc00000;
+      end else if (en) begin
         pc <= pc + 32'h00000004;
       end
     end

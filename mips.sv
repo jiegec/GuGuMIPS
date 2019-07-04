@@ -3,7 +3,7 @@ module mips(
     input clk,
     input rst,
 
-    //inst sram-like 
+    // inst sram-like 
     output         inst_req     ,
     output         inst_wr      ,
     output  [1 :0] inst_size    ,
@@ -13,7 +13,7 @@ module mips(
     input        inst_addr_ok ,
     input        inst_data_ok ,
     
-    //data sram-like 
+    // data sram-like 
     output         data_req     ,
     output         data_wr      ,
     output  [1 :0] data_size    ,
@@ -21,7 +21,13 @@ module mips(
     output  [31:0] data_wdata   ,
     input [31:0] data_rdata   ,
     input        data_addr_ok ,
-    input        data_data_ok
+    input        data_data_ok,
+
+    // debug
+    output [31:0] debug_wb_pc,
+    output [3 :0] debug_wb_rf_wen,
+    output [4 :0] debug_wb_rf_wnum,
+    output [31:0] debug_wb_rf_wdata
 );
 
     wire[`InstAddrBus] pc;
@@ -75,6 +81,11 @@ module mips(
     wire[`RegBus] wb_hi_i;
     wire[`RegBus] wb_lo_i;
 
+    assign debug_wb_pc = 0;
+    assign debug_wb_rf_wen = wb_wreg_i;
+    assign debug_wb_rf_wnum = wb_wd_i;
+    assign debug_wb_rf_wdata = wb_wdata_i;
+
     wire reg1_read; // read reg1 or not
     wire reg2_read;
     wire[`RegBus] reg1_data; // the data of reg1
@@ -82,9 +93,31 @@ module mips(
     wire[`RegAddrBus] reg1_addr; // the index or reg1
     wire[`RegAddrBus] reg2_addr;
 
+    logic en_pc;
+    logic en_if_id;
+    logic en_id_ex;
+    logic en_ex_mm;
+    logic en_mm_wb;
+
+    logic if_stall;
+
+    always_comb begin
+        if (if_stall) begin
+            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00011;
+        end else begin
+            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b11111;
+        end
+    end
+
     pc_reg pc_reg0(.clk(clk), .rst(rst),
-                    .pc(pc), .ce(rom_ce));
-    rom rom0(.ce(rom_ce), .addr(pc), .inst(rom_data));
+                    .pc(pc), .ce(rom_ce), .en(en_pc));
+
+    ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
+        .addr(pc), .inst(rom_data), .stall(if_stall),
+        .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
+        .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok));
+
+    assign data_req = 0;
 
     if_id if_id0(.clk(clk), .rst(rst), .if_pc(pc), .if_inst(rom_data),
                  .id_pc(id_pc_i), .id_inst(id_inst_i));

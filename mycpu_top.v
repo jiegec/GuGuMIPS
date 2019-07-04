@@ -86,6 +86,7 @@ mips mips_inst(
     .inst_wdata(inst_wdata),
     .inst_rdata(inst_rdata),
     .inst_addr_ok(inst_addr_ok),
+    .inst_data_ok(inst_data_ok),
 
     .data_req(data_req),
     .data_wr(data_wr),
@@ -93,7 +94,13 @@ mips mips_inst(
     .data_addr(data_addr),
     .data_wdata(data_wdata),
     .data_rdata(data_rdata),
-    .data_addr_ok(data_addr_ok)
+    .data_addr_ok(data_addr_ok),
+    .data_data_ok(data_data_ok),
+
+    .debug_wb_pc(debug_wb_pc),
+    .debug_wb_rf_wen(debug_wb_rf_wen),
+    .debug_wb_rf_wnum(debug_wb_rf_wnum),
+    .debug_wb_rf_wdata(debug_wb_rf_wdata)
 );
 
 cpu_axi_interface cpu_axi_interface_inst(
@@ -107,6 +114,7 @@ cpu_axi_interface cpu_axi_interface_inst(
     .inst_wdata(inst_wdata),
     .inst_rdata(inst_rdata),
     .inst_addr_ok(inst_addr_ok),
+    .inst_data_ok(inst_data_ok),
 
     .data_req(data_req),
     .data_wr(data_wr),
@@ -115,6 +123,7 @@ cpu_axi_interface cpu_axi_interface_inst(
     .data_wdata(data_wdata),
     .data_rdata(data_rdata),
     .data_addr_ok(data_addr_ok),
+    .data_data_ok(data_data_ok),
 
     .arid      (arid      ),
     .araddr    (araddr    ),
