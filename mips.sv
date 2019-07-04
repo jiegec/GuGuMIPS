@@ -35,6 +35,9 @@ module mips(
 
     wire[`InstAddrBus] rom_data;
     wire[`InstAddrBus] id_pc_i;
+    wire[`InstAddrBus] ex_pc;
+    wire[`InstAddrBus] mem_pc;
+    wire[`InstAddrBus] wb_pc;
     wire[`InstBus] id_inst_i;
 
     wire[`AluOpBus] id_aluop_o;
@@ -81,7 +84,7 @@ module mips(
     wire[`RegBus] wb_hi_i;
     wire[`RegBus] wb_lo_i;
 
-    assign debug_wb_pc = 0;
+    assign debug_wb_pc = wb_pc;
     assign debug_wb_rf_wen = wb_wreg_i;
     assign debug_wb_rf_wnum = wb_wd_i;
     assign debug_wb_rf_wdata = wb_wdata_i;
@@ -139,9 +142,9 @@ module mips(
                     .re2(reg2_read), .raddr2(reg2_addr),
                     .rdata2(reg2_data));
 
-    id_ex id_ex0(.clk(clk), .rst(rst), 
-                .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o),
-                .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i)
+    id_ex id_ex0(.clk(clk), .rst(rst), .en(id_ex),
+                .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o), .id_pc(id_pc_i),
+                .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i), .ex_pc(ex_pc)
     );
 
     ex ex0(.rst(rst), .aluop_i(ex_aluop_i), .alusel_i(ex_alusel_i), .reg1_i(ex_reg1_i), .reg2_i(ex_reg2_i), .wd_i(ex_wd_i), .wreg_i(ex_wreg_i),
@@ -150,8 +153,8 @@ module mips(
            .mem_whilo_i(mem_whilo_i), .mem_hi_i(mem_hi_i), .mem_lo_i(mem_lo_i),
            .wb_whilo_i(wb_whilo_i), .wb_hi_i(wb_hi_i), .wb_lo_i(wb_lo_i));
 
-    ex_mem ex_mem0(.clk(clk), .rst(rst), .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o),
-                   .mem_wd(mem_wd_i), .mem_wreg(mem_wreg_i), .mem_wdata(mem_wdata_i),
+    ex_mem ex_mem0(.clk(clk), .rst(rst), .en(en_ex_mm), .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),
+                   .mem_wd(mem_wd_i), .mem_wreg(mem_wreg_i), .mem_wdata(mem_wdata_i), .mem_pc(mem_pc),
                    .ex_whilo(ex_whilo_o), .ex_hi(ex_hi_o), .ex_lo(ex_lo_o),
                    .mem_whilo(mem_whilo_i), .mem_hi(mem_hi_i), .mem_lo(mem_lo_i));
 
@@ -161,9 +164,9 @@ module mips(
              .whilo_i(mem_whilo_i), .hi_i(mem_hi_i), .lo_i(mem_lo_i),
              .whilo_o(mem_whilo_o), .hi_o(mem_hi_o), .lo_o(mem_lo_o));
             
-    mem_wb mem_wb0(.clk(clk), .rst(rst),
-                   .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o),
-                   .wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i),
+    mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb),
+                   .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc),
+                   .wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc),
                    .mem_whilo(mem_whilo_o), .mem_hi(mem_hi_o), .mem_lo(mem_lo_o),
                    .wb_whilo(wb_whilo_i), .wb_hi(wb_hi_i), .wb_lo(wb_lo_i));
 
