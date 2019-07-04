@@ -95,10 +95,16 @@
 `define EXE_MTHI_OP 8'b00001100
 `define EXE_MTLO_OP 8'b00001101
 
+`define EXE_ADDI_OP 8'b00001110
+`define EXE_ADDIU_OP 8'b00001111
+`define EXE_SUB_OP 8'b00010000
+`define EXE_SUBU_OP 8'b00010001
+
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001
 `define EXE_RES_SHIFT 3'b010
 `define EXE_RES_MOVE 3'b011
+`define EXE_RES_ARITHMETIC 3'b100
 
 `define InstAddrBus 31:0
 `define InstBus 31:0

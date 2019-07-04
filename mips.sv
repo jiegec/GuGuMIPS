@@ -106,7 +106,7 @@ module mips(
 
     always_comb begin
         if (if_stall) begin
-            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00011;
+            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b01111;
         end else begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b11111;
         end
@@ -122,7 +122,7 @@ module mips(
 
     assign data_req = 0;
 
-    if_id if_id0(.clk(clk), .rst(rst), .if_pc(pc), .if_inst(rom_data),
+    if_id if_id0(.clk(clk), .rst(rst | (!en_pc & en_if_id)), .if_pc(pc), .if_inst(rom_data), .en(en_if_id),
                  .id_pc(id_pc_i), .id_inst(id_inst_i));
 
     id id0(.rst(rst), .pc_i(id_pc_i), .inst_i(id_inst_i),
@@ -142,7 +142,7 @@ module mips(
                     .re2(reg2_read), .raddr2(reg2_addr),
                     .rdata2(reg2_data));
 
-    id_ex id_ex0(.clk(clk), .rst(rst), .en(id_ex),
+    id_ex id_ex0(.clk(clk), .rst(rst), .en(en_id_ex),
                 .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o), .id_pc(id_pc_i),
                 .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i), .ex_pc(ex_pc)
     );

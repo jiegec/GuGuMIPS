@@ -30,8 +30,41 @@ module ex(
     reg[`RegBus] logicout;
     reg[`RegBus] shiftres;
     reg[`RegBus] moveres;
+    reg[`RegBus] arithmeticres;
     reg[`RegBus] hi;
     reg[`RegBus] lo;
+    reg[`RegBus] reg2_i_mux;
+    reg[`RegBus] result_sum;
+
+    // Top level selector
+    always_comb begin
+      wd_o = wd_i;
+      wreg_o = wreg_i;
+
+      case (alusel_i)
+        `EXE_RES_LOGIC: begin
+          wdata_o = logicout;
+        end
+        `EXE_RES_SHIFT: begin
+          wdata_o = shiftres;
+        end
+        `EXE_RES_MOVE: begin
+          wdata_o = moveres;
+        end
+        `EXE_RES_ARITHMETIC: begin
+          wdata_o = arithmeticres;
+        end
+        default: begin
+          wdata_o = `ZeroWord;
+        end
+      endcase
+    end
+    
+    assign reg2_i_mux = ((aluop_i == `EXE_SUB_OP) || 
+                          (aluop_i == `EXE_SUBU_OP)) ?
+                          (~reg2_i)+1 : reg2_i;
+
+    assign result_sum = reg1_i + reg2_i_mux;
 
     always_comb begin
       if (rst == `RstEnable) begin
@@ -79,25 +112,6 @@ module ex(
       end
     end
 
-    always_comb begin
-      wd_o = wd_i;
-      wreg_o = wreg_i;
-
-      case (alusel_i)
-        `EXE_RES_LOGIC: begin
-          wdata_o = logicout;
-        end
-        `EXE_RES_SHIFT: begin
-          wdata_o = shiftres;
-        end
-        `EXE_RES_MOVE: begin
-          wdata_o = moveres;
-        end
-        default: begin
-          wdata_o = `ZeroWord;
-        end
-      endcase
-    end
 
     always_comb begin
       if (rst == `RstEnable) begin
@@ -151,6 +165,21 @@ module ex(
           default: begin
             moveres = `ZeroWord;
           end
+        endcase
+      end
+    end
+
+    always_comb begin
+      if (rst == `RstEnable) begin
+        arithmeticres = `ZeroWord;
+      end else begin
+        case (aluop_i)
+            `EXE_ADDI_OP, `EXE_ADDIU_OP, `EXE_SUBU_OP, `EXE_SUB_OP: begin
+              arithmeticres = result_sum;
+            end
+            default: begin
+              arithmeticres = `ZeroWord;
+            end
         endcase
       end
     end

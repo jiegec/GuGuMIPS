@@ -239,6 +239,28 @@ module id(
             wd_o = inst_i[20:16];
             instvalid = `InstValid;
           end
+          `EXE_ADDI: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_ADDI_OP;
+            alusel_o = `EXE_RES_ARITHMETIC;
+            reg1_read_o = 1'b1; // read source from rs
+            reg2_read_o = 1'b0; // use imm
+            // sign extension
+            imm = {{16{inst_i[15]}}, inst_i[15:0]};
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+          `EXE_ADDIU: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_ADDIU_OP;
+            alusel_o = `EXE_RES_ARITHMETIC;
+            reg1_read_o = 1'b1; // read source from rs
+            reg2_read_o = 1'b0; // use imm
+            // sign extension
+            imm = {{16{inst_i[15]}}, inst_i[15:0]};
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
           // nop
           `EXE_PREF: begin
             wreg_o = `WriteDisable;
