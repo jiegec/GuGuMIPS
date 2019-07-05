@@ -46,7 +46,13 @@ module ifetch(
                     end
                 end
                 1: begin
-                    if (inst_addr_ok) begin
+                    if (inst_data_ok) begin
+                        // 1 cycle
+                        inst <= inst_rdata;
+                        state <= 0;
+                        stall <= 0;
+                    end else if (inst_addr_ok) begin
+                        // >= 2 cycle
                         state <= 2;
                         inst_req <= 0;
                     end
