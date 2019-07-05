@@ -85,7 +85,7 @@ module mips(
     wire[`RegBus] wb_lo_i;
 
     assign debug_wb_pc = wb_pc;
-    assign debug_wb_rf_wen = wb_wreg_i;
+    assign debug_wb_rf_wen = {4{wb_wreg_i}};
     assign debug_wb_rf_wnum = wb_wd_i;
     assign debug_wb_rf_wdata = wb_wdata_i;
 
