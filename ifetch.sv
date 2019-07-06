@@ -28,40 +28,42 @@ module ifetch(
     // 1: wait for addr
     // 2: wait for data
     logic [1:0] state;
+    logic last_data_ok;
+    logic last_inst_req;
+
+    assign stall = !inst_data_ok;
+    // TODO: MMU
+    assign inst_addr = addr[28:0];
+    assign inst = inst_rdata;
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
-            inst <= 0;
-            stall <= 0;
-            inst_req <= 0;
             state <= 0;
+            last_data_ok <= 0;
+            inst_req <= 0;
+            last_inst_req <= 0;
         end else begin
+            inst_req <= ((!inst_data_ok & (state == 0)) | en) & !inst_req;
+            last_inst_req <= inst_req;
+            last_data_ok <= inst_data_ok;
             case (state)
                 0: begin
                     if (en) begin
                         state <= 1;
-                        stall <= 1;
-                        inst_req <= 1;
-                        inst_addr <= addr[28:0];
                     end
                 end
                 1: begin
                     if (inst_data_ok) begin
                         // 1 cycle
-                        inst <= inst_rdata;
                         state <= 0;
-                        stall <= 0;
                     end else if (inst_addr_ok) begin
                         // >= 2 cycle
                         state <= 2;
-                        inst_req <= 0;
                     end
                 end
                 2: begin
                     if (inst_data_ok) begin
-                        inst <= inst_rdata;
                         state <= 0;
-                        stall <= 0;
                     end
                 end
                 3: begin

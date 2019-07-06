@@ -31,7 +31,6 @@ module mips(
 );
 
     wire[`InstAddrBus] pc;
-    wire rom_ce;
 
     wire[`InstAddrBus] rom_data;
     wire[`InstAddrBus] id_pc_i;
@@ -113,7 +112,7 @@ module mips(
     end
 
     pc_reg pc_reg0(.clk(clk), .rst(rst),
-                    .pc(pc), .ce(rom_ce), .en(en_pc));
+                    .pc(pc), .en(en_pc));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
         .addr(pc), .inst(rom_data), .stall(if_stall),

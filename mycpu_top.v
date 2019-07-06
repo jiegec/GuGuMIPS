@@ -64,7 +64,7 @@ module mycpu_top(
     input [31:0] data_sram_rdata,
 `endif
 
-    input [6:0] int,
+    input [5:0] int,
 
     // debug
     output [31:0] debug_wb_pc,
@@ -198,11 +198,10 @@ wire [31:0] inst_addr;
 wire [31:0] inst_wdata;
 wire [31:0] inst_rdata;
 wire inst_addr_ok;
-wire inst_data_ok;
+reg inst_data_ok;
 
 assign inst_sram_en = 1;
 assign inst_addr_ok = inst_req;
-assign inst_data_ok = inst_req;
 assign inst_wdata = inst_sram_wdata;
 assign inst_rdata = inst_sram_rdata;
 assign inst_sram_addr = {inst_addr[31:2], 2'b00};
@@ -216,16 +215,25 @@ wire [31:0] data_addr;
 wire [31:0] data_wdata;
 wire [31:0] data_rdata;
 wire data_addr_ok;
-wire data_data_ok;
+reg data_data_ok;
 
 assign data_sram_en = 1;
 assign data_addr_ok = data_req;
-assign data_data_ok = data_req;
 assign data_wdata = data_sram_wdata;
 assign data_rdata = data_sram_rdata;
 assign data_sram_addr = {data_addr[31:2], 2'b00};
 assign data_sram_wen = data_wr ? (data_size == 2'b00 ? 4'b001 << data_sram_addr[1:0] :
             (data_size == 2'b01 ? (4'b0011 << data_sram_addr[1:0]) : 4'b1111)) : 4'b0000;
+
+always @ (posedge clk) begin
+    if (rst) begin
+        inst_data_ok <= 0;
+        data_data_ok <= 0;
+    end else begin
+        inst_data_ok <= inst_req;
+        data_data_ok <= data_req;
+    end
+end
 
 mips mips_inst(
     .clk(clk),
