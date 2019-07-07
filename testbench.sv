@@ -86,7 +86,6 @@ function string get_path_from_file(string fullpath_filename);
        // `uvm_error("pve_get_path_from_file-1", $sformatf("Not found a valid path for this file: %s",fullpath_filename));
     end
 
-    $display("path=%0s", ret);
     return ret;
 endfunction
 
@@ -102,10 +101,8 @@ task test(string name);
     end
 
     mem = $sformatf("%stestbench/%s.mem", path, name);
-    $display("path=%0s", mem);
     $readmemh(mem, test_rom0.rom);
     fans = $fopen({path, "testbench/", name, ".ans"}, "r");
-    $display("fd=%d", fans);
     if (!fans) begin
         $finish;
     end
@@ -115,7 +112,7 @@ task test(string name);
         #50 rst = 1'b0;
     end
 
-    $display("testing %0s", name);
+    $display("Testing %0s", name);
     while (!$feof(fans))
     begin
         @ (negedge clk);
@@ -128,7 +125,7 @@ task test(string name);
         end
     end
 
-    $display("Done %0s", name);
+    $display("Passed %0s", name);
 endtask
 
 initial begin
@@ -139,6 +136,7 @@ always clk = #5 ~clk;
 
 initial begin
     test("inst_ori");
+    test("inst_andi");
     $finish;
 end
 
