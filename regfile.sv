@@ -17,7 +17,7 @@ module regfile(
 );
 
     // the first reg is always zero
-    reg[`RegBus] regs[0:`RegNum-1];
+    reg[`RegBus] regs[0:`RegNum-1] = '{`RegNum{0}};
 
     always_ff @ (posedge clk) begin
       if (rst == `RstDisable) begin
