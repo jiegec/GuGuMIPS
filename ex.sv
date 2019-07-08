@@ -66,10 +66,21 @@ module ex(
     end
     
     assign reg2_i_mux = ((aluop_i == `EXE_SUB_OP) || 
-                          (aluop_i == `EXE_SUBU_OP)) ?
+                          (aluop_i == `EXE_SUBU_OP) ||
+                          (aluop_i == `EXE_SLT_OP)) ?
                           (~reg2_i)+1 : reg2_i;
 
     assign result_sum = reg1_i + reg2_i_mux;
+
+    assign ov_sum = ((!reg1_i[31] && !reg2_i_mux[31]) && result_sum[31])
+      || ((reg1_i[31] && reg2_i_mux[31]) && (!result_sum[31]));
+
+    assign reg1_lt_reg2 = ((aluop_i == `EXE_SLT_OP)) ?
+      ((reg1_i[31] && !reg2_i[31]) ||
+      (!reg1_i[31] && !reg2_i[31] && result_sum[31]) ||
+      (reg1_i[31] && reg2_i[31] && result_sum[31])) : (reg1_i < reg2_i);
+
+    assign reg1_i_not = ~reg1_i;
 
     always_comb begin
       if (rst == `RstEnable) begin
@@ -179,12 +190,20 @@ module ex(
         arithmeticres = `ZeroWord;
       end else begin
         case (aluop_i)
-            `EXE_ADDI_OP, `EXE_ADDIU_OP, `EXE_SUBU_OP, `EXE_SUB_OP: begin
-              arithmeticres = result_sum;
-            end
-            default: begin
-              arithmeticres = `ZeroWord;
-            end
+          // compare
+          `EXE_SLT_OP, `EXE_SLTU_OP: begin
+            arithmeticres = reg1_lt_reg2;
+          end
+
+          // add/sub
+          `EXE_ADDI_OP, `EXE_ADDIU_OP, `EXE_SUBU_OP, `EXE_SUB_OP: begin
+            arithmeticres = result_sum;
+          end
+
+          // TODO: clz/clo
+          default: begin
+            arithmeticres = `ZeroWord;
+          end
         endcase
       end
     end

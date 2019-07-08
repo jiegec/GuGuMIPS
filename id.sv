@@ -525,7 +525,7 @@ module id(
         end
 
         if (instvalid == `InstInvalid) begin
-          $display("Invalid or unsupported instruction %h", inst_i);
+          $display("Invalid or unsupported instruction %h @ %x", inst_i, pc_i);
         end
       end
     end
