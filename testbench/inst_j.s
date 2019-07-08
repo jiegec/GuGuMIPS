@@ -1,6 +1,7 @@
 	.org 0x0
 	.global _start
 	.set noat
+	.set noreorder
 _start:
 	ori $1, $0, 0x8000  # ans: $1=0x00008000
     j skip

@@ -1,6 +1,7 @@
 	.org 0x0
 	.global _start
 	.set noat
+	.set noreorder
 _start:
 	ori $1, $1, 0x9999  # ans: $1=0x00009999
 	andi $1, $1, 0x8999  # ans: $1=0x00008999

@@ -1,6 +1,7 @@
 	.org 0x0
 	.global _start
 	.set noat
+	.set noreorder
 _start:
     ori $1, $0, 0x0001
     j 0x20
@@ -19,7 +20,7 @@ _start:
 
     .org 0x40
     jalr $2, $31
-    or $1, $2, $0
+    nop
 
     ori $1, $0, 0x0009
     ori $1, $0, 0x000a

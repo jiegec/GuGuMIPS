@@ -2,6 +2,8 @@ TARGET ?= mipsel-linux-gnu
 CFLAGS ?= --std=c++14
 VERILATOR ?= verilator
 VERILATOR_FLAGS ?= -Wall -Wno-fatal -trace -CFLAGS $(CFLAGS)
+INSTS ?= inst_ori.mem inst_andi.mem inst_j.mem
+TESTS ?= test_bit.mem test_jump.mem
 
 # disable builtin rules
 .SUFFIEXES:
@@ -19,7 +21,9 @@ VERILATOR_FLAGS ?= -Wall -Wno-fatal -trace -CFLAGS $(CFLAGS)
 %.mem: %.bin %.gen.s
 	xxd -p $< | tr -d '\n' | fold -w8 > $@
 
+.PHONY: clean
 clean:
 	rm -f *.bin *.o *.mem *.gen.s
 
-all: inst_ori.mem inst_andi.mem inst_j.mem test_bit.mem
+.PHONY: all
+all: $(INSTS) $(TESTS)

@@ -92,7 +92,7 @@ endfunction
 string path=get_path_from_file(`__FILE__);
 
 task test(string name);
-    integer i, fans, pass = 1;
+    integer i, fans, pass, line;
     string out, ans;
     string mem;
 
@@ -107,12 +107,15 @@ task test(string name);
         $finish;
     end
 
+    mips_0.pc_reg0.reset_pc = 0;
     begin
         rst = 1'b1;
         #50 rst = 1'b0;
     end
 
     $display("Testing %0s", name);
+    pass = 1;
+    line = 1;
     while (!$feof(fans))
     begin
         @ (negedge clk);
@@ -120,9 +123,10 @@ task test(string name);
             $sformat(out, "$%0d=0x%x", debug_wb_rf_wnum, debug_wb_rf_wdata);
             $fscanf(fans, "%s\n", ans);
             if (out != ans) begin
-                $display("Error: @ %x Expected: %0s, Got: %0s", debug_wb_pc, ans, out);
+                $display("Error(%3d): @ %x Expected: %0s, Got: %0s", line, debug_wb_pc, ans, out);
                 pass = 0;
             end
+            line = line + 1;
         end
     end
 
@@ -141,10 +145,14 @@ end
 always clk = #5 ~clk;
 
 initial begin
+    // bit
     test("inst_ori");
     test("inst_andi");
     test("test_bit");
+
+    // jump
     test("inst_j");
+    test("test_jump");
     $finish;
 end
 
