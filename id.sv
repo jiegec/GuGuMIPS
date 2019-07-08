@@ -445,7 +445,7 @@ module id(
           end
 
           // branch
-          `EXE_BEQ: begin
+          `EXE_BEQ: begin // r1 == r2
             wreg_o = `WriteDisable;
             aluop_o = `EXE_BEQ_OP;
             alusel_o = `EXE_RES_JUMP_BRANCH;
@@ -457,6 +457,106 @@ module id(
               branch_flag_o = 1;
               next_inst_in_delayslot_o = 1;
             end
+          end
+          `EXE_BGTZ: begin // r > 0
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_BGTZ_OP;
+            alusel_o = `EXE_RES_JUMP_BRANCH;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            instvalid = 1;
+            if ((reg1_o[31] == 1'b0) && (reg1_o != `ZeroWord)) begin
+              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+              branch_flag_o = 1;
+              next_inst_in_delayslot_o = 1;
+            end
+          end
+          `EXE_BLEZ: begin // r <= 0
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_BLEZ_OP;
+            alusel_o = `EXE_RES_JUMP_BRANCH;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            instvalid = 1;
+            if ((reg1_o[31] == 1'b1) || (reg1_o != `ZeroWord)) begin
+              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+              branch_flag_o = 1;
+              next_inst_in_delayslot_o = 1;
+            end
+          end
+          `EXE_BNE: begin // r1 != r2
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_BNE_OP;
+            alusel_o = `EXE_RES_JUMP_BRANCH;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = 1;
+            if (reg1_o != reg2_o) begin
+              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+              branch_flag_o = 1;
+              next_inst_in_delayslot_o = 1;
+            end
+          end
+
+          `EXE_REGIMM_INST: begin
+            case (op4)
+              `EXE_BGEZ: begin // r1 >= 0
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_BGEZ_OP;
+                alusel_o = `EXE_RES_JUMP_BRANCH;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                instvalid = 1;
+                if (reg1_o[31] == 1'b0) begin
+                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+                  branch_flag_o = 1;
+                  next_inst_in_delayslot_o = 1;
+                end
+              end
+              `EXE_BGEZAL: begin // r1 >= 0, link $31
+                wreg_o = `WriteEnable;
+                aluop_o = `EXE_BGEZAL_OP;
+                alusel_o = `EXE_RES_JUMP_BRANCH;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                link_addr_o = pc_plus_8;
+                wd_o = 5'b11111;
+                instvalid = 1;
+                if (reg1_o[31] == 1'b0) begin
+                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+                  branch_flag_o = 1;
+                  next_inst_in_delayslot_o = 1;
+                end
+              end
+              `EXE_BLTZ: begin // r1 < 0
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_BLTZ_OP;
+                alusel_o = `EXE_RES_JUMP_BRANCH;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                instvalid = 1;
+                if (reg1_o[31] == 1'b1) begin
+                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+                  branch_flag_o = 1;
+                  next_inst_in_delayslot_o = 1;
+                end
+              end
+              `EXE_BLTZAL: begin // r1 < 0, link $31
+                wreg_o = `WriteEnable;
+                aluop_o = `EXE_BLTZAL_OP;
+                alusel_o = `EXE_RES_JUMP_BRANCH;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                link_addr_o = pc_plus_8;
+                wd_o = 5'b11111;
+                instvalid = 1;
+                if (reg1_o[31] == 1'b1) begin
+                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+                  branch_flag_o = 1;
+                  next_inst_in_delayslot_o = 1;
+                end
+              end
+            endcase // op4 case
           end
 
           `EXE_SPECIAL2_INST: begin
