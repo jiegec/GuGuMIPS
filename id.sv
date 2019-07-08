@@ -89,6 +89,7 @@ module id(
             case (op2)
               5'b00000:  begin
                 case (op3)
+                  // bit
                   `EXE_OR:  begin
                     wreg_o = `WriteEnable;
                     aluop_o = `EXE_OR_OP;
@@ -145,6 +146,7 @@ module id(
                     reg2_read_o = 1'b1; // read 2nd operand from rt
                     instvalid = `InstValid;
                   end
+
                   // nop
                   `EXE_SYNC:  begin
                     wreg_o = `WriteDisable;
@@ -154,6 +156,8 @@ module id(
                     reg2_read_o = 1'b0;
                     instvalid = `InstValid;
                   end
+
+                  // move
                   `EXE_MFHI: begin
                     wreg_o = `WriteEnable;
                     aluop_o = `EXE_MFHI_OP;
@@ -210,6 +214,8 @@ module id(
                       wreg_o = `WriteDisable;
                     end
                   end
+
+                  // jump
                   `EXE_JR: begin
                     wreg_o = `WriteDisable;
                     aluop_o = `EXE_JR_OP;
@@ -235,15 +241,81 @@ module id(
                     next_inst_in_delayslot_o = 1;
                     instvalid = 1;
                   end
+
+                  // arithmetic
+                  `EXE_SLT: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_SLT_OP;
+                    alusel_o = `EXE_RES_ARITHMETIC;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_SLTU: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_SLTU_OP;
+                    alusel_o = `EXE_RES_ARITHMETIC;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_ADD: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_ADD_OP;
+                    alusel_o = `EXE_RES_ARITHMETIC;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_ADDU: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_ADDU_OP;
+                    alusel_o = `EXE_RES_ARITHMETIC;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_SUB: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_SUB_OP;
+                    alusel_o = `EXE_RES_ARITHMETIC;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_SUBU: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_SUBU_OP;
+                    alusel_o = `EXE_RES_ARITHMETIC;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_MULT: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_MULT_OP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_MULTU: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_MULTU_OP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
                   default: begin
                     
                   end
-                endcase
+                endcase // op3 case
               end
               default: begin
               end
-            endcase
+            endcase // op2 case
           end
+
+          // bit
           `EXE_ORI: begin
             wreg_o = `WriteEnable;
             aluop_o = `EXE_OR_OP;
@@ -288,6 +360,30 @@ module id(
             wd_o = inst_i[20:16];
             instvalid = `InstValid;
           end
+
+          // arithmetic
+          `EXE_SLTI: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_SLT_OP;
+            alusel_o = `EXE_RES_ARITHMETIC;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            // sign extension
+            imm = {{16{inst_i[15]}}, inst_i[15:0]};
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+          `EXE_SLTIU: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_SLTU_OP;
+            alusel_o = `EXE_RES_ARITHMETIC;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            // sign extension
+            imm = {{16{inst_i[15]}}, inst_i[15:0]};
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
           `EXE_ADDI: begin
             wreg_o = `WriteEnable;
             aluop_o = `EXE_ADDI_OP;
@@ -310,6 +406,7 @@ module id(
             wd_o = inst_i[20:16];
             instvalid = `InstValid;
           end
+
           // nop
           `EXE_PREF: begin
             wreg_o = `WriteDisable;
@@ -319,6 +416,8 @@ module id(
             reg2_read_o = 1'b0;
             instvalid = `InstValid;
           end
+
+          // jump
           `EXE_J: begin
             wreg_o = `WriteDisable;
             aluop_o = `EXE_J_OP;
@@ -344,6 +443,8 @@ module id(
             instvalid = 1;
             branch_target_address_o = {pc_plus_4[31:28], inst_i[25:0], 2'b00};
           end
+
+          // branch
           `EXE_BEQ: begin
             wreg_o = `WriteDisable;
             aluop_o = `EXE_BEQ_OP;
@@ -357,9 +458,39 @@ module id(
               next_inst_in_delayslot_o = 1;
             end
           end
+
+          `EXE_SPECIAL2_INST: begin
+            case(op3)
+              // arithmetic
+              `EXE_CLZ: begin
+                wreg_o = `WriteEnable;
+                aluop_o = `EXE_CLZ_OP;
+                alusel_o = `EXE_RES_ARITHMETIC;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                instvalid = 1;
+              end
+              `EXE_CLO: begin
+                wreg_o = `WriteEnable;
+                aluop_o = `EXE_CLO_OP;
+                alusel_o = `EXE_RES_ARITHMETIC;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                instvalid = 1;
+              end
+              `EXE_MUL: begin
+                wreg_o = `WriteEnable;
+                aluop_o = `EXE_MUL_OP;
+                alusel_o = `EXE_RES_MUL;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b1;
+                instvalid = 1;
+              end
+            endcase // op3 case
+          end
           default: begin
           end
-        endcase
+        endcase // op case
 
         // sll, srl and sra
         if (inst_i[31:21] == 11'b0000000000) begin

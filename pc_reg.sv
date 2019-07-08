@@ -15,7 +15,7 @@ module pc_reg (
     logic[`RegBus] saved_branch_target_address_clk;
     logic saved_branch_flag_i_clk;
 
-    logic[`RegBus] reset_pc = 32'hbfc000000;
+    logic[`RegBus] reset_pc = 32'hbfc00000;
 
     always_ff @ (posedge clk) begin
       if (rst == `RstEnable) begin

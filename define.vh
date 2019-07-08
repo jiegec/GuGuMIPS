@@ -23,6 +23,7 @@
 // special, check op3
 `define EXE_MULT 6'b011000 // {hi, lo} <- rs * rt as signed
 `define EXE_MULTU 6'b011001 // {hi, lo} <- rs * rt as unsigned
+`define EXE_MUL 6'b000010 // rd <- rs * rt
 
 // check op
 `define EXE_ANDI 6'b001100
@@ -60,14 +61,15 @@
 `define EXE_MTLO 6'b010011 // lo <- rs
 
 // special, check op3
+`define EXE_SLT 6'b101010 // rd <- (rs < rt) as signed
+`define EXE_SLTU 6'b101011 // rd <- (rs < rt) as unsigned
 `define EXE_ADD 6'b100000 // rd <- rs + rt fail when overflow
 `define EXE_ADDU 6'b100001 // rd <- rs + rt
 `define EXE_SUB 6'b100010 // rd <- rs - rt fail when overflow
 `define EXE_SUBU 6'b100011 // rd <- rs - rt
-`define EXE_SLT 6'b101010 // rd <- (rs < rt) as signed
-`define EXE_SLTU 6'b101011 // rd <- (rs < rt) as unsigned
 
 `define EXE_SPECIAL_INST 6'b000000 // check op3 for sub type
+`define EXE_REGIMM_INST 6'b000001
 `define EXE_SPECIAL2_INST 6'b011100 // check op3 for sub type
 
 // these are implemented as nop
@@ -94,6 +96,7 @@
 `define EXE_BLTZAL 5'b10000
 `define EXE_BNE 6'b000101
 
+// just assign one by one, order is unrelated
 `define EXE_NOP_OP 8'b00000000
 `define EXE_AND_OP 8'b00000001
 `define EXE_OR_OP 8'b00000010
@@ -122,12 +125,23 @@
 `define EXE_JAL_OP 8'b00010101
 `define EXE_BEQ_OP 8'b00010110
 
+`define EXE_SLT_OP 8'b00010111
+`define EXE_SLTU_OP 8'b00011000
+`define EXE_ADD_OP 8'b00011001
+`define EXE_ADDU_OP 8'b00011010
+`define EXE_MULT_OP 8'b00011011
+`define EXE_MULTU_OP 8'b00011100
+`define EXE_MUL_OP 8'b00011101
+`define EXE_CLZ_OP 8'b00011110
+`define EXE_CLO_OP 8'b00011111
+
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001
 `define EXE_RES_SHIFT 3'b010
 `define EXE_RES_MOVE 3'b011
 `define EXE_RES_ARITHMETIC 3'b100
 `define EXE_RES_JUMP_BRANCH 3'b101
+`define EXE_RES_MUL 3'b110
 
 `define InstAddrBus 31:0
 `define InstBus 31:0
