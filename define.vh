@@ -78,6 +78,22 @@
 // this is sll in fact
 `define EXE_NOP 6'b000000
 
+// jump
+`define EXE_J 6'b000010
+`define EXE_JAL 6'b000011
+`define EXE_JALR 6'b001001
+`define EXE_JR 6'b001000
+
+// branch
+`define EXE_BEQ 6'b000100
+`define EXE_BGEZ 5'b00001
+`define EXE_BGEZAL 5'b10001
+`define EXE_BGTZ 5'b00111
+`define EXE_BLEZ 5'b00110
+`define EXE_BLTZ 5'b00000
+`define EXE_BLTZAL 5'b10000
+`define EXE_BNE 6'b000101
+
 `define EXE_NOP_OP 8'b00000000
 `define EXE_AND_OP 8'b00000001
 `define EXE_OR_OP 8'b00000010
@@ -100,11 +116,18 @@
 `define EXE_SUB_OP 8'b00010000
 `define EXE_SUBU_OP 8'b00010001
 
+`define EXE_JR_OP 8'b00010010
+`define EXE_JALR_OP 8'b00010011
+`define EXE_J_OP 8'b00010100
+`define EXE_JAL_OP 8'b00010101
+`define EXE_BEQ_OP 8'b00010110
+
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001
 `define EXE_RES_SHIFT 3'b010
 `define EXE_RES_MOVE 3'b011
 `define EXE_RES_ARITHMETIC 3'b100
+`define EXE_RES_JUMP_BRANCH 3'b101
 
 `define InstAddrBus 31:0
 `define InstBus 31:0

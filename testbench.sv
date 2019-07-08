@@ -120,7 +120,7 @@ task test(string name);
             $sformat(out, "$%0d=0x%x", debug_wb_rf_wnum, debug_wb_rf_wdata);
             $fscanf(fans, "%s\n", ans);
             if (out != ans) begin
-                $display("Error: Expected: %0s, Got: %0s", ans, out);
+                $display("Error: @ %x Expected: %0s, Got: %0s", debug_wb_pc, ans, out);
                 pass = 0;
             end
         end
@@ -144,7 +144,7 @@ initial begin
     test("inst_ori");
     test("inst_andi");
     test("test_bit");
-    test("inst_b");
+    test("inst_j");
     $finish;
 end
 

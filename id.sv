@@ -26,7 +26,14 @@ module id(
 
     input wire mem_wreg_i, // the one before last
     input wire[`RegBus] mem_wdata_i,
-    input wire[`RegAddrBus] mem_wd_i
+    input wire[`RegAddrBus] mem_wd_i,
+
+    input is_in_delayslot_i,
+    output logic next_inst_in_delayslot_o,
+    output logic branch_flag_o,
+    output logic[`RegBus] branch_target_address_o,
+    output logic[`RegBus] link_addr_o,
+    output logic is_in_delayslot_o
 );
     wire[5:0] op = inst_i[31:26]; // op type
     wire[4:0] op2 = inst_i[10:6];
@@ -35,6 +42,15 @@ module id(
 
     reg[`RegBus] imm;
     reg instvalid;
+
+    logic[`RegBus] pc_plus_8;
+    logic[`RegBus] pc_plus_4;
+    logic[`RegBus] imm_sll2_signedext;
+
+    assign pc_plus_8 = pc_i + 8;
+    assign pc_plus_4 = pc_i + 4;
+
+    assign imm_sll2_signedext = {{14{inst_i[15]}}, inst_i[15:0], 2'b00};
 
     always_comb begin
       if (rst == `RstEnable) begin
@@ -48,6 +64,10 @@ module id(
         reg1_addr_o = `NOPRegAddr;
         reg2_addr_o = `NOPRegAddr;
         imm = `ZeroWord;
+        next_inst_in_delayslot_o = 0;
+        branch_flag_o = 0;
+        branch_target_address_o = 0;
+        link_addr_o = 0;
       end else begin
         aluop_o = `EXE_NOP_OP;
         alusel_o = `EXE_RES_NOP;
@@ -59,6 +79,10 @@ module id(
         reg1_addr_o = inst_i[25:21]; // default to rs
         reg2_addr_o = inst_i[20:16]; // default to rt
         imm = `ZeroWord;
+        link_addr_o = 0;
+        branch_target_address_o = 0;
+        branch_flag_o = 0;
+        next_inst_in_delayslot_o = 0;
 
         case (op)
           `EXE_SPECIAL_INST: begin
@@ -186,6 +210,31 @@ module id(
                       wreg_o = `WriteDisable;
                     end
                   end
+                  `EXE_JR: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_JR_OP;
+                    alusel_o = `EXE_RES_JUMP_BRANCH;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b0;
+                    link_addr_o = 0;
+                    branch_target_address_o = reg1_o;
+                    branch_flag_o = 1;
+                    next_inst_in_delayslot_o = 1;
+                    instvalid = 1;
+                  end
+                  `EXE_JALR: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_JALR_OP;
+                    alusel_o = `EXE_RES_JUMP_BRANCH;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b0;
+                    wd_o = inst_i[15:11];
+                    link_addr_o = pc_plus_8; // skip delay slot
+                    branch_target_address_o = reg1_o;
+                    branch_flag_o = 1;
+                    next_inst_in_delayslot_o = 1;
+                    instvalid = 1;
+                  end
                   default: begin
                     
                   end
@@ -270,6 +319,44 @@ module id(
             reg2_read_o = 1'b0;
             instvalid = `InstValid;
           end
+          `EXE_J: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_J_OP;
+            alusel_o = `EXE_RES_JUMP_BRANCH;
+            reg1_read_o = 1'b0;
+            reg2_read_o = 1'b0;
+            link_addr_o = 0;
+            branch_flag_o = 1;
+            next_inst_in_delayslot_o = 1;
+            instvalid = 1;
+            branch_target_address_o = {pc_plus_4[31:28], inst_i[25:0], 2'b00};
+          end
+          `EXE_JAL: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_JAL_OP;
+            alusel_o = `EXE_RES_JUMP_BRANCH;
+            reg1_read_o = 1'b0;
+            reg2_read_o = 1'b0;
+            wd_o = 5'b11111; // last register
+            link_addr_o = pc_plus_8; // skip delay slot
+            branch_flag_o = 1;
+            next_inst_in_delayslot_o = 1;
+            instvalid = 1;
+            branch_target_address_o = {pc_plus_4[31:28], inst_i[25:0], 2'b00};
+          end
+          `EXE_BEQ: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_BEQ_OP;
+            alusel_o = `EXE_RES_JUMP_BRANCH;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = 1;
+            if (reg1_o == reg2_o) begin
+              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
+              branch_flag_o = 1;
+              next_inst_in_delayslot_o = 1;
+            end
+          end
           default: begin
           end
         endcase
@@ -349,6 +436,14 @@ module id(
         reg2_o = imm;
       end else begin
         reg2_o = `ZeroWord;
+      end
+    end
+
+    always_comb begin
+      if (rst == `RstEnable) begin
+        is_in_delayslot_o = 0;
+      end else begin
+        is_in_delayslot_o = is_in_delayslot_i;
       end
     end
 

@@ -31,6 +31,8 @@ module mips(
 );
 
     wire[`InstAddrBus] pc;
+    wire branch_flag;
+    wire[`RegBus] branch_target_address;
 
     wire[`InstAddrBus] rom_data;
     wire[`InstAddrBus] id_pc_i;
@@ -45,6 +47,10 @@ module mips(
     wire[`RegBus] id_reg2_o;
     wire id_wreg_o;
     wire[`RegAddrBus] id_wd_o;
+    wire id_is_in_delayslot_o;
+    wire next_inst_in_delayslot;
+    wire[`RegBus] id_link_addr;
+    wire id_is_in_delayslot_i;
 
     wire[`AluOpBus] ex_aluop_i;
     wire[`AluSelBus] ex_alusel_i;
@@ -54,6 +60,8 @@ module mips(
     wire[`RegAddrBus] ex_wd_i;
     wire[`RegBus] ex_hi_i;
     wire[`RegBus] ex_lo_i;
+    wire[`RegBus] ex_link_address;
+    wire ex_is_in_delayslot;
 
     wire ex_wreg_o;
     wire[`RegAddrBus] ex_wd_o;
@@ -112,7 +120,8 @@ module mips(
     end
 
     pc_reg pc_reg0(.clk(clk), .rst(rst),
-                    .pc(pc), .en(en_pc));
+                    .pc(pc), .en(en_pc),
+                    .branch_flag_i(branch_flag), .branch_target_address_i(branch_target_address));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
         .addr(pc), .inst(rom_data), .stall(if_stall),
@@ -132,7 +141,10 @@ module mips(
             .reg1_o(id_reg1_o), .reg2_o(id_reg2_o),
             .wd_o(id_wd_o), .wreg_o(id_wreg_o),
             .ex_wd_i(ex_wd_o), .ex_wreg_i(ex_wreg_o), .ex_wdata_i(ex_wdata_o),
-            .mem_wd_i(mem_wd_o), .mem_wreg_i(mem_wreg_o), .mem_wdata_i(mem_wdata_o));
+            .mem_wd_i(mem_wd_o), .mem_wreg_i(mem_wreg_o), .mem_wdata_i(mem_wdata_o),
+            .is_in_delayslot_i(id_is_in_delayslot_i), .is_in_delayslot_o(id_is_in_delayslot_o),
+            .next_inst_in_delayslot_o(next_inst_in_delayslot), .branch_flag_o(branch_flag),
+            .branch_target_address_o(branch_target_address), .link_addr_o(id_link_addr));
 
     regfile regfile0(.clk(clk), .rst(rst),
                     .we(wb_wreg_i), .waddr(wb_wd_i),
@@ -143,14 +155,18 @@ module mips(
 
     id_ex id_ex0(.clk(clk), .rst(rst), .en(en_id_ex),
                 .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o), .id_pc(id_pc_i),
-                .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i), .ex_pc(ex_pc)
+                .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i), .ex_pc(ex_pc),
+                .id_is_in_delayslot(id_is_in_delayslot_o), .id_link_address(id_link_addr),
+                .next_inst_in_delayslot_i(next_inst_in_delayslot), .ex_link_address(ex_link_address),
+                .ex_is_in_delayslot(ex_is_in_delayslot), .is_in_delayslot_o(id_is_in_delayslot_i)
     );
 
     ex ex0(.rst(rst), .aluop_i(ex_aluop_i), .alusel_i(ex_alusel_i), .reg1_i(ex_reg1_i), .reg2_i(ex_reg2_i), .wd_i(ex_wd_i), .wreg_i(ex_wreg_i),
            .wd_o(ex_wd_o), .wreg_o(ex_wreg_o), .wdata_o(ex_wdata_o),
            .hi_i(ex_hi_i), .lo_i(ex_lo_i), .whilo_o(ex_whilo_o), .hi_o(ex_hi_o), .lo_o(ex_lo_o),
            .mem_whilo_i(mem_whilo_i), .mem_hi_i(mem_hi_i), .mem_lo_i(mem_lo_i),
-           .wb_whilo_i(wb_whilo_i), .wb_hi_i(wb_hi_i), .wb_lo_i(wb_lo_i));
+           .wb_whilo_i(wb_whilo_i), .wb_hi_i(wb_hi_i), .wb_lo_i(wb_lo_i),
+           .is_in_delayslot_i(ex_is_in_delayslot), .link_address_i(ex_link_address));
 
     ex_mem ex_mem0(.clk(clk), .rst(rst), .en(en_ex_mm), .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),
                    .mem_wd(mem_wd_i), .mem_wreg(mem_wreg_i), .mem_wdata(mem_wdata_i), .mem_pc(mem_pc),
