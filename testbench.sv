@@ -159,6 +159,9 @@ initial begin
     // jump
     test("inst_j");
     test("test_jump");
+
+    // arith
+    test("test_arith");
     $finish;
 end
 
