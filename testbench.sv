@@ -153,6 +153,9 @@ initial begin
     // shift
     test("test_shift");
 
+    // move
+    test("test_move");
+
     // jump
     test("inst_j");
     test("test_jump");

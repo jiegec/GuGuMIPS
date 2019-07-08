@@ -1,7 +1,7 @@
-	.org 0x0
-	.global _start
-	.set noat
-	.set noreorder
+    .org 0x0
+    .global _start
+    .set noat
+    .set noreorder
 _start:
     ori $1, $0, 0x0001
     j 0x20
