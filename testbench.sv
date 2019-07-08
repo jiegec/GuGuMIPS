@@ -92,7 +92,7 @@ endfunction
 string path=get_path_from_file(`__FILE__);
 
 task test(string name);
-    integer i, fans;
+    integer i, fans, pass = 1;
     string out, ans;
     string mem;
 
@@ -121,11 +121,17 @@ task test(string name);
             $fscanf(fans, "%s\n", ans);
             if (out != ans) begin
                 $display("Error: Expected: %0s, Got: %0s", ans, out);
+                pass = 0;
             end
         end
     end
 
-    $display("Passed %0s", name);
+    if (pass == 1) begin
+        $display("Passed %0s", name);
+    end else begin
+        $display("Failed %0s", name);
+        $finish;
+    end
 endtask
 
 initial begin
@@ -137,6 +143,8 @@ always clk = #5 ~clk;
 initial begin
     test("inst_ori");
     test("inst_andi");
+    test("test_bit");
+    test("inst_b");
     $finish;
 end
 
