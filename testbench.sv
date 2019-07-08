@@ -150,6 +150,9 @@ initial begin
     test("inst_andi");
     test("test_bit");
 
+    // shift
+    test("test_shift");
+
     // jump
     test("inst_j");
     test("test_jump");

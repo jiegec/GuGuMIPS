@@ -3,7 +3,7 @@ CFLAGS ?= --std=c++14
 VERILATOR ?= verilator
 VERILATOR_FLAGS ?= -Wall -Wno-fatal -trace -CFLAGS $(CFLAGS)
 INSTS ?= inst_ori.mem inst_andi.mem inst_j.mem
-TESTS ?= test_bit.mem test_jump.mem
+TESTS ?= test_bit.mem test_jump.mem test_shift.mem
 
 # disable builtin rules
 .SUFFIEXES:
@@ -16,7 +16,7 @@ TESTS ?= test_bit.mem test_jump.mem
 	$(TARGET)-objcopy -O binary $^ -j .text $@
 
 %.gen.s: %.o
-	$(TARGET)-objdump -D $^ > $@
+	$(TARGET)-objdump -D $^ -M no-aliases,gpr-names=numeric > $@
 
 %.mem: %.bin %.gen.s
 	xxd -p $< | tr -d '\n' | fold -w8 > $@
