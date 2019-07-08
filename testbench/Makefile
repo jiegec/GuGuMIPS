@@ -21,3 +21,5 @@ VERILATOR_FLAGS ?= -Wall -Wno-fatal -trace -CFLAGS $(CFLAGS)
 
 clean:
 	rm -f *.bin *.o *.mem *.gen.s
+
+all: inst_ori.mem inst_andi.mem inst_j.mem test_bit.mem
