@@ -48,9 +48,7 @@ module ifetch(
             last_data_ok <= inst_data_ok;
             case (state)
                 0: begin
-                    if (en) begin
-                        state <= 1;
-                    end
+                    state <= 1;
                 end
                 1: begin
                     if (inst_data_ok) begin
