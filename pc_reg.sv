@@ -25,17 +25,9 @@ module pc_reg (
 
     always_ff @ (posedge clk) begin
       if (rst == `RstEnable) begin
+        pc <= reset_pc;
         saved_branch_target_address_clk <= 0;
         saved_branch_flag_i_clk <= 0;
-      end else if (branch_flag_i) begin
-        saved_branch_target_address_clk <= branch_target_address_i;
-        saved_branch_flag_i_clk <= 1;
-      end
-    end
-
-    always_ff @ (posedge clk) begin
-      if (rst == `RstEnable) begin
-        pc <= reset_pc;
       end else if (en) begin
         if (saved_branch_flag_i_clk) begin
           saved_branch_target_address_clk <= 0;
@@ -44,6 +36,9 @@ module pc_reg (
         end else begin
           pc <= pc + 32'h00000004;
         end
+      end else if (branch_flag_i) begin
+        saved_branch_target_address_clk <= branch_target_address_i;
+        saved_branch_flag_i_clk <= 1;
       end
     end
 
