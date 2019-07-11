@@ -4,9 +4,10 @@
     .set noreorder
 _start:
     ori $1, $0, 0x8000      # ans: $1=0x00008000
+    ori $3, $0, 0x0000      # ans: $3=0x00000000
     syscall
     ori $2, $0, 0x1234      # ans: $2=0x00001234
-    ori $2, $29, 0x0000     # ans: $2=0x0x00000008
+    ori $2, $29, 0x0000     # ans: $2=0x00000008
     syscall
     ori $2, $3, 0x1234      # ans: $2=0x1234
     ori $2, $29, 0x0000     # ans: $2=0x00000008

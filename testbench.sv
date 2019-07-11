@@ -120,7 +120,7 @@ task test(string name);
 
     // config
     stop_on_error = 0;
-    debug = 0;
+    debug = 1;
 
     while (!$feof(fans))
     begin
@@ -129,7 +129,7 @@ task test(string name);
             $sformat(out, "$%0d=0x%x", debug_wb_rf_wnum, debug_wb_rf_wdata);
             $fscanf(fans, "%s\n", ans);
             if (debug) begin
-                $display("Debug @ %x Got: %0s", debug_wb_pc, out);
+                $display("Debug @ %x Excepted: %0s, Got: %0s", debug_wb_pc, ans, out);
             end
             if (out != ans && ans != "skip") begin
                 $display("Error(%3d): @ %x Expected: %0s, Got: %0s", line, debug_wb_pc, ans, out);
@@ -180,6 +180,7 @@ initial begin
 
     // exception
     test("inst_syscall");
+    test("test_trap");
     $finish;
 end
 
