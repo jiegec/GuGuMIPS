@@ -35,7 +35,11 @@ module id(
     output logic[`RegBus] link_addr_o,
     output logic is_in_delayslot_o,
 
-    output logic [31:0] except_type_o
+    output logic [31:0] except_type_o,
+
+    // memory
+    output wire [`RegBus] inst_o
+
 );
     wire[5:0] op = inst_i[31:26]; // op type
     wire[4:0] op2 = inst_i[10:6];
@@ -58,6 +62,8 @@ module id(
     logic except_type_is_eret;
 
     assign except_type_o = {19'b0, except_type_is_eret, 2'b0, ~instvalid, except_type_is_syscall, 8'b0};
+
+    assign inst_o = inst_i;
 
     always_comb begin
       if (rst == `RstEnable) begin
@@ -559,6 +565,121 @@ module id(
               branch_flag_o = 1;
               next_inst_in_delayslot_o = 1;
             end
+          end
+
+          `EXE_LB: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LB_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+
+          `EXE_LBU: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LBU_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+
+          `EXE_LH: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LH_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+
+          `EXE_LHU: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LHU_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+
+          `EXE_LW: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LW_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+
+          `EXE_LWL: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LWL_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+
+          `EXE_LWR: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LWR_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+
+          `EXE_SB: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_SB_OP;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = `InstValid;
+            alusel_o = `EXE_RES_LOAD_STORE;
+          end
+
+          `EXE_SH: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_SH_OP;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = `InstValid;
+            alusel_o = `EXE_RES_LOAD_STORE;
+          end
+
+          `EXE_SW: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_SW_OP;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = `InstValid;
+            alusel_o = `EXE_RES_LOAD_STORE;
+          end
+
+          `EXE_SWL: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_SWL_OP;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = `InstValid;
+            alusel_o = `EXE_RES_LOAD_STORE;
+          end
+
+          `EXE_SWR: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_SWR_OP;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = `InstValid;
+            alusel_o = `EXE_RES_LOAD_STORE;
           end
 
           `EXE_REGIMM_INST: begin

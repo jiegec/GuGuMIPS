@@ -113,6 +113,21 @@
 `define EXE_TNE 6'b110110
 `define EXE_TNEI 5'b01110
 
+// mem
+`define EXE_LB 6'b100000
+`define EXE_LBU 6'b100100
+`define EXE_LH 6'b100001
+`define EXE_LHU 6'b100101
+`define EXE_LW 6'b100011
+`define EXE_LWL 6'b100010
+`define EXE_LWR 6'b100110
+`define EXE_SB 6'b101000
+`define EXE_SH 6'b101001
+`define EXE_SW 6'b101001
+`define EXE_SWL 6'b101011
+`define EXE_SWR 6'b101110
+
+
 `define EXE_ERET 32'b01000010_00000000_00000000_00011000
 
 // just assign one by one, order is unrelated
@@ -183,6 +198,21 @@
 
 `define EXE_ERET_OP 8'b00110111
 
+`define EXE_LB_OP  8'b11100000
+`define EXE_LBU_OP  8'b11100100
+`define EXE_LH_OP  8'b11100001
+`define EXE_LHU_OP  8'b11100101
+`define EXE_LW_OP  8'b11100011
+`define EXE_LWL_OP  8'b11100010
+`define EXE_LWR_OP  8'b11100110
+`define EXE_PREF_OP  8'b11110011
+`define EXE_SB_OP  8'b11101000
+`define EXE_SH_OP  8'b11101001
+`define EXE_SW_OP  8'b11101011
+`define EXE_SWL_OP  8'b11101010
+`define EXE_SWR_OP  8'b11101110
+
+
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001
 `define EXE_RES_SHIFT 3'b010
@@ -190,6 +220,7 @@
 `define EXE_RES_ARITHMETIC 3'b100
 `define EXE_RES_JUMP_BRANCH 3'b101
 `define EXE_RES_MUL 3'b110
+`define EXE_RES_LOAD_STORE 3'b111	
 
 `define InstAddrBus 31:0
 `define InstBus 31:0
