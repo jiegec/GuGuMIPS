@@ -13,6 +13,18 @@ module mem(
     input wire[4:0] cp0_reg_write_addr_i,
     input wire[`RegBus] cp0_reg_data_i,
 
+    input [31:0] except_type_i,
+    input is_in_delayslot_i,
+    input [`RegBus] pc_i,
+
+    input [`RegBus] cp0_status_i,
+    input [`RegBus] cp0_cause_i,
+    input [`RegBus] cp0_epc_i,
+
+    input wb_cp0_reg_we,
+    input [4:0] wb_cp0_reg_write_addr,
+    input [`RegBus] wb_cp0_reg_data,
+
     output reg[`RegAddrBus] wd_o,
     output reg wreg_o,
     output reg[`RegBus] wdata_o,
@@ -23,35 +35,107 @@ module mem(
 
     output logic cp0_reg_we_o,
     output logic[4:0] cp0_reg_write_addr_o,
-    output logic[`RegBus] cp0_reg_data_o
+    output logic[`RegBus] cp0_reg_data_o,
+
+    output logic[31:0] except_type_o,
+    output logic[31:0] cp0_epc_o
 );
+  logic [31:0] cp0_status;
+  logic [31:0] cp0_cause;
+  logic [31:0] cp0_epc;
 
-    always_comb begin
-      if (rst == `RstEnable) begin
-        wd_o = `NOPRegAddr;
-        wreg_o = `WriteDisable;
-        wdata_o = `ZeroWord;
+  // handle data dependency
+  always_comb begin
+    if (rst == `RstEnable) begin
+      cp0_status = 0;
+    end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == `CP0_REG_STATUS) begin
+      cp0_status = wb_cp0_reg_data;
+    end else begin
+      cp0_status = cp0_status_i;
+    end
+  end
 
-        whilo_o = `WriteDisable;
-        hi_o = `ZeroWord;
-        lo_o = `ZeroWord;
+  always_comb begin
+    if (rst == `RstEnable) begin
+      cp0_epc = 0;
+    end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == `CP0_REG_EPC) begin
+      cp0_epc = wb_cp0_reg_data;
+    end else begin
+      cp0_epc = cp0_epc_i;
+    end
+  end
 
-        cp0_reg_we_o = 0;
-        cp0_reg_write_addr_o = 0;
-        cp0_reg_data_o = 0;
+  assign cp0_epc_o = cp0_epc;
+
+  always_comb begin
+    if (rst == `RstEnable) begin
+      cp0_cause = 0;
+    end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == `CP0_REG_EPC) begin
+      // IP[1:0]
+      cp0_cause[9:8] = wb_cp0_reg_data[9:8];
+      // WP
+      cp0_cause[22] = wb_cp0_reg_data[22];
+      // IV
+      cp0_cause[23] = wb_cp0_reg_data[23];
+    end else begin
+      cp0_cause = cp0_cause_i;
+    end
+  end
+
+  always_comb begin
+    if (rst == `RstEnable) begin
+      wd_o = `NOPRegAddr;
+      wreg_o = `WriteDisable;
+      wdata_o = `ZeroWord;
+
+      whilo_o = `WriteDisable;
+      hi_o = `ZeroWord;
+      lo_o = `ZeroWord;
+
+      cp0_reg_we_o = 0;
+      cp0_reg_write_addr_o = 0;
+      cp0_reg_data_o = 0;
+    end else begin
+      wd_o = wd_i;
+      wreg_o = wreg_i;
+      wdata_o = wdata_i;
+
+      whilo_o = whilo_i;
+      hi_o = hi_i;
+      lo_o = lo_i;
+
+      cp0_reg_we_o = cp0_reg_we_i;
+      cp0_reg_write_addr_o = cp0_reg_write_addr_i;
+      cp0_reg_data_o = cp0_reg_data_i;
+    end
+  end
+
+  always_comb begin
+    if (rst == `RstEnable) begin
+      except_type_o = 0;
+    end else begin
+      if (((cp0_cause[15:8] & (cp0_status[15:8])) != 8'h00) &&
+        (cp0_status[1] == 1'b0) && cp0_status[0] == 1'b1) begin
+        // interrupt
+        except_type_o = 32'h00000001;
+      end else if (except_type_i[8] == 1'b1) begin
+        // syscall
+        except_type_o = 32'h00000008;
+      end else if (except_type_i[9] == 1'b1) begin
+        // inst_valid
+        except_type_o = 32'h0000000a;
+      end else if (except_type_i[10] == 1'b1) begin
+        // trap
+        except_type_o = 32'h0000000d;
+      end else if (except_type_i[11] == 1'b1) begin
+        // overflow
+        except_type_o = 32'h0000000c;
+      end else if (except_type_i[12] == 1'b1) begin
+        // eret
+        except_type_o = 32'h0000000e;
       end else begin
-        wd_o = wd_i;
-        wreg_o = wreg_i;
-        wdata_o = wdata_i;
-
-        whilo_o = whilo_i;
-        hi_o = hi_i;
-        lo_o = lo_i;
-
-        cp0_reg_we_o = cp0_reg_we_i;
-        cp0_reg_write_addr_o = cp0_reg_write_addr_i;
-        cp0_reg_data_o = cp0_reg_data_i;
+        except_type_o = 32'h0;
       end
     end
-
+  end
 endmodule // mem

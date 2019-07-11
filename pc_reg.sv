@@ -4,14 +4,13 @@ module pc_reg (
     input rst,
     input en,
     input flush,
-    input [`RegBus] new_pc,
+    input [31:0] new_pc,
 
     input branch_flag_i,
     input [`RegBus] branch_target_address_i,
 
     output reg[`InstAddrBus] pc
 );
-
     logic first;
     // sync with clk
     logic[`RegBus] saved_branch_target_address_clk;
@@ -19,26 +18,31 @@ module pc_reg (
 
     logic[`RegBus] reset_pc = 32'hbfc00000;
 
+    logic [`InstAddrBus] out_pc;
+
     always_ff @ (posedge clk) begin
       if (rst == `RstEnable) begin
         first <= 1;
       end
     end
 
+    // when flushing, use new pc at once
+    assign pc = flush ? new_pc : out_pc;
+
     always_ff @ (posedge clk) begin
       if (rst == `RstEnable) begin
-        pc <= reset_pc;
+        out_pc <= reset_pc;
         saved_branch_target_address_clk <= 0;
         saved_branch_flag_i_clk <= 0;
       end else if (flush) begin
-        pc <= new_pc;
+        out_pc <= new_pc;
       end else if (en) begin
         if (saved_branch_flag_i_clk) begin
           saved_branch_target_address_clk <= 0;
           saved_branch_flag_i_clk <= 0;
-          pc <= saved_branch_target_address_clk;
+          out_pc <= saved_branch_target_address_clk;
         end else begin
-          pc <= pc + 32'h00000004;
+          out_pc <= out_pc + 32'h00000004;
         end
       end else if (branch_flag_i) begin
         saved_branch_target_address_clk <= branch_target_address_i;

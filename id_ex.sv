@@ -3,6 +3,7 @@ module id_ex(
   input wire clk,
   input wire rst,
   input wire en,
+  input wire flush,
 
   input wire[`AluOpBus] id_aluop,
   input wire[`AluSelBus] id_alusel,
@@ -15,6 +16,7 @@ module id_ex(
   input wire id_is_in_delayslot,
   input wire[`RegBus] id_link_address,
   input wire next_inst_in_delayslot_i,
+  input [31:0] id_except_type,
 
   output reg[`AluOpBus] ex_aluop,
   output reg[`AluSelBus] ex_alusel,
@@ -26,11 +28,12 @@ module id_ex(
   output reg[`InstBus]ex_inst,
   output reg[`RegBus] ex_link_address,
   output reg ex_is_in_delayslot,
-  output reg is_in_delayslot_o
+  output reg is_in_delayslot_o,
+  output logic [31:0] ex_except_type
 );
 
     always_ff @(posedge clk) begin
-        if (rst == `RstEnable) begin
+        if (rst == `RstEnable || flush) begin
           ex_aluop <= `EXE_NOP_OP;
           ex_alusel <= `EXE_RES_NOP;
           ex_reg1 <= `ZeroWord;
@@ -43,6 +46,8 @@ module id_ex(
           ex_link_address <= 0;
           ex_is_in_delayslot <= 0;
           is_in_delayslot_o <= 0;
+
+          ex_except_type <= 0;
         end else if (en) begin
           ex_aluop <= id_aluop;
           ex_alusel <= id_alusel;
@@ -56,6 +61,8 @@ module id_ex(
           ex_link_address <= id_link_address;
           ex_is_in_delayslot <= id_is_in_delayslot;
           is_in_delayslot_o <= next_inst_in_delayslot_i;
+
+          ex_except_type <= id_except_type;
         end
     end
 

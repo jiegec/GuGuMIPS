@@ -3,6 +3,7 @@ module ex_mem(
   input wire clk,
   input wire rst,
   input wire en,
+  input wire flush,
 
   input wire[`RegAddrBus] ex_wd,
   input wire ex_wreg,
@@ -17,6 +18,9 @@ module ex_mem(
   input wire[4:0] ex_cp0_reg_write_addr,
   input wire[`RegBus] ex_cp0_reg_data,
 
+  input [31:0] ex_except_type,
+  input ex_is_in_delayslot,
+
   output reg[`RegAddrBus] mem_wd,
   output reg mem_wreg,
   output reg[`RegBus] mem_wdata,
@@ -28,11 +32,14 @@ module ex_mem(
 
   output logic mem_cp0_reg_we,
   output logic[4:0] mem_cp0_reg_write_addr,
-  output logic[`RegBus] mem_cp0_reg_data
+  output logic[`RegBus] mem_cp0_reg_data,
+
+  output logic [31:0] mem_except_type,
+  output logic mem_is_in_delayslot
 );
 
     always_ff @(posedge clk) begin
-        if (rst == `RstEnable) begin
+        if (rst == `RstEnable || flush) begin
             mem_wd <= `NOPRegAddr;
             mem_wreg <= `WriteDisable;
             mem_wdata <= `ZeroWord;
@@ -46,6 +53,9 @@ module ex_mem(
             mem_cp0_reg_we <= 0;
             mem_cp0_reg_write_addr <= 0;
             mem_cp0_reg_data <= 0;
+
+            mem_except_type <= 0;
+            mem_is_in_delayslot <= 0;
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -60,6 +70,9 @@ module ex_mem(
             mem_cp0_reg_we <= ex_cp0_reg_we;
             mem_cp0_reg_write_addr <= ex_cp0_reg_write_addr;
             mem_cp0_reg_data <= ex_cp0_reg_data;
+
+            mem_except_type <= ex_except_type;
+            mem_is_in_delayslot <= ex_is_in_delayslot;
         end
     end
 

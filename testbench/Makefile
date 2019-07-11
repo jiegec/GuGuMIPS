@@ -2,7 +2,7 @@ TARGET ?= mipsel-linux-gnu
 CFLAGS ?= --std=c++14
 VERILATOR ?= verilator
 VERILATOR_FLAGS ?= -Wall -Wno-fatal -trace -CFLAGS $(CFLAGS)
-INSTS ?= inst_ori.mem inst_andi.mem inst_j.mem
+INSTS ?= inst_ori.mem inst_andi.mem inst_j.mem inst_syscall.mem
 TESTS ?= test_bit.mem test_jump.mem test_shift.mem test_move.mem test_arith.mem test_cp0.mem
 
 # disable builtin rules

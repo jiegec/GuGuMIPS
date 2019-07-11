@@ -3,13 +3,16 @@
 module cp0_reg(
     input clk,
     input rst,
+    input [5:0] int_i,
 
     input we_i,
     input [4:0] waddr_i,
     input [4:0] raddr_i,
     input [`RegBus] data_i,
-    
-    input [5:0] int_i,
+
+    input [31:0] except_type_i,
+    input [`RegBus] pc_i,
+    input is_in_delayslot_i,
 
     output logic [`RegBus] data_o,
     output logic [`RegBus] count_o,
@@ -73,6 +76,97 @@ module cp0_reg(
                     end
                 endcase
             end
+            case (except_type_i)
+                32'h00000001: begin
+                    // interrupt
+                    if (is_in_delayslot_i) begin
+                        epc_o <= pc_i - 4;
+                        cause_o[31] <= 1'b1;
+                    end else begin
+                        epc_o <= pc_i;
+                        cause_o[31] <= 1'b0;
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 0
+                    cause_o[6:2] <= 5'b00000;
+                end
+                32'h00000008: begin
+                    // syscall
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 8
+                    cause_o[6:2] <= 5'b01000;
+                end
+                32'h0000000a: begin
+                    // inst invalid
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 10
+                    cause_o[6:2] <= 5'b01010;
+                end
+                32'h0000000d: begin
+                    // trap
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 11
+                    cause_o[6:2] <= 5'b01011;
+                end
+                32'h0000000c: begin
+                    // overflow
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 11
+                    cause_o[6:2] <= 5'b01100;
+                end
+                32'h0000000e: begin
+                    // eret
+                    // EXL = 0
+                    status_o[1] <= 1'b0;
+                end
+                default: begin
+                end
+            endcase
         end
     end
 

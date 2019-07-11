@@ -33,7 +33,9 @@ module id(
     output logic branch_flag_o,
     output logic[`RegBus] branch_target_address_o,
     output logic[`RegBus] link_addr_o,
-    output logic is_in_delayslot_o
+    output logic is_in_delayslot_o,
+
+    output logic [31:0] except_type_o
 );
     wire[5:0] op = inst_i[31:26]; // op type
     wire[4:0] op2 = inst_i[10:6];
@@ -52,6 +54,11 @@ module id(
 
     assign imm_sll2_signedext = {{14{inst_i[15]}}, inst_i[15:0], 2'b00};
 
+    logic except_type_is_syscall;
+    logic except_type_is_eret;
+
+    assign except_type_o = {19'b0, except_type_is_eret, 2'b0, ~instvalid, except_type_is_syscall, 8'b0};
+
     always_comb begin
       if (rst == `RstEnable) begin
         aluop_o = `EXE_NOP_OP;
@@ -68,6 +75,9 @@ module id(
         branch_flag_o = 0;
         branch_target_address_o = 0;
         link_addr_o = 0;
+
+        except_type_is_eret = 0;
+        except_type_is_syscall = 0;
       end else begin
         aluop_o = `EXE_NOP_OP;
         alusel_o = `EXE_RES_NOP;
@@ -83,6 +93,8 @@ module id(
         branch_target_address_o = 0;
         branch_flag_o = 0;
         next_inst_in_delayslot_o = 0;
+        except_type_is_eret = 0;
+        except_type_is_syscall = 0;
 
         case (op)
           `EXE_SPECIAL_INST: begin
@@ -305,6 +317,57 @@ module id(
                     reg2_read_o = 1'b1;
                     instvalid = 1;
                   end
+
+                  // trap
+                  `EXE_TEQ: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_TEQ_OP;
+                    alusel_o = `EXE_RES_NOP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_TGE: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_TGE_OP;
+                    alusel_o = `EXE_RES_NOP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_TLT: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_TLT_OP;
+                    alusel_o = `EXE_RES_NOP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_TLTU: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_TLTU_OP;
+                    alusel_o = `EXE_RES_NOP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_TNE: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_TNE_OP;
+                    alusel_o = `EXE_RES_NOP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_SYSCALL: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_SYSCALL_OP;
+                    alusel_o = `EXE_RES_NOP;
+                    reg1_read_o = 1'b0;
+                    reg2_read_o = 1'b0;
+                    instvalid = 1;
+                    except_type_is_syscall = 1;
+                  end
                   default: begin
                     
                   end
@@ -500,6 +563,7 @@ module id(
 
           `EXE_REGIMM_INST: begin
             case (op4)
+              // branch
               `EXE_BGEZ: begin // r1 >= 0
                 wreg_o = `WriteDisable;
                 aluop_o = `EXE_BGEZ_OP;
@@ -555,6 +619,62 @@ module id(
                   branch_flag_o = 1;
                   next_inst_in_delayslot_o = 1;
                 end
+              end
+
+              // trap
+              `EXE_TEQI: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_TEQI_OP;
+                alusel_o = `EXE_RES_NOP;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                imm = {{16{inst_i[15]}}, inst_i[15:0]};
+                instvalid = 1;
+              end
+              `EXE_TGEI: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_TGEI_OP;
+                alusel_o = `EXE_RES_NOP;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                imm = {{16{inst_i[15]}}, inst_i[15:0]};
+                instvalid = 1;
+              end
+              `EXE_TGEIU: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_TGEIU_OP;
+                alusel_o = `EXE_RES_NOP;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                imm = {{16{inst_i[15]}}, inst_i[15:0]};
+                instvalid = 1;
+              end
+              `EXE_TLTI: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_TLTI_OP;
+                alusel_o = `EXE_RES_NOP;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                imm = {{16{inst_i[15]}}, inst_i[15:0]};
+                instvalid = 1;
+              end
+              `EXE_TLTIU: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_TLTIU_OP;
+                alusel_o = `EXE_RES_NOP;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                imm = {{16{inst_i[15]}}, inst_i[15:0]};
+                instvalid = 1;
+              end
+              `EXE_TNEI: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_TNEI_OP;
+                alusel_o = `EXE_RES_NOP;
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b0;
+                imm = {{16{inst_i[15]}}, inst_i[15:0]};
+                instvalid = 1;
               end
             endcase // op4 case
           end
@@ -622,10 +742,7 @@ module id(
             wd_o = inst_i[15:11];
             instvalid = `InstValid;
           end
-        end
-
-        // mfc0 & mtc0
-        if (inst_i[31:21] == 11'b01000000000 &&
+        end else if (inst_i[31:21] == 11'b01000000000 &&
           inst_i[10:0] == 11'b00000000000) begin
           // mfc0
           aluop_o = `EXE_MFC0_OP;
@@ -645,6 +762,15 @@ module id(
           reg1_read_o = 1'b1;
           reg1_addr_o = inst_i[20:16];
           reg2_read_o = 1'b0;
+        end else if (inst_i == `EXE_ERET) begin
+          // eret
+          wreg_o = `WriteDisable;
+          aluop_o = `EXE_ERET_OP;
+          alusel_o = `EXE_RES_NOP;
+          reg1_read_o = 1'b0;
+          reg2_read_o = 1'b0;
+          instvalid = 1;
+          except_type_is_eret = 1;
         end
 
         if (instvalid == `InstInvalid) begin

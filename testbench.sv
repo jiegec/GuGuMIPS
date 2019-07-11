@@ -31,6 +31,7 @@ logic [31:0] debug_wb_rf_wdata;
 mips mips_0(
     .clk(clk),
     .rst(rst),
+    .intr(6'b0),
     .inst_req(inst_req),
     .inst_wr(inst_wr),
     .inst_size(inst_size),
@@ -92,7 +93,7 @@ endfunction
 string path=get_path_from_file(`__FILE__);
 
 task test(string name);
-    integer i, fans, pass, line;
+    integer i, fans, pass, line, stop_on_error, debug;
     string out, ans;
     string mem;
 
@@ -116,15 +117,26 @@ task test(string name);
     $display("Testing %0s", name);
     pass = 1;
     line = 1;
+
+    // config
+    stop_on_error = 0;
+    debug = 0;
+
     while (!$feof(fans))
     begin
         @ (negedge clk);
         if (debug_wb_rf_wen && debug_wb_rf_wnum != 0) begin
             $sformat(out, "$%0d=0x%x", debug_wb_rf_wnum, debug_wb_rf_wdata);
             $fscanf(fans, "%s\n", ans);
-            if (out != ans) begin
+            if (debug) begin
+                $display("Debug @ %x Got: %0s", debug_wb_pc, out);
+            end
+            if (out != ans && ans != "skip") begin
                 $display("Error(%3d): @ %x Expected: %0s, Got: %0s", line, debug_wb_pc, ans, out);
                 pass = 0;
+                if (stop_on_error) begin
+                    $finish;
+                end
             end
             line = line + 1;
         end
@@ -165,6 +177,9 @@ initial begin
 
     // cp0
     test("test_cp0");
+
+    // exception
+    test("inst_syscall");
     $finish;
 end
 
