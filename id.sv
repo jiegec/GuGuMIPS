@@ -35,7 +35,7 @@ module id(
     output logic[`RegBus] link_addr_o,
     output logic is_in_delayslot_o,
 
-    output logic [31:0] except_type_o,
+    output logic [31:0] except_type_o
 
     // memory
     // output wire [`RegBus] inst_o
