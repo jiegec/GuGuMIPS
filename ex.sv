@@ -30,6 +30,7 @@ module ex(
     input wire[4:0] wb_cp0_reg_write_addr,
     input wire[`RegBus] wb_cp0_reg_data,
     input wire[`RegBus] cp0_reg_data_i,
+
     output logic cp0_reg_we_o,
     output logic[4:0] cp0_reg_read_addr_o,
     output logic[4:0] cp0_reg_write_addr_o,
@@ -43,7 +44,12 @@ module ex(
     output reg[`RegBus] hi_o,
     output reg[`RegBus] lo_o,
 
-    output logic[31:0] except_type_o
+    output logic[31:0] except_type_o,
+
+    output wire[`AluOpBus] aluop_o,
+    output wire[`RegBus] mem_addr_o,
+    output wire[`RegBus] reg2_o
+
 );
     logic[`RegBus] logic_res;
     logic[`RegBus] shift_res;
@@ -112,6 +118,10 @@ module ex(
       (reg1_i[31] && reg2_i[31] && result_sum[31])) : (reg1_i < reg2_i);
 
     assign reg1_i_not = ~reg1_i;
+
+    assign aluop_o = aluop_i;
+    assign mem_addr_o = reg1_i + {{16{inst_i[15]}},inst_i[15:0]};
+    assign reg2_o = reg2_i;
 
     always_comb begin
       if (rst == `RstEnable) begin

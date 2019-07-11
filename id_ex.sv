@@ -30,6 +30,7 @@ module id_ex(
   output reg ex_is_in_delayslot,
   output reg is_in_delayslot_o,
   output logic [31:0] ex_except_type
+
 );
 
     always_ff @(posedge clk) begin

@@ -38,7 +38,7 @@ module id(
     output logic [31:0] except_type_o,
 
     // memory
-    output wire [`RegBus] inst_o
+    // output wire [`RegBus] inst_o
 
 );
     wire[5:0] op = inst_i[31:26]; // op type
@@ -63,7 +63,7 @@ module id(
 
     assign except_type_o = {19'b0, except_type_is_eret, 2'b0, ~instvalid, except_type_is_syscall, 8'b0};
 
-    assign inst_o = inst_i;
+    // assign inst_o = inst_i;
 
     always_comb begin
       if (rst == `RstEnable) begin
