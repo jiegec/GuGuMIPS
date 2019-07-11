@@ -28,7 +28,6 @@ module cp0_reg(
 
     always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin
-            data_o <= 0;
             count_o <= 0;
             compare_o <= 0;
             // CU = 4'b0001, BEV = 1
@@ -176,25 +175,25 @@ module cp0_reg(
         end else begin
             case(raddr_i)
                 `CP0_REG_COUNT: begin
-                    data_o <= count_o;
+                    data_o = count_o;
                 end
                 `CP0_REG_COMPARE: begin
-                    data_o <= compare_o;
+                    data_o = compare_o;
                 end
                 `CP0_REG_STATUS: begin
-                    data_o <= status_o;
+                    data_o = status_o;
                 end
                 `CP0_REG_CAUSE: begin
-                    data_o <= cause_o;
+                    data_o = cause_o;
                 end
                 `CP0_REG_EPC: begin
-                    data_o <= epc_o;
+                    data_o = epc_o;
                 end
                 `CP0_REG_PRId: begin
-                    data_o <= prid_o;
+                    data_o = prid_o;
                 end
                 `CP0_REG_CONFIG: begin
-                    data_o <= config_o;
+                    data_o = config_o;
                 end
             endcase
         end
