@@ -20,6 +20,7 @@ module mips(
     output  [1 :0] data_size    ,
     output  [31:0] data_addr    ,
     output  [31:0] data_wdata   ,
+
     input [31:0] data_rdata   ,
     input        data_addr_ok ,
     input        data_data_ok,
@@ -28,7 +29,16 @@ module mips(
     output [31:0] debug_wb_pc,
     output [3 :0] debug_wb_rf_wen,
     output [4 :0] debug_wb_rf_wnum,
-    output [31:0] debug_wb_rf_wdata
+    output [31:0] debug_wb_rf_wdata,
+
+    // ram
+    input wire[`RegBus] ram_data_i,
+    output wire[`RegBus] ram_addr_o,
+    output wire[`RegBus] ram_data_o,
+    output wire ram_we_o,
+    output wire[3:0] ram_sel_o,
+    output wire ram_ce_o
+
 );
 
     wire[`InstAddrBus] pc;
@@ -134,6 +144,14 @@ module mips(
     wire[`RegAddrBus] reg1_addr; // the index or reg1
     wire[`RegAddrBus] reg2_addr;
 
+    wire[`AluOpBus] ex_mem_aluop_i;
+    wire[`RegBus] ex_mem_mem_addr_i;
+    wire[`RegBus] ex_mem_reg2_i;
+
+    logic [`AluOpBus] mem_aluop_i;
+    logic [`RegBus] mem_mem_addr_i;
+    logic [`RegBus] mem_reg2_i;
+
     logic timer_int_o;
 
     logic en_pc;
@@ -235,7 +253,8 @@ module mips(
            .cp0_reg_data_o(ex_cp0_reg_data), .cp0_reg_write_addr_o(ex_cp0_reg_write_addr), .cp0_reg_we_o(ex_cp0_reg_we),
            .mem_cp0_reg_data(mem_cp0_reg_data), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr), .mem_cp0_reg_we(mem_cp0_reg_we),
            .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we),
-           .is_in_delayslot_i(ex_is_in_delayslot), .link_address_i(ex_link_address));
+           .is_in_delayslot_i(ex_is_in_delayslot), .link_address_i(ex_link_address),
+           .aluop_o(ex_mem_aluop_i), .mem_addr_o(ex_mem_mem_addr_i), .reg2_o(ex_mem_reg2_i));
 
     ex_mem ex_mem0(.clk(clk), .rst(rst), .en(en_ex_mm), .flush(flush),
                     .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),
@@ -245,7 +264,9 @@ module mips(
                     .ex_cp0_reg_data(ex_cp0_reg_data), .ex_cp0_reg_write_addr(ex_cp0_reg_write_addr), .ex_cp0_reg_we(ex_cp0_reg_we),
                     .ex_except_type(ex_except_type_o), .ex_is_in_delayslot(ex_is_in_delayslot),
                     .mem_cp0_reg_data(mem_cp0_reg_data_i), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_i), .mem_cp0_reg_we(mem_cp0_reg_we_i),
-                    .mem_except_type(mem_except_type_i), .mem_is_in_delayslot(mem_is_in_delayslot));
+                    .mem_except_type(mem_except_type_i), .mem_is_in_delayslot(mem_is_in_delayslot),
+                    .ex_aluop(ex_mem_aluop_i), .ex_mem_addr(ex_mem_mem_addr_i), .ex_reg2(ex_mem_reg2_i),
+                    .mem_aluop(mem_aluop_i), .mem_mem_addr(mem_mem_addr_i), .mem_reg2(mem_reg2_i));
 
     mem mem0(.rst(rst),
              .wd_i(mem_wd_i), .wreg_i(mem_wreg_i), .wdata_i(mem_wdata_i),
@@ -258,7 +279,11 @@ module mips(
              .except_type_i(mem_except_type_i), .is_in_delayslot_i(mem_is_in_delayslot), .pc_i(mem_pc),
              .cp0_status_i(cp0_status_o), .cp0_cause_i(cp0_cause_o), .cp0_epc_i(cp0_epc_o),
              .wb_cp0_reg_we(wb_cp0_reg_we), .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr),
-             .except_type_o(mem_except_type_o));
+             .except_type_o(mem_except_type_o),
+             .aluop_i(mem_aluop_i), .mem_addr_i(mem_mem_addr_i), .reg2_i(mem_reg2_i),
+             .mem_data_i(ram_data_i),
+             .mem_addr_o(ram_addr_o), .mem_we_o(ram_we_o), .mem_sel_o(ram_sel_o),
+             .mem_data_o(ram_data_o), .mem_ce_o(ram_ce_o));
             
     mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb),
                    .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc),

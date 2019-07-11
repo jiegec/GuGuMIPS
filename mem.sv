@@ -46,11 +46,11 @@ module mem(
     output logic[31:0] except_type_o,
     output logic[31:0] cp0_epc_o,
 
-	  output reg[`RegBus] mem_addr_o,
-	  output wire mem_we_o,
-	  output reg[3:0] mem_sel_o,
-	  output reg[`RegBus] mem_data_o,
-	  output reg mem_ce_o	
+	output reg[`RegBus] mem_addr_o,
+	output wire mem_we_o,
+	output reg[3:0] mem_sel_o,
+	output reg[`RegBus] mem_data_o,
+	output reg mem_ce_o	
 );
   logic [31:0] cp0_status;
   logic [31:0] cp0_cause;
