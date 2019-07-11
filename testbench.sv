@@ -120,7 +120,7 @@ task test(string name);
 
     // config
     stop_on_error = 0;
-    debug = 1;
+    debug = 0;
 
     while (!$feof(fans))
     begin

@@ -273,6 +273,7 @@ module ex(
       if (rst == `RstEnable) begin
         trap_assert = 0;
       end else begin
+        trap_assert = 0;
         case(aluop_i)
           `EXE_TEQ_OP, `EXE_TEQI_OP: begin
             if (reg1_i == reg2_i) begin

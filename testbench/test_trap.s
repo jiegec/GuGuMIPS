@@ -14,7 +14,7 @@ _start:
 
     teqi $1, 0x2000        # trap
     teqi $1, 0x3000
-    tnei $1, 0x2000
+    tnei $1, 0x2000        # trap
 
     ori $1, $0, 0x3000
 
