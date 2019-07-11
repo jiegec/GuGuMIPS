@@ -98,6 +98,7 @@ assign rst = ~aresetn;
 mips mips_inst(
     .clk(aclk),
     .rst(rst),
+    .intr(int),
 
     .inst_req(inst_req),
     .inst_wr(inst_wr),

@@ -11,6 +11,7 @@ module id_ex(
   input wire[`RegAddrBus] id_wd,
   input wire id_wreg,
   input wire[`InstAddrBus]id_pc,
+  input wire[`InstBus]id_inst,
   input wire id_is_in_delayslot,
   input wire[`RegBus] id_link_address,
   input wire next_inst_in_delayslot_i,
@@ -22,6 +23,7 @@ module id_ex(
   output reg[`RegAddrBus] ex_wd,
   output reg ex_wreg,
   output reg[`InstAddrBus] ex_pc,
+  output reg[`InstBus]ex_inst,
   output reg[`RegBus] ex_link_address,
   output reg ex_is_in_delayslot,
   output reg is_in_delayslot_o
@@ -36,6 +38,7 @@ module id_ex(
           ex_wd <= `NOPRegAddr;
           ex_wreg <= `WriteDisable;
           ex_pc <= 0;
+          ex_inst <= 0;
 
           ex_link_address <= 0;
           ex_is_in_delayslot <= 0;
@@ -48,6 +51,7 @@ module id_ex(
           ex_wd <= id_wd;
           ex_wreg <= id_wreg;
           ex_pc <= id_pc;
+          ex_inst <= id_inst;
 
           ex_link_address <= id_link_address;
           ex_is_in_delayslot <= id_is_in_delayslot;

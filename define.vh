@@ -144,6 +144,9 @@
 `define EXE_BLTZAL_OP 8'b00100110
 `define EXE_BNE_OP 8'b00100111
 
+`define EXE_MFC0_OP 8'b00101000
+`define EXE_MTC0_OP 8'b00101001
+
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001
 `define EXE_RES_SHIFT 3'b010
@@ -165,3 +168,12 @@
 `define RegNum 32
 `define RegNumLog2 5
 `define NOPRegAddr 5'b0000
+
+`define CP0_REG_BADVADDR 5'd8
+`define CP0_REG_COUNT 5'd9
+`define CP0_REG_COMPARE 5'd11
+`define CP0_REG_STATUS 5'd12
+`define CP0_REG_CAUSE 5'd13
+`define CP0_REG_EPC 5'd14
+`define CP0_REG_PRId 5'd15
+`define CP0_REG_CONFIG 5'd16

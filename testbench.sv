@@ -162,6 +162,9 @@ initial begin
 
     // arith
     test("test_arith");
+
+    // cp0
+    test("test_cp0");
     $finish;
 end
 

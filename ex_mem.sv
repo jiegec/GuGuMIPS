@@ -13,6 +13,10 @@ module ex_mem(
   input wire[`RegBus] ex_hi,
   input wire[`RegBus] ex_lo,
 
+  input wire ex_cp0_reg_we,
+  input wire[4:0] ex_cp0_reg_write_addr,
+  input wire[`RegBus] ex_cp0_reg_data,
+
   output reg[`RegAddrBus] mem_wd,
   output reg mem_wreg,
   output reg[`RegBus] mem_wdata,
@@ -20,7 +24,11 @@ module ex_mem(
 
   output reg mem_whilo,
   output reg[`RegBus] mem_hi,
-  output reg[`RegBus] mem_lo
+  output reg[`RegBus] mem_lo,
+
+  output logic mem_cp0_reg_we,
+  output logic[4:0] mem_cp0_reg_write_addr,
+  output logic[`RegBus] mem_cp0_reg_data
 );
 
     always_ff @(posedge clk) begin
@@ -34,6 +42,10 @@ module ex_mem(
             mem_lo <= `ZeroWord;
 
             mem_pc <= 0;
+
+            mem_cp0_reg_we <= 0;
+            mem_cp0_reg_write_addr <= 0;
+            mem_cp0_reg_data <= 0;
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -44,6 +56,10 @@ module ex_mem(
             mem_lo <= ex_lo;
 
             mem_pc <= ex_pc;
+
+            mem_cp0_reg_we <= ex_cp0_reg_we;
+            mem_cp0_reg_write_addr <= ex_cp0_reg_write_addr;
+            mem_cp0_reg_data <= ex_cp0_reg_data;
         end
     end
 

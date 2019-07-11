@@ -10,6 +10,7 @@ module ex(
     input wire wreg_i,
     input wire[`RegBus] link_address_i,
     input wire is_in_delayslot_i,
+    input wire[`InstBus] inst_i,
 
     input wire[`RegBus] hi_i,
     input wire[`RegBus] lo_i,
@@ -20,6 +21,18 @@ module ex(
     input wire[`RegBus] mem_hi_i,
     input wire[`RegBus] mem_lo_i,
 
+    input wire mem_cp0_reg_we,
+    input wire[4:0] mem_cp0_reg_write_addr,
+    input wire[`RegBus] mem_cp0_reg_data,
+    input wire wb_cp0_reg_we,
+    input wire[4:0] wb_cp0_reg_write_addr,
+    input wire[`RegBus] wb_cp0_reg_data,
+    input wire[`RegBus] cp0_reg_data_i,
+    output logic cp0_reg_we_o,
+    output logic[4:0] cp0_reg_read_addr_o,
+    output logic[4:0] cp0_reg_write_addr_o,
+    output logic[`RegBus] cp0_reg_data_o,
+
     output reg[`RegAddrBus] wd_o,
     output reg wreg_o,
     output reg[`RegBus] wdata_o,
@@ -28,15 +41,17 @@ module ex(
     output reg[`RegBus] hi_o,
     output reg[`RegBus] lo_o
 );
-
-    reg[`RegBus] logicout;
-    reg[`RegBus] shiftres;
-    reg[`RegBus] moveres;
-    reg[`RegBus] arithmeticres;
-    reg[`RegBus] hi;
-    reg[`RegBus] lo;
-    reg[`RegBus] reg2_i_mux;
-    reg[`RegBus] result_sum;
+    logic[`RegBus] logicout;
+    logic[`RegBus] shiftres;
+    logic[`RegBus] moveres;
+    logic[`RegBus] arithmeticres;
+    logic[`RegBus] hi;
+    logic[`RegBus] lo;
+    logic[`RegBus] reg2_i_mux;
+    logic[`RegBus] result_sum;
+    logic[`RegBus] ov_sum;
+    logic reg1_lt_reg2;
+    logic[`RegBus] reg1_i_not;
 
     // Top level selector
     always_comb begin
@@ -129,6 +144,7 @@ module ex(
     end
 
 
+    // hi, lo
     always_comb begin
       if (rst == `RstEnable) begin
         {hi, lo} = {`ZeroWord, `ZeroWord};
@@ -161,6 +177,23 @@ module ex(
       end
     end
 
+    // cp0
+    always_comb begin
+      if (rst) begin
+        cp0_reg_write_addr_o = 0;
+        cp0_reg_we_o = 0;
+        cp0_reg_data_o = 0;
+      end else if (aluop_i == `EXE_MTC0_OP) begin
+        cp0_reg_write_addr_o = inst_i[15:11];
+        cp0_reg_we_o = 1;
+        cp0_reg_data_o = reg1_i;
+      end else begin
+        cp0_reg_write_addr_o = 0;
+        cp0_reg_we_o = 0;
+        cp0_reg_data_o = 0;
+      end
+    end
+
     always_comb begin
       if (rst == `RstEnable) begin
         moveres = `ZeroWord;
@@ -177,6 +210,18 @@ module ex(
           end
           `EXE_MOVN_OP: begin
             moveres = reg1_i;
+          end
+          `EXE_MFC0_OP: begin
+            cp0_reg_read_addr_o = inst_i[15:11];
+
+            // data dependency
+            if (mem_cp0_reg_we == 1 && mem_cp0_reg_write_addr == inst_i[15:11]) begin
+              moveres = mem_cp0_reg_data;
+            end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == inst_i[15:11]) begin
+              moveres = wb_cp0_reg_data;
+            end else begin
+              moveres = cp0_reg_data_i;
+            end
           end
           default: begin
             moveres = `ZeroWord;

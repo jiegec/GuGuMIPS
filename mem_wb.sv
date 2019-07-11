@@ -13,6 +13,10 @@ module mem_wb(
     input wire[`RegBus] mem_hi,
     input wire[`RegBus] mem_lo,
 
+    input wire mem_cp0_reg_we,
+    input wire[4:0] mem_cp0_reg_write_addr,
+    input wire[`RegBus] mem_cp0_reg_data,
+
     output reg[`RegAddrBus] wb_wd,
     output reg wb_wreg,
     output reg[`RegBus] wb_wdata,
@@ -20,7 +24,11 @@ module mem_wb(
 
     output reg wb_whilo,
     output reg[`RegBus] wb_hi,
-    output reg[`RegBus] wb_lo
+    output reg[`RegBus] wb_lo,
+
+    output logic wb_cp0_reg_we,
+    output logic[4:0] wb_cp0_reg_write_addr,
+    output logic[`RegBus] wb_cp0_reg_data
 );
 
     always_ff @(posedge clk) begin
@@ -34,6 +42,10 @@ module mem_wb(
         wb_lo <= `ZeroWord;
 
         wb_pc <= 0;
+
+        wb_cp0_reg_we <= 0;
+        wb_cp0_reg_write_addr <= 0;
+        wb_cp0_reg_data <= 0;
       end else begin
         wb_wd <= mem_wd;
         wb_wreg <= mem_wreg;
@@ -44,6 +56,10 @@ module mem_wb(
         wb_lo <= mem_lo;
 
         wb_pc <= mem_pc;
+
+        wb_cp0_reg_we <= mem_cp0_reg_we;
+        wb_cp0_reg_write_addr <= mem_cp0_reg_write_addr;
+        wb_cp0_reg_data <= mem_cp0_reg_data;
       end
     end
 
