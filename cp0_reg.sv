@@ -28,8 +28,8 @@ module cp0_reg(
             data_o <= 0;
             count_o <= 0;
             compare_o <= 0;
-            // CU = 4'b0001
-            status_o <= 32'b0001_0_0_0_00_0_0_0_0_000_00000000_000_0_0_0_0_0;
+            // CU = 4'b0001, BEV = 1
+            status_o <= 32'b0001_0_0_0_00_1_0_0_0_000_00000000_000_0_0_0_0_0;
             cause_o <= 0;
             epc_o <= 0;
             config_o <= 32'b0_000000000000000_0_00_000_000_000_0_000;
@@ -53,7 +53,12 @@ module cp0_reg(
                         timer_int_o <= 0;
                     end
                     `CP0_REG_STATUS: begin
-                        status_o <= data_i;
+                        // IM7..IM0
+                        status_o[15:8] <= data_i[15:8];
+                        // EXL
+                        status_o[1] <= data_i[1];
+                        // IE
+                        status_o[1] <= data_i[0];
                     end
                     `CP0_REG_EPC: begin
                         epc_o <= data_i;

@@ -1,8 +1,10 @@
 `include "define.vh"
 module pc_reg (
-    input wire clk,
-    input wire rst,
-    input wire en,
+    input clk,
+    input rst,
+    input en,
+    input flush,
+    input [`RegBus] new_pc,
 
     input branch_flag_i,
     input [`RegBus] branch_target_address_i,
@@ -28,6 +30,8 @@ module pc_reg (
         pc <= reset_pc;
         saved_branch_target_address_clk <= 0;
         saved_branch_flag_i_clk <= 0;
+      end else if (flush) begin
+        pc <= new_pc;
       end else if (en) begin
         if (saved_branch_flag_i_clk) begin
           saved_branch_target_address_clk <= 0;
