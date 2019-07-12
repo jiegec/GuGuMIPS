@@ -30,10 +30,10 @@ module test_ram #(
     always_comb begin
         case (data_size)
             2'b00: begin
-                data_mask = 4'b01 << data_size;
+                data_mask = 4'b01 << data_addr[1:0];
             end
             2'b01: begin
-                data_mask = 4'b11 << data_size;
+                data_mask = 4'b11 << data_addr[1:0];
             end
             default: begin
                 data_mask = 4'b1111;

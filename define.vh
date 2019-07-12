@@ -123,8 +123,8 @@
 `define EXE_LWR 6'b100110
 `define EXE_SB 6'b101000
 `define EXE_SH 6'b101001
-`define EXE_SW 6'b101001
-`define EXE_SWL 6'b101011
+`define EXE_SW 6'b101011
+`define EXE_SWL 6'b101010
 `define EXE_SWR 6'b101110
 
 
