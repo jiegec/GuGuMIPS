@@ -166,6 +166,7 @@ module mem(
   logic [`AluOpBus] saved_aluop;
   logic [`RegBus] saved_mem_addr_i;
   logic [`RegBus] saved_pc_i;
+  logic saved_data_wr;
 
   assign data_req = (data_data_ok && !state) ? 0 : mem_ce_o;
   assign data_addr = mem_addr_o;
@@ -186,18 +187,21 @@ module mem(
 		saved_aluop <= 0;
 		saved_mem_addr_i <= 0;
 		saved_pc_i <= 0;
+		saved_data_wr <= 0;
 	end else if (data_req) begin
 		state <= 1;
 		saved_wd <= wd_i;
 		saved_aluop <= aluop_i;
 		saved_mem_addr_i <= mem_phy_addr;
 		saved_pc_i <= pc_i;
+		saved_data_wr <= data_wr;
 	end else if (data_data_ok) begin
 		state <= 0;
 		saved_wd <= 0;
 		saved_aluop <= 0;
 		saved_mem_addr_i <= 0;
 		saved_pc_i <= 0;
+		saved_data_wr <= 0;
 	end
   end
 
@@ -216,7 +220,7 @@ module mem(
 		mem_addr_o = `ZeroWord;
 		mem_we = `WriteDisable;
 		mem_ce_o = `ChipDisable;
-		wreg_o = ((data_req | state) & !data_wr) ? data_data_ok : wreg_i;
+		wreg_o = ((data_req | state) & !saved_data_wr) ? data_data_ok : wreg_i;
 		wd_o = data_data_ok ? saved_wd : wd_i;
 
 		wdata_o = wdata_i;

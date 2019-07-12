@@ -183,6 +183,8 @@ module mips(
         if (mem_stall) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00000;
         end else if (mem_alusel_i == `EXE_RES_LOAD_STORE && (mem_wd_i == reg1_addr || mem_wd_i == reg2_addr)) begin
+            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00001;
+        end else if (ex_alusel_i == `EXE_RES_LOAD_STORE && (ex_wd_i == reg1_addr || ex_wd_i == reg2_addr)) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00011;
         end else if (if_stall) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b01111;
@@ -231,7 +233,7 @@ module mips(
                     .re2(reg2_read), .raddr2(reg2_addr),
                     .rdata2(reg2_data));
 
-    id_ex id_ex0(.clk(clk), .rst(rst), .en(en_id_ex), .flush(flush),
+    id_ex id_ex0(.clk(clk), .rst(rst | (!en_id_ex & en_ex_mm)), .en(en_id_ex), .flush(flush),
                 .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o), .id_pc(id_pc_i), .id_inst(id_inst_i),
                 .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i), .ex_pc(ex_pc), .ex_inst(ex_inst_i),
                 .id_is_in_delayslot(id_is_in_delayslot_o), .id_link_address(id_link_addr),
@@ -253,7 +255,7 @@ module mips(
            .is_in_delayslot_i(ex_is_in_delayslot), .link_address_i(ex_link_address),
            .aluop_o(ex_mem_aluop_i), .mem_addr_o(ex_mem_mem_addr_i), .reg2_o(ex_mem_reg2_i));
 
-    ex_mem ex_mem0(.clk(clk), .rst(rst), .en(en_ex_mm), .flush(flush),
+    ex_mem ex_mem0(.clk(clk), .rst(rst | (!en_ex_mm & en_mm_wb)), .en(en_ex_mm), .flush(flush),
                     .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),
                     .mem_wd(mem_wd_i), .mem_wreg(mem_wreg_i), .mem_wdata(mem_wdata_i), .mem_pc(mem_pc_i),
                     .ex_whilo(ex_whilo_o), .ex_hi(ex_hi_o), .ex_lo(ex_lo_o),
