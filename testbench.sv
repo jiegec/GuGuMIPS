@@ -67,6 +67,19 @@ test_rom test_rom0(
     .inst_data_ok(inst_data_ok)
 );
 
+test_ram test_ram0(
+    .clk(clk),
+    .rst(rst),
+    .data_req(data_req),
+    .data_wr(data_wr),
+    .data_size(data_size),
+    .data_addr(data_addr),
+    .data_wdata(data_wdata),
+    .data_rdata(data_rdata),
+    .data_addr_ok(data_addr_ok),
+    .data_data_ok(data_data_ok)
+);
+
 
 function string get_path_from_file(string fullpath_filename);
     int i;
@@ -93,12 +106,15 @@ endfunction
 string path=get_path_from_file(`__FILE__);
 
 task test(string name);
-    integer i, fans, pass, line, stop_on_error, debug;
+    integer i, fans, pass, line, stop_on_error, debug, match;
     string out, ans;
     string mem;
 
     for(i = 0;i < $size(test_rom0.rom);i++) begin
         test_rom0.rom[i] = 32'h0;
+    end
+    for(i = 0;i < $size(test_ram0.ram);i++) begin
+        test_ram0.ram[i] = 32'h0;
     end
 
     mem = $sformatf("%stestbench/%s.mem", path, name);
@@ -119,15 +135,24 @@ task test(string name);
     line = 1;
 
     // config
-    stop_on_error = 0;
-    debug = 0;
+    stop_on_error = 1;
+    debug = 1;
 
     while (!$feof(fans))
     begin
         @ (negedge clk);
+        match = 0;
         if (debug_wb_rf_wen && debug_wb_rf_wnum != 0) begin
             $sformat(out, "$%0d=0x%x", debug_wb_rf_wnum, debug_wb_rf_wdata);
             $fscanf(fans, "%s\n", ans);
+            match = 1;
+        end
+        if (test_ram0.data_req && test_ram0.data_wr && test_ram0.data_addr_ok) begin
+            $sformat(out, "[0x%0x,%0d]=0x%x", test_ram0.data_addr, 1 << test_ram0.data_size, test_ram0.data_wdata);
+            $fscanf(fans, "%s\n", ans);
+            match = 1;
+        end
+        if (match) begin
             if (debug) begin
                 $display("Debug @ %x Excepted: %0s, Got: %0s", debug_wb_pc, ans, out);
             end
@@ -174,6 +199,9 @@ initial begin
 
     // arith
     test("test_arith");
+    
+    // mem
+    test("test_store");
 
     // cp0
     test("test_cp0");

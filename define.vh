@@ -226,6 +226,8 @@
 `define InstBus 31:0
 `define InstMemNum 131071 // 128KB
 `define InstMemNumLog2 17
+`define DataMemNum 131071 // 128KB
+`define DataMemNumLog2 17
 
 `define RegAddrBus 4:0
 `define RegBus 31:0
