@@ -199,6 +199,7 @@ initial begin
 
     // arith
     test("test_arith");
+    test("test_mul");
     
     // mem
     test("test_store");
