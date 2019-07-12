@@ -25,6 +25,9 @@
 `define EXE_MULTU 6'b011001 // {hi, lo} <- rs * rt as unsigned
 `define EXE_MUL 6'b000010 // rd <- rs * rt
 
+`define EXE_DIV 6'b011010
+`define EXE_DIVU 6'b011011
+
 // check op
 `define EXE_ANDI 6'b001100
 `define EXE_ORI 6'b001101
@@ -215,6 +218,9 @@
 // won't implement
 //`define EXE_SWL_OP  8'b11101010
 //`define EXE_SWR_OP  8'b11101110
+
+`define EXE_DIV_OP 8'b11101111
+`define EXE_DIVU_OP 8'b11110000
 
 
 `define EXE_RES_NOP 3'b000

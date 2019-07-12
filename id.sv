@@ -309,6 +309,8 @@ module id(
                     reg2_read_o = 1'b1;
                     instvalid = 1;
                   end
+
+                  // mult
                   `EXE_MULT: begin
                     wreg_o = `WriteDisable;
                     aluop_o = `EXE_MULT_OP;
@@ -322,6 +324,22 @@ module id(
                     reg1_read_o = 1'b1;
                     reg2_read_o = 1'b1;
                     instvalid = 1;
+                  end
+
+                  // div
+                  `EXE_DIV: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_DIV_OP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1'b1;
+                  end
+                  `EXE_DIVU: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_DIVU_OP;
+                    reg1_read_o = 1'b1;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1'b1;
                   end
 
                   // trap
