@@ -52,7 +52,7 @@ module mem_wb(
         wb_cp0_reg_data <= 0;
 
         wb_is_in_delayslot <= 0;
-      end else begin
+      end else if (en) begin
         wb_wd <= mem_wd;
         wb_wreg <= mem_wreg;
         wb_wdata <= mem_wdata;

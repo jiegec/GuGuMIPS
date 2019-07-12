@@ -180,7 +180,7 @@ module mips(
 
         if (mem_stall) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00000;
-        end if (if_stall) begin
+        end else if (if_stall) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b01111;
         end else begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b11111;
@@ -261,7 +261,7 @@ module mips(
                     .ex_aluop(ex_mem_aluop_i), .ex_mem_addr(ex_mem_mem_addr_i), .ex_reg2(ex_mem_reg2_i),
                     .mem_aluop(mem_aluop_i), .mem_mem_addr(mem_mem_addr_i), .mem_reg2(mem_reg2_i));
 
-    mem mem0(.rst(rst),
+    mem mem0(.rst(rst), .clk(clk),
              .wd_i(mem_wd_i), .wreg_i(mem_wreg_i), .wdata_i(mem_wdata_i),
              .wd_o(mem_wd_o), .wreg_o(mem_wreg_o), .wdata_o(mem_wdata_o),
              .whilo_i(mem_whilo_i), .hi_i(mem_hi_i), .lo_i(mem_lo_i),

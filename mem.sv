@@ -1,5 +1,6 @@
 `include "define.vh"
 module mem(
+	input wire clk,
   input wire  rst,
   input wire[`RegAddrBus] wd_i,
   input wire wreg_i,
@@ -63,7 +64,6 @@ module mem(
 
   wire[`RegBus] zero32;
 
-  assign mem_we_o = mem_we;
   assign zero32 = `ZeroWord;
 
   // handle data dependency
@@ -165,14 +165,25 @@ module mem(
   logic [31:0]mem_data_i;
   logic [31:0]mem_data_o;
   logic mem_ce_o;
+  logic state;
 
-  assign data_req = data_data_ok ? 0 : mem_ce_o;
+  assign data_req = (data_data_ok && !state) ? 0 : mem_ce_o;
   assign data_addr = mem_addr_o;
   assign mem_data_i = data_rdata;
   assign data_wdata = mem_data_o;
   assign data_wr = mem_we;
   assign data_size = 4'b10;
-  assign mem_stall = 0;
+  assign mem_stall = state && !data_data_ok;
+
+  always_ff @ (posedge clk) begin
+	if (rst) begin
+		state <= 0;
+	end else if (data_req) begin
+		state <= 1;
+	end else if (data_data_ok) begin
+		state <= 0;
+	end
+  end
 
   always_comb begin
     if (rst == `RstEnable) begin
