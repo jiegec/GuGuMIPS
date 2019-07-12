@@ -17,6 +17,7 @@ module mem(
   input [31:0] except_type_i,
   input is_in_delayslot_i,
   input [`RegBus] pc_i,
+  output logic[`RegBus] pc_o,
 
   input [`RegBus] cp0_status_i,
   input [`RegBus] cp0_cause_i,
@@ -164,6 +165,7 @@ module mem(
   logic [`RegAddrBus] saved_wd;
   logic [`AluOpBus] saved_aluop;
   logic [`RegBus] saved_mem_addr_i;
+  logic [`RegBus] saved_pc_i;
 
   assign data_req = (data_data_ok && !state) ? 0 : mem_ce_o;
   assign data_addr = mem_addr_o;
@@ -171,6 +173,11 @@ module mem(
   assign data_wdata = mem_data_o;
   assign data_wr = mem_we;
   assign mem_stall = state && !data_data_ok;
+  assign pc_o = data_data_ok ? saved_pc_i : pc_i;
+
+	// TODO: MMU
+  logic [31:0] mem_phy_addr;
+  assign mem_phy_addr = mem_addr_i[28:0];
 
   always_ff @ (posedge clk) begin
 	if (rst) begin
@@ -178,16 +185,19 @@ module mem(
 		saved_wd <= 0;
 		saved_aluop <= 0;
 		saved_mem_addr_i <= 0;
+		saved_pc_i <= 0;
 	end else if (data_req) begin
 		state <= 1;
 		saved_wd <= wd_i;
 		saved_aluop <= aluop_i;
-		saved_mem_addr_i <= mem_addr_i;
+		saved_mem_addr_i <= mem_phy_addr;
+		saved_pc_i <= pc_i;
 	end else if (data_data_ok) begin
 		state <= 0;
 		saved_wd <= 0;
 		saved_aluop <= 0;
 		saved_mem_addr_i <= 0;
+		saved_pc_i <= 0;
 	end
   end
 
@@ -213,31 +223,31 @@ module mem(
 		case (aluop_i)
 			// load
 			`EXE_LB_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteDisable;
 				mem_ce_o = `ChipEnable;
 				data_size = 2'b00; // 1
 			end
 			`EXE_LBU_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteDisable;
 				mem_ce_o = `ChipEnable;
 				data_size = 2'b00; // 1
 			end
 			`EXE_LH_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteDisable;
 				mem_ce_o = `ChipEnable;
 				data_size = 2'b01; // 2
 			end
 			`EXE_LHU_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteDisable;
 				mem_ce_o = `ChipEnable;
 				data_size = 2'b01; // 2
 			end
 			`EXE_LW_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteDisable;
 				wdata_o = mem_data_i;
 				mem_ce_o = `ChipEnable;		
@@ -246,21 +256,21 @@ module mem(
 			
 			// store
 			`EXE_SB_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteEnable;
 				mem_data_o = {reg2_i[7:0],reg2_i[7:0],reg2_i[7:0],reg2_i[7:0]};
 				mem_ce_o = `ChipEnable;
 				data_size = 2'b00; // 1
 			end
 			`EXE_SH_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteEnable;
 				mem_data_o = {reg2_i[15:0],reg2_i[15:0]};
 				mem_ce_o = `ChipEnable;
 				data_size = 2'b01; // 2
 			end
 			`EXE_SW_OP:		begin
-				mem_addr_o = mem_addr_i;
+				mem_addr_o = mem_phy_addr;
 				mem_we = `WriteEnable;
 				mem_data_o = reg2_i;
 				mem_ce_o = `ChipEnable;		
