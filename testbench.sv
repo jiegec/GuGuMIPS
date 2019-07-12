@@ -202,6 +202,7 @@ initial begin
     
     // mem
     test("test_store");
+    test("test_load");
 
     // cp0
     test("test_cp0");

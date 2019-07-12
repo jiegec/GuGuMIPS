@@ -1,6 +1,6 @@
 `include "define.vh"
 module test_ram #(
-    parameter delay = 3
+    parameter delay = 2
 ) (
     input clk,
     input rst,
