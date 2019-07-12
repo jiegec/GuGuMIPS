@@ -199,6 +199,7 @@ module mem(
 
 		wdata_o = wdata_i;
 		case (aluop_i)
+			// load
 			`EXE_LB_OP:		begin
 				mem_addr_o = mem_addr_i;
 				mem_we = `WriteDisable;
@@ -278,50 +279,8 @@ module mem(
 				wdata_o = mem_data_i;
 				mem_ce_o = `ChipEnable;		
 			end
-			`EXE_LWL_OP:		begin
-				mem_addr_o = {mem_addr_i[31:2], 2'b00};
-				mem_we = `WriteDisable;
-				mem_ce_o = `ChipEnable;
-				case (mem_addr_i[1:0])
-					2'b00:	begin
-						wdata_o = mem_data_i[31:0];
-					end
-					2'b01:	begin
-						wdata_o = {mem_data_i[23:0],reg2_i[7:0]};
-					end
-					2'b10:	begin
-						wdata_o = {mem_data_i[15:0],reg2_i[15:0]};
-					end
-					2'b11:	begin
-						wdata_o = {mem_data_i[7:0],reg2_i[23:0]};	
-					end
-					default:	begin
-						wdata_o = `ZeroWord;
-					end
-				endcase				
-			end
-			`EXE_LWR_OP:		begin
-				mem_addr_o = {mem_addr_i[31:2], 2'b00};
-				mem_we = `WriteDisable;
-				mem_ce_o = `ChipEnable;
-				case (mem_addr_i[1:0])
-					2'b00:	begin
-						wdata_o = {reg2_i[31:8],mem_data_i[31:24]};
-					end
-					2'b01:	begin
-						wdata_o = {reg2_i[31:16],mem_data_i[31:16]};
-					end
-					2'b10:	begin
-						wdata_o = {reg2_i[31:24],mem_data_i[31:8]};
-					end
-					2'b11:	begin
-						wdata_o = mem_data_i;	
-					end
-					default:	begin
-						wdata_o = `ZeroWord;
-					end
-				endcase					
-			end
+			
+			// store
 			`EXE_SB_OP:		begin
 				mem_addr_o = mem_addr_i;
 				mem_we = `WriteEnable;
@@ -343,48 +302,6 @@ module mem(
 				mem_ce_o = `ChipEnable;		
 				data_size = 2'b10; // 4
 			end
-			`EXE_SWL_OP:		begin
-				mem_addr_o = {mem_addr_i[31:2], 2'b00};
-				mem_we = `WriteEnable;
-				mem_ce_o = `ChipEnable;
-				case (mem_addr_i[1:0])
-					2'b00:	begin						  
-						mem_data_o = reg2_i;
-					end
-					2'b01:	begin
-						mem_data_o = {zero32[7:0],reg2_i[31:8]};
-					end
-					2'b10:	begin
-						mem_data_o = {zero32[15:0],reg2_i[31:16]};
-					end
-					2'b11:	begin
-						mem_data_o = {zero32[23:0],reg2_i[31:24]};
-					end
-					default:	begin
-					end
-				endcase							
-			end
-			`EXE_SWR_OP:		begin
-				mem_addr_o = {mem_addr_i[31:2], 2'b00};
-				mem_we = `WriteEnable;
-				mem_ce_o = `ChipEnable;
-				case (mem_addr_i[1:0])
-					2'b00:	begin						  
-						mem_data_o = {reg2_i[7:0],zero32[23:0]};
-					end
-					2'b01:	begin
-						mem_data_o = {reg2_i[15:0],zero32[15:0]};
-					end
-					2'b10:	begin
-						mem_data_o = {reg2_i[23:0],zero32[7:0]};
-					end
-					2'b11:	begin
-						mem_data_o = reg2_i[31:0];
-					end
-					default:	begin
-					end
-				endcase											
-			end 
 			default:		begin
 				data_size = 0;
 			end
