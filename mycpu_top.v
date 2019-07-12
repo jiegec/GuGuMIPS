@@ -203,7 +203,7 @@ reg inst_data_ok;
 
 assign inst_sram_en = 1;
 assign inst_addr_ok = inst_req;
-assign inst_wdata = inst_sram_wdata;
+assign inst_sram_wdata = inst_wdata;
 assign inst_rdata = inst_sram_rdata;
 assign inst_sram_addr = {inst_addr[31:2], 2'b00};
 assign inst_sram_wen = inst_wr ? (inst_size == 2'b00 ? 4'b001 << inst_sram_addr[1:0] :
@@ -220,7 +220,7 @@ reg data_data_ok;
 
 assign data_sram_en = 1;
 assign data_addr_ok = data_req;
-assign data_wdata = data_sram_wdata;
+assign data_sram_wdata = data_wdata;
 assign data_rdata = data_sram_rdata;
 assign data_sram_addr = {data_addr[31:2], 2'b00};
 assign data_sram_wen = data_wr ? (data_size == 2'b00 ? 4'b001 << data_sram_addr[1:0] :
