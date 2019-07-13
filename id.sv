@@ -561,7 +561,7 @@ module id(
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b0;
             instvalid = 1;
-            if ((reg1_o[31] == 1'b1) || (reg1_o != `ZeroWord)) begin
+            if ((reg1_o[31] == 1'b1) || (reg1_o == `ZeroWord)) begin
               branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
               next_inst_in_delayslot_o = 1;
