@@ -36,10 +36,6 @@ module id(
     output logic is_in_delayslot_o,
 
     output logic [31:0] except_type_o
-
-    // memory
-    // output wire [`RegBus] inst_o
-
 );
     wire[5:0] op = inst_i[31:26]; // op type
     wire[4:0] op2 = inst_i[10:6];

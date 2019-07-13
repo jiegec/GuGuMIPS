@@ -1,52 +1,51 @@
 `include "define.vh"
 module ex_mem(
-  input wire clk,
-  input wire rst,
-  input wire en,
-  input wire flush,
+    input wire clk,
+    input wire rst,
+    input wire en,
+    input wire flush,
 
-  input wire[`RegAddrBus] ex_wd,
-  input wire ex_wreg,
-  input wire[`RegBus] ex_wdata,
-  input wire[`InstAddrBus] ex_pc,
+    input wire[`RegAddrBus] ex_wd,
+    input wire ex_wreg,
+    input wire[`RegBus] ex_wdata,
+    input wire[`InstAddrBus] ex_pc,
 
-  input wire ex_whilo,
-  input wire[`RegBus] ex_hi,
-  input wire[`RegBus] ex_lo,
+    input wire ex_whilo,
+    input wire[`RegBus] ex_hi,
+    input wire[`RegBus] ex_lo,
 
-  input wire ex_cp0_reg_we,
-  input wire[4:0] ex_cp0_reg_write_addr,
-  input wire[`RegBus] ex_cp0_reg_data,
+    input wire ex_cp0_reg_we,
+    input wire[4:0] ex_cp0_reg_write_addr,
+    input wire[`RegBus] ex_cp0_reg_data,
 
-  input [31:0] ex_except_type,
-  input ex_is_in_delayslot,
+    input [31:0] ex_except_type,
+    input ex_is_in_delayslot,
 
-  input wire[`AluOpBus] ex_aluop,
-  input wire[`AluSelBus] ex_alusel,
-  input wire[`RegBus] ex_mem_addr,
-  input wire[`RegBus] ex_reg2,
+    input wire[`AluOpBus] ex_aluop,
+    input wire[`AluSelBus] ex_alusel,
+    input wire[`RegBus] ex_mem_addr,
+    input wire[`RegBus] ex_reg2,
 
-  output reg[`RegAddrBus] mem_wd,
-  output reg mem_wreg,
-  output reg[`RegBus] mem_wdata,
-  output reg[`InstAddrBus] mem_pc,
+    output reg[`RegAddrBus] mem_wd,
+    output reg mem_wreg,
+    output reg[`RegBus] mem_wdata,
+    output reg[`InstAddrBus] mem_pc,
 
-  output reg mem_whilo,
-  output reg[`RegBus] mem_hi,
-  output reg[`RegBus] mem_lo,
+    output reg mem_whilo,
+    output reg[`RegBus] mem_hi,
+    output reg[`RegBus] mem_lo,
 
-  output logic mem_cp0_reg_we,
-  output logic[4:0] mem_cp0_reg_write_addr,
-  output logic[`RegBus] mem_cp0_reg_data,
+    output logic mem_cp0_reg_we,
+    output logic[4:0] mem_cp0_reg_write_addr,
+    output logic[`RegBus] mem_cp0_reg_data,
 
-  output logic [31:0] mem_except_type,
-  output logic mem_is_in_delayslot,
+    output logic [31:0] mem_except_type,
+    output logic mem_is_in_delayslot,
 
-  output reg[`AluOpBus] mem_aluop,
-  output reg[`AluSelBus] mem_alusel,
-  output reg[`RegBus] mem_mem_addr,
-  output reg[`RegBus] mem_reg2
-  
+    output reg[`AluOpBus] mem_aluop,
+    output reg[`AluSelBus] mem_alusel,
+    output reg[`RegBus] mem_mem_addr,
+    output reg[`RegBus] mem_reg2
 );
 
     always_ff @(posedge clk) begin

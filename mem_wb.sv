@@ -36,39 +36,39 @@ module mem_wb(
 );
 
     always_ff @(posedge clk) begin
-      if (rst == `RstEnable || flush) begin
-        wb_wd <= `NOPRegAddr;
-        wb_wreg <= `WriteDisable;
-        wb_wdata <= `ZeroWord;
+        if (rst == `RstEnable || flush) begin
+            wb_wd <= `NOPRegAddr;
+            wb_wreg <= `WriteDisable;
+            wb_wdata <= `ZeroWord;
 
-        wb_whilo <= `WriteDisable;
-        wb_hi <= `ZeroWord;
-        wb_lo <= `ZeroWord;
+            wb_whilo <= `WriteDisable;
+            wb_hi <= `ZeroWord;
+            wb_lo <= `ZeroWord;
 
-        wb_pc <= 0;
+            wb_pc <= 0;
 
-        wb_cp0_reg_we <= 0;
-        wb_cp0_reg_write_addr <= 0;
-        wb_cp0_reg_data <= 0;
+            wb_cp0_reg_we <= 0;
+            wb_cp0_reg_write_addr <= 0;
+            wb_cp0_reg_data <= 0;
 
-        wb_is_in_delayslot <= 0;
-      end else if (en) begin
-        wb_wd <= mem_wd;
-        wb_wreg <= mem_wreg;
-        wb_wdata <= mem_wdata;
+            wb_is_in_delayslot <= 0;
+        end else if (en) begin
+            wb_wd <= mem_wd;
+            wb_wreg <= mem_wreg;
+            wb_wdata <= mem_wdata;
 
-        wb_whilo <= mem_whilo;
-        wb_hi <= mem_hi;
-        wb_lo <= mem_lo;
+            wb_whilo <= mem_whilo;
+            wb_hi <= mem_hi;
+            wb_lo <= mem_lo;
 
-        wb_pc <= mem_pc;
+            wb_pc <= mem_pc;
 
-        wb_cp0_reg_we <= mem_cp0_reg_we;
-        wb_cp0_reg_write_addr <= mem_cp0_reg_write_addr;
-        wb_cp0_reg_data <= mem_cp0_reg_data;
+            wb_cp0_reg_we <= mem_cp0_reg_we;
+            wb_cp0_reg_write_addr <= mem_cp0_reg_write_addr;
+            wb_cp0_reg_data <= mem_cp0_reg_data;
 
-        wb_is_in_delayslot <= mem_is_in_delayslot;
-      end
+            wb_is_in_delayslot <= mem_is_in_delayslot;
+        end
     end
 
 endmodule // mem_wb

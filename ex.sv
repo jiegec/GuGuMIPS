@@ -137,19 +137,19 @@ module ex(
         end else begin
             case (aluop_i)
                 `EXE_OR_OP: begin
-                logic_res = reg1_i | reg2_i;
+                    logic_res = reg1_i | reg2_i;
                 end
                 `EXE_AND_OP: begin
-                logic_res = reg1_i & reg2_i;
+                    logic_res = reg1_i & reg2_i;
                 end
                 `EXE_NOR_OP: begin
-                logic_res = ~(reg1_i | reg2_i);
+                    logic_res = ~(reg1_i | reg2_i);
                 end
                 `EXE_XOR_OP: begin
-                logic_res = reg1_i ^ reg2_i;
+                    logic_res = reg1_i ^ reg2_i;
                 end
                 default: begin
-                logic_res = `ZeroWord;
+                    logic_res = `ZeroWord;
                 end
             endcase
         end
@@ -161,17 +161,17 @@ module ex(
         end else begin
             case (aluop_i)
                 `EXE_SLL_OP: begin
-                shift_res = reg2_i << reg1_i[4:0]; // logic left shift
+                    shift_res = reg2_i << reg1_i[4:0]; // logic left shift
                 end
                 `EXE_SRL_OP: begin
-                shift_res = reg2_i >> reg1_i[4:0]; // logic right shift
+                    shift_res = reg2_i >> reg1_i[4:0]; // logic right shift
                 end
                 `EXE_SRA_OP: begin
-                shift_res = ({32{reg2_i[31]}} << (6'd32-{1'b0,reg1_i[4:0]})) |
-                            reg2_i >> reg1_i[4:0]; // arithmetic right shift
+                    shift_res = ({32{reg2_i[31]}} << (6'd32-{1'b0,reg1_i[4:0]})) |
+                                reg2_i >> reg1_i[4:0]; // arithmetic right shift
                 end
                 default: begin
-                shift_res = `ZeroWord;
+                    shift_res = `ZeroWord;
                 end
             endcase
         end
@@ -254,11 +254,11 @@ module ex(
 
                 // data dependency
                 if (mem_cp0_reg_we == 1 && mem_cp0_reg_write_addr == inst_i[15:11]) begin
-                move_res = mem_cp0_reg_data;
+                    move_res = mem_cp0_reg_data;
                 end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == inst_i[15:11]) begin
-                move_res = wb_cp0_reg_data;
+                    move_res = wb_cp0_reg_data;
                 end else begin
-                move_res = cp0_reg_data_i;
+                    move_res = cp0_reg_data_i;
                 end
             end
             default: begin
@@ -299,22 +299,22 @@ module ex(
             case(aluop_i)
             `EXE_TEQ_OP, `EXE_TEQI_OP: begin
                 if (reg1_i == reg2_i) begin
-                trap_assert = 1;
+                    trap_assert = 1;
                 end
             end
             `EXE_TGE_OP, `EXE_TGEI_OP, `EXE_TGEIU_OP, `EXE_TGEU_OP: begin
                 if (~reg1_lt_reg2) begin
-                trap_assert = 1;
+                    trap_assert = 1;
                 end
             end
             `EXE_TLT_OP, `EXE_TLTI_OP, `EXE_TLTIU_OP, `EXE_TLTU_OP: begin
                 if (reg1_lt_reg2) begin
-                trap_assert = 1;
+                    trap_assert = 1;
                 end
             end
             `EXE_TNE_OP, `EXE_TNEI_OP: begin
                 if (reg1_i != reg2_i) begin
-                trap_assert = 1;
+                    trap_assert = 1;
                 end
             end
             endcase

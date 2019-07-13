@@ -13,13 +13,13 @@ module if_id(
 );
 
   always_ff @ (posedge clk) begin
-    if (rst == `RstEnable || flush) begin
-      id_pc <= `ZeroWord;
-      id_inst <= `ZeroWord;
-    end else if (en) begin
-      id_pc <= if_pc;
-      id_inst <= if_inst;
-    end
+        if (rst == `RstEnable || flush) begin
+            id_pc <= `ZeroWord;
+            id_inst <= `ZeroWord;
+        end else if (en) begin
+            id_pc <= if_pc;
+            id_inst <= if_inst;
+        end
   end
 
 endmodule // if_id
