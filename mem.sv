@@ -166,7 +166,7 @@ module mem(
     logic [`RegBus] saved_pc_i;
     logic saved_data_wr;
 
-    assign data_req = state == 2 ? 0 : (state == 1 ? 0 : mem_ce_o);
+    assign data_req = state == 2 ? 0 : (state == 1 ? 1 : mem_ce_o);
     assign data_addr = state == 1 ? saved_mem_addr_i : mem_addr_o;
     assign mem_data_i = data_rdata;
     assign data_wdata = mem_data_o;
@@ -174,7 +174,7 @@ module mem(
     assign mem_stall = data_req || ((state != 0) && !data_data_ok);
     assign pc_o = data_data_ok ? saved_pc_i : pc_i;
 
-        // TODO: MMU
+	// TODO: MMU
     logic [31:0] mem_phy_addr;
     assign mem_phy_addr = mem_addr_i[28:0];
 
