@@ -41,6 +41,7 @@ module mips(
     wire[`RegBus] cp0_data_o;
 
     wire[`InstAddrBus] rom_data;
+    wire[`InstAddrBus] if_pc_o;
     wire[`InstAddrBus] id_pc_i;
     wire[`InstAddrBus] ex_pc;
     wire[`InstAddrBus] mem_pc_i;
@@ -204,12 +205,12 @@ module mips(
         .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
-        .addr(pc), .inst(rom_data), .stall(if_stall),
+        .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o),
         .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
         .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok));
 
     if_id if_id0(.clk(clk), .rst(rst | (!en_pc & en_if_id)), .flush(flush),
-                .if_pc(pc), .if_inst(rom_data), .en(en_if_id),
+                .if_pc(if_pc_o), .if_inst(rom_data), .en(en_if_id),
                  .id_pc(id_pc_i), .id_inst(id_inst_i));
 
     id id0(.rst(rst), .pc_i(id_pc_i), .inst_i(id_inst_i),
