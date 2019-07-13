@@ -161,19 +161,19 @@ module mem(
   logic [31:0]mem_data_i;
   logic [31:0]mem_data_o;
   logic mem_ce_o;
-  logic state;
+  logic [1:0] state; // 0: no transfer, 1: waiting for addr ok, 2: waiting for data ok
   logic [`RegAddrBus] saved_wd;
   logic [`AluOpBus] saved_aluop;
   logic [`RegBus] saved_mem_addr_i;
   logic [`RegBus] saved_pc_i;
   logic saved_data_wr;
 
-  assign data_req = (data_data_ok && !state) ? 0 : mem_ce_o;
-  assign data_addr = mem_addr_o;
+  assign data_req = state == 1 || ((data_data_ok && !state) ? 0 : mem_ce_o);
+  assign data_addr = state == 1 ? saved_mem_addr_i : mem_addr_o;
   assign mem_data_i = data_rdata;
   assign data_wdata = mem_data_o;
   assign data_wr = mem_we;
-  assign mem_stall = state && !data_data_ok;
+  assign mem_stall = (state != 0) && !data_data_ok;
   assign pc_o = data_data_ok ? saved_pc_i : pc_i;
 
 	// TODO: MMU
@@ -188,13 +188,15 @@ module mem(
 		saved_mem_addr_i <= 0;
 		saved_pc_i <= 0;
 		saved_data_wr <= 0;
-	end else if (data_req) begin
-		state <= 1;
+	end else if (data_req && state == 0) begin
+		state <= data_addr_ok ? 2 : 1;
 		saved_wd <= wd_i;
 		saved_aluop <= aluop_i;
-		saved_mem_addr_i <= mem_phy_addr;
+		saved_mem_addr_i <= mem_addr_o;
 		saved_pc_i <= pc_i;
 		saved_data_wr <= data_wr;
+	end else if (state == 1 && data_addr_ok) begin
+		state <= 2;
 	end else if (data_data_ok) begin
 		state <= 0;
 		saved_wd <= 0;

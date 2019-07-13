@@ -35,20 +35,27 @@ module ifetch(
     // TODO: MMU
     assign inst_addr = addr[28:0];
     assign inst = inst_rdata;
+    assign inst_req = state == 1 || (state == 0);
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
             state <= 0;
             last_data_ok <= 0;
-            inst_req <= 0;
+            //inst_req <= 0;
             last_inst_req <= 0;
         end else begin
-            inst_req <= ((!inst_data_ok & (state == 0)) | en) & !inst_req;
+            //inst_req <= ((!inst_data_ok & (state == 0)) | en) & !inst_req;
             last_inst_req <= inst_req;
             last_data_ok <= inst_data_ok;
             case (state)
                 0: begin
-                    state <= 1;
+                    if (inst_req) begin
+                        if (inst_addr_ok) begin
+                            state <= 2;
+                        end else begin
+                            state <= 1;
+                        end
+                    end
                 end
                 1: begin
                     if (inst_data_ok) begin
