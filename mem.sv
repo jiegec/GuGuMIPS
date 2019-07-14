@@ -31,7 +31,6 @@ module mem(
     input wire [`RegBus] mem_addr_i,
     input wire [`RegBus] reg2_i,
 
-
     output reg[`RegAddrBus] wd_o,
     output reg wreg_o,
     output reg[`RegBus] wdata_o,
@@ -48,6 +47,7 @@ module mem(
     output logic[31:0] cp0_epc_o,
 
     output mem_stall,
+    output mem_load,
 
     output         data_req,
     output         data_wr,
@@ -173,6 +173,7 @@ module mem(
     assign data_wr = mem_we;
     assign mem_stall = data_req || ((state != 0) && !data_data_ok);
     assign pc_o = data_data_ok ? saved_pc_i : pc_i;
+    assign mem_load = state != 0 && !saved_data_wr;
 
 	// TODO: MMU
     logic [31:0] mem_phy_addr;

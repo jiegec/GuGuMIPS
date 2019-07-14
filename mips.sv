@@ -157,6 +157,7 @@ module mips(
 
     logic if_stall;
     logic mem_stall;
+    logic mem_load;
 
     logic [5:0] interrupt;
     assign interrupt = {intr[5] | timer_int_o, intr[4:0]};
@@ -181,10 +182,10 @@ module mips(
         end
 
         if (mem_stall) begin
-            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00000;
-        end else if (mem_alusel_i == `EXE_RES_LOAD_STORE && (mem_wd_i == reg1_addr || mem_wd_i == reg2_addr)) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00001;
-        end else if (ex_alusel_i == `EXE_RES_LOAD_STORE && (ex_wd_i == reg1_addr || ex_wd_i == reg2_addr)) begin
+        end else if (mem_load && (mem_wd_o == reg1_addr || mem_wd_o == reg2_addr)) begin
+            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00001;
+        end else if (ex_alusel_i == `EXE_RES_LOAD_STORE && (ex_wd_o == reg1_addr || ex_wd_o == reg2_addr)) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00011;
         end else if (if_stall) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b01111;
@@ -195,7 +196,7 @@ module mips(
 
     pc_reg pc_reg0(.clk(clk), .rst(rst), .flush(flush),
                     .pc(pc), .en(en_pc), .new_pc(new_pc),
-                    .branch_flag_i(branch_flag), .branch_target_address_i(branch_target_address));
+                    .branch_flag_i(branch_flag & en_id_ex), .branch_target_address_i(branch_target_address));
 
     cp0_reg cp0_reg0(.clk(clk), .rst(rst), .int_i(interrupt),
         .except_type_i(mem_except_type_o), .pc_i(mem_pc_i), .is_in_delayslot_i(wb_is_in_delayslot),
@@ -280,7 +281,7 @@ module mips(
              .wb_cp0_reg_we(wb_cp0_reg_we), .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr),
              .except_type_o(mem_except_type_o),
              .aluop_i(mem_aluop_i), .mem_addr_i(mem_mem_addr_i), .reg2_i(mem_reg2_i),
-             .mem_stall(mem_stall),
+             .mem_stall(mem_stall), .mem_load(mem_load),
              .data_req(data_req), .data_wr(data_wr), .data_size(data_size),
              .data_addr(data_addr), .data_wdata(data_wdata), .data_rdata(data_rdata),
              .data_addr_ok(data_addr_ok), .data_data_ok(data_data_ok));
