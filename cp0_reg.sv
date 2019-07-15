@@ -13,6 +13,7 @@ module cp0_reg(
     input [31:0] except_type_i,
     input [`RegBus] pc_i,
     input is_in_delayslot_i,
+    input [31:0] mem_addr_i, // for misaligned access error
 
     output logic [`RegBus] data_o,
     output logic [`RegBus] count_o,
@@ -22,6 +23,7 @@ module cp0_reg(
     output logic [`RegBus] epc_o,
     output logic [`RegBus] config_o,
     output logic [`RegBus] prid_o,
+    output logic [`RegBus] badvaddr_o,
 
     output logic timer_int_o
 );
@@ -37,6 +39,7 @@ module cp0_reg(
             config_o <= 32'b0_000000000000000_0_00_000_000_000_0_000;
             prid_o <= 32'b00000000_00000000_0000000000_000000;
             timer_int_o <= 0;
+            badvaddr_o <= 0;
         end else begin
             count_o <= count_o + 1;
             cause_o[15:10] <= int_i;
@@ -106,6 +109,8 @@ module cp0_reg(
                     status_o[1] <= 1'b1;
                     // ExcCode = 4
                     cause_o[6:2] <= 5'h04;
+                    // BadVAddr
+                    badvaddr_o <= mem_addr_i;
                 end
                 32'h00000005: begin
                     // address error store
@@ -123,6 +128,8 @@ module cp0_reg(
                     status_o[1] <= 1'b1;
                     // ExcCode = 5
                     cause_o[6:2] <= 5'h05;
+                    // BadVAddr
+                    badvaddr_o <= mem_addr_i;
                 end
                 32'h00000008: begin
                     // syscall
@@ -242,6 +249,9 @@ module cp0_reg(
             data_o = 0;
         end else begin
             case(raddr_i)
+                `CP0_REG_BADVADDR: begin
+                    data_o = badvaddr_o;
+                end
                 `CP0_REG_COUNT: begin
                     data_o = count_o;
                 end

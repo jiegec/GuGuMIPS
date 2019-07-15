@@ -210,7 +210,7 @@ module mips(
     cp0_reg cp0_reg0(.clk(clk), .rst(rst), .int_i(interrupt),
         .except_type_i(mem_except_type_o), .pc_i(mem_pc_i), .is_in_delayslot_i(wb_is_in_delayslot),
         .data_i(wb_cp0_reg_data), .raddr_i(cp0_raddr_i), .waddr_i(wb_cp0_reg_write_addr), .we_i(wb_cp0_reg_we),
-        .data_o(cp0_data_o), .timer_int_o(timer_int_o),
+        .data_o(cp0_data_o), .timer_int_o(timer_int_o), .mem_addr_i(mem_mem_addr_i),
         .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
