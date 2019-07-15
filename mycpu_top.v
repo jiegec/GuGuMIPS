@@ -206,8 +206,8 @@ assign inst_addr_ok = inst_req;
 assign inst_sram_wdata = inst_wdata;
 assign inst_rdata = inst_sram_rdata;
 assign inst_sram_addr = {inst_addr[31:2], 2'b00};
-assign inst_sram_wen = inst_wr ? (inst_size == 2'b00 ? 4'b001 << inst_sram_addr[1:0] :
-            (inst_size == 2'b01 ? (4'b0011 << inst_sram_addr[1:0]) : 4'b1111)) : 4'b0000;
+assign inst_sram_wen = inst_wr ? (inst_size == 2'b00 ? 4'b001 << inst_addr[1:0] :
+            (inst_size == 2'b01 ? (4'b0011 << inst_addr[1:0]) : 4'b1111)) : 4'b0000;
 
 wire data_req;
 wire data_wr;
@@ -223,8 +223,8 @@ assign data_addr_ok = data_req;
 assign data_sram_wdata = data_wdata;
 assign data_rdata = data_sram_rdata;
 assign data_sram_addr = {data_addr[31:2], 2'b00};
-assign data_sram_wen = data_wr ? (data_size == 2'b00 ? 4'b001 << data_sram_addr[1:0] :
-            (data_size == 2'b01 ? (4'b0011 << data_sram_addr[1:0]) : 4'b1111)) : 4'b0000;
+assign data_sram_wen = data_wr ? (data_size == 2'b00 ? 4'b001 << data_addr[1:0] :
+            (data_size == 2'b01 ? (4'b0011 << data_addr[1:0]) : 4'b1111)) : 4'b0000;
 
 always @ (posedge clk) begin
     if (rst) begin
