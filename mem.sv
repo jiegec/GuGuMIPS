@@ -63,6 +63,7 @@ module mem(
     logic [31:0] cp0_cause;
     logic [31:0] cp0_epc;
     logic misaligned_access;
+    logic inst_store;
 
     wire[`RegBus] zero32;
 
@@ -151,7 +152,7 @@ module mem(
                 except_type_o = 32'h0000000d;
             end else if (misaligned_access) begin
                 // address error
-                if (mem_we) begin
+                if (inst_store) begin
                     // AdES
                     except_type_o = 32'h00000005;
                 end else begin
@@ -232,6 +233,7 @@ module mem(
             data_size = 0;
 
             misaligned_access = 0;
+            inst_store = 0;
         end else begin
             mem_addr_o = `ZeroWord;
             mem_we = `WriteDisable;
@@ -239,6 +241,7 @@ module mem(
             wreg_o = (data_req | state) ? (data_data_ok & !saved_data_wr) : (wreg_i && !misaligned_access);
             wd_o = data_data_ok ? saved_wd : wd_i;
             misaligned_access = 0;
+            inst_store = 0;
 
             wdata_o = wdata_i;
             case (aluop_i)
@@ -300,32 +303,37 @@ module mem(
                     mem_data_o = {reg2_i[7:0],reg2_i[7:0],reg2_i[7:0],reg2_i[7:0]};
                     mem_ce_o = `ChipEnable;
                     data_size = 2'b00; // 1
+                    inst_store = 1;
                 end
                 `EXE_SH_OP:		begin
                     mem_addr_o = mem_phy_addr;
-                    mem_we = `WriteEnable;
                     mem_data_o = {reg2_i[15:0],reg2_i[15:0]};
                     if (mem_addr_o[0] != 0) begin
                         // misaligned
+                        mem_we = `WriteDisable;
                         mem_ce_o = `ChipDisable;
                         misaligned_access = 1;
                     end else begin
+                        mem_we = `WriteEnable;
                         mem_ce_o = `ChipEnable;
                     end
                     data_size = 2'b01; // 2
+                    inst_store = 1;
                 end
                 `EXE_SW_OP:		begin
                     mem_addr_o = mem_phy_addr;
-                    mem_we = `WriteEnable;
                     mem_data_o = reg2_i;
                     if (mem_addr_o[1:0] != 0) begin
                         // misaligned
+                        mem_we = `WriteDisable;
                         mem_ce_o = `ChipDisable;
                         misaligned_access = 1;
                     end else begin
+                        mem_we = `WriteEnable;
                         mem_ce_o = `ChipEnable;
                     end
                     data_size = 2'b10; // 4
+                    inst_store = 1;
                 end
                 default:		begin
                     data_size = 0;
