@@ -236,7 +236,7 @@ module mem(
             mem_addr_o = `ZeroWord;
             mem_we = `WriteDisable;
             mem_ce_o = `ChipDisable;
-            wreg_o = (data_req | state) ? (data_data_ok & !saved_data_wr) : wreg_i;
+            wreg_o = (data_req | state) ? (data_data_ok & !saved_data_wr) : (wreg_i && !misaligned_access);
             wd_o = data_data_ok ? saved_wd : wd_i;
             misaligned_access = 0;
 
