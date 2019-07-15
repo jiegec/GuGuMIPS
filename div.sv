@@ -32,8 +32,6 @@ module div (
             ready_o <= `DivResultNotReady;
             result_o <= {`ZeroWord, `ZeroWord};
             dividend <= {`ZeroWord, `ZeroWord};
-            temp_op1 <= {`ZeroWord, `ZeroWord};
-            temp_op2 <= {`ZeroWord, `ZeroWord};
         end else begin
             case (state)
                 `DivFree: begin
