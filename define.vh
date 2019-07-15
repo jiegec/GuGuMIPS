@@ -256,3 +256,14 @@
 `define CP0_REG_EPC 5'd14
 `define CP0_REG_PRId 5'd15
 `define CP0_REG_CONFIG 5'd16
+
+`define DivFree 2'b00
+`define DivByZero 2'b01
+`define DivOn 2'b10
+`define DivEnd 2'b11
+`define DivResultReady 1'b1
+`define DivResultNotReady 1'b0
+`define DivStart 1'b1
+`define DivStop 1'b0
+`define Stop 1'b1
+`define NoStop 1'b0

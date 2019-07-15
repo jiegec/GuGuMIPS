@@ -141,6 +141,15 @@ module mips(
     wire[`RegBus] ex_mem_mem_addr_i;
     wire[`RegBus] ex_mem_reg2_i;
 
+	wire[`DoubleRegBus] div_result;
+	wire div_ready;
+	wire[`RegBus] div_opdata1;
+	wire[`RegBus] div_opdata2;
+	wire div_start;
+	wire div_annul;
+	wire signed_div;
+    wire ex_stall;
+
     logic [`AluOpBus] mem_aluop_i;
     logic [`AluSelBus] mem_alusel_i;
     logic [`RegBus] mem_mem_addr_i;
@@ -181,7 +190,7 @@ module mips(
             new_pc = 0;
         end
 
-        if (mem_stall) begin
+        if (mem_stall || ex_stall) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00001;
         end else if (mem_load && (mem_wd_o == reg1_addr || mem_wd_o == reg2_addr)) begin
             {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00001;
@@ -254,7 +263,10 @@ module mips(
            .mem_cp0_reg_data(mem_cp0_reg_data_o), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_o), .mem_cp0_reg_we(mem_cp0_reg_we_o),
            .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we),
            .is_in_delayslot_i(ex_is_in_delayslot), .link_address_i(ex_link_address),
-           .aluop_o(ex_mem_aluop_i), .mem_addr_o(ex_mem_mem_addr_i), .reg2_o(ex_mem_reg2_i));
+           .aluop_o(ex_mem_aluop_i), .mem_addr_o(ex_mem_mem_addr_i), .reg2_o(ex_mem_reg2_i),
+           .div_opdata1_o(div_opdata1), .div_opdata2_o(div_opdata2), .div_start_o(div_start), .signed_div_o(signed_div),	
+           .div_result_i(div_result), .div_ready_i(div_ready),
+           .stallreq(stallreq_from_ex));
 
     ex_mem ex_mem0(.clk(clk), .rst(rst | (!en_ex_mm & en_mm_wb)), .en(en_ex_mm), .flush(flush),
                     .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),
@@ -298,5 +310,9 @@ module mips(
     hilo_reg hilo_reg0(.clk(clk), .rst(rst),
                         .we(wb_whilo_i), .hi_i(wb_hi_i), .lo_i(wb_lo_i),
                         .hi_o(ex_hi_i), .lo_o(ex_lo_i));
+
+	div div0(.clk(clk), .rst(rst),
+		.signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .annul_i(1'b0),
+		.result_o(div_result), .ready_o(div_ready));
 
 endmodule // mips

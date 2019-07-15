@@ -182,6 +182,7 @@ end
 always clk = #5 ~clk;
 
 initial begin
+    test("test_div");
     // bit
     test("inst_ori");
     test("inst_andi");

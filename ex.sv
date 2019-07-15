@@ -31,6 +31,9 @@ module ex(
     input wire[`RegBus] wb_cp0_reg_data,
     input wire[`RegBus] cp0_reg_data_i,
 
+    input wire[`DoubleRegBus] div_result_i,
+    input wire div_ready_i,
+
     output logic cp0_reg_we_o,
     output logic[4:0] cp0_reg_read_addr_o,
     output logic[4:0] cp0_reg_write_addr_o,
@@ -48,8 +51,14 @@ module ex(
 
     output wire[`AluOpBus] aluop_o,
     output wire[`RegBus] mem_addr_o,
-    output wire[`RegBus] reg2_o
+    output wire[`RegBus] reg2_o,
 
+    output reg[`RegBus] div_opdata1_o,
+    output reg[`RegBus] div_opdata2_o,
+    output reg div_start_o,
+    output reg signed_div_o,
+
+    output reg stallreq
 );
     logic[`RegBus] logic_res;
     logic[`RegBus] shift_res;
@@ -70,6 +79,8 @@ module ex(
 
     logic trap_assert;
     logic overflow_assert;
+
+    reg stallreq_for_div;
 
     assign except_type_o = {except_type_i[31:12], overflow_assert, trap_assert, except_type_i[9:8], 8'h00};
 
@@ -208,6 +219,10 @@ module ex(
             whilo_o = `WriteEnable;
             hi_o = mult_res[63:32];
             lo_o = mult_res[31:0];
+        end else if ((aluop_i == `EXE_DIV_OP) || (aluop_i == `EXE_DIVU_OP)) begin
+            whilo_o = `WriteEnable;
+            hi_o = div_result_i[63:32];
+            lo_o = div_result_i[31:0];
         end else begin
             whilo_o = `WriteDisable;
             hi_o = `ZeroWord;
@@ -356,6 +371,72 @@ module ex(
         end else begin
             mult_res = hilo_temp;
         end
+    end
+
+    always_comb begin
+        if (rst) begin
+            stallreq_for_div <= `NoStop;
+			div_opdata1_o <= `ZeroWord;
+			div_opdata2_o <= `ZeroWord;
+			div_start_o <= `DivStop;
+			signed_div_o <= 1'b0;
+		end else begin
+			stallreq_for_div <= `NoStop;
+			div_opdata1_o <= `ZeroWord;
+			div_opdata2_o <= `ZeroWord;
+			div_start_o <= `DivStop;
+			signed_div_o <= 1'b0;
+            case (aluop_i)
+				`EXE_DIV_OP: begin
+					if(div_ready_i == `DivResultNotReady) begin
+	    				div_opdata1_o <= reg1_i;
+						div_opdata2_o <= reg2_i;
+						div_start_o <= `DivStart;
+						signed_div_o <= 1'b1;
+						stallreq_for_div <= `Stop;
+					end else if(div_ready_i == `DivResultReady) begin
+	    				div_opdata1_o <= reg1_i;
+						div_opdata2_o <= reg2_i;
+						div_start_o <= `DivStop;
+						signed_div_o <= 1'b1;
+						stallreq_for_div <= `NoStop;
+					end else begin						
+	    				div_opdata1_o <= `ZeroWord;
+						div_opdata2_o <= `ZeroWord;
+						div_start_o <= `DivStop;
+						signed_div_o <= 1'b0;
+						stallreq_for_div <= `NoStop;
+					end					
+				end
+				`EXE_DIVU_OP: begin
+					if(div_ready_i == `DivResultNotReady) begin
+	    				div_opdata1_o <= reg1_i;
+						div_opdata2_o <= reg2_i;
+						div_start_o <= `DivStart;
+						signed_div_o <= 1'b0;
+						stallreq_for_div <= `Stop;
+					end else if(div_ready_i == `DivResultReady) begin
+	    				div_opdata1_o <= reg1_i;
+						div_opdata2_o <= reg2_i;
+						div_start_o <= `DivStop;
+						signed_div_o <= 1'b0;
+						stallreq_for_div <= `NoStop;
+					end else begin						
+	    				div_opdata1_o <= `ZeroWord;
+						div_opdata2_o <= `ZeroWord;
+						div_start_o <= `DivStop;
+						signed_div_o <= 1'b0;
+						stallreq_for_div <= `NoStop;
+					end					
+				end
+                default: begin
+                end
+            endcase
+        end
+    end
+
+    always_comb begin 
+        stallreq = stallreq_for_div;// msub to do
     end
 
 endmodule // ex
