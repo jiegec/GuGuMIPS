@@ -102,6 +102,9 @@
 // syscall
 `define EXE_SYSCALL 6'b001100
 
+// break
+`define EXE_BREAK 6'b001101
+
 // trap
 `define EXE_TEQ 6'b110100
 `define EXE_TEQI 5'b01100
@@ -221,6 +224,8 @@
 
 `define EXE_DIV_OP 8'b11101111
 `define EXE_DIVU_OP 8'b11110000
+
+`define EXE_BREAK_OP 8'b11110001
 
 
 `define EXE_RES_NOP 3'b000

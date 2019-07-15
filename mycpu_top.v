@@ -239,6 +239,7 @@ end
 mips mips_inst(
     .clk(clk),
     .rst(rst),
+    .intr(int),
 
     .inst_req(inst_req),
     .inst_wr(inst_wr),

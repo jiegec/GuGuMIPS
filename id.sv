@@ -56,8 +56,9 @@ module id(
 
     logic except_type_is_syscall;
     logic except_type_is_eret;
+    logic except_type_is_break;
 
-    assign except_type_o = {19'b0, except_type_is_eret, 2'b0, ~instvalid, except_type_is_syscall, 8'b0};
+    assign except_type_o = {18'b0, except_type_is_break, except_type_is_eret, 2'b0, ~instvalid, except_type_is_syscall, 8'b0};
 
     // assign inst_o = inst_i;
 
@@ -80,6 +81,7 @@ module id(
 
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
+        except_type_is_break = 0;
       end else begin
         aluop_o = `EXE_NOP_OP;
         alusel_o = `EXE_RES_NOP;
@@ -97,6 +99,7 @@ module id(
         next_inst_in_delayslot_o = 0;
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
+        except_type_is_break = 0;
 
         case (op)
           `EXE_SPECIAL_INST: begin
@@ -379,6 +382,8 @@ module id(
                     reg2_read_o = 1'b1;
                     instvalid = 1;
                   end
+
+                  // syscall
                   `EXE_SYSCALL: begin
                     wreg_o = `WriteDisable;
                     aluop_o = `EXE_SYSCALL_OP;
@@ -387,6 +392,17 @@ module id(
                     reg2_read_o = 1'b0;
                     instvalid = 1;
                     except_type_is_syscall = 1;
+                  end
+
+                  // break
+                  `EXE_BREAK: begin
+                    wreg_o = `WriteDisable;
+                    aluop_o = `EXE_BREAK_OP;
+                    alusel_o = `EXE_RES_NOP;
+                    reg1_read_o = 1'b0;
+                    reg2_read_o = 1'b0;
+                    instvalid = 1;
+                    except_type_is_break = 1;
                   end
                   default: begin
                     

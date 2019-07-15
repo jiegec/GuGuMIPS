@@ -136,6 +136,9 @@ module mem(
             end else if (except_type_i[8] == 1'b1) begin
                 // syscall
                 except_type_o = 32'h00000008;
+            end else if (except_type_i[13] == 1'b1) begin
+                // break
+                except_type_o = 32'h00000009;
             end else if (except_type_i[9] == 1'b1) begin
                 // inst_valid
                 except_type_o = 32'h0000000a;

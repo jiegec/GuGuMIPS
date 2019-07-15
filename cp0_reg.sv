@@ -30,8 +30,8 @@ module cp0_reg(
         if (rst == `RstEnable) begin
             count_o <= 0;
             compare_o <= 0;
-            // CU = 4'b0001, BEV = 1
-            status_o <= 32'b0001_0_0_0_00_1_0_0_0_000_00000000_000_0_0_0_0_0;
+            // CU = 4'b0000, BEV = 1
+            status_o <= 32'b0000_0_0_0_00_1_0_0_0_000_00000000_000_0_0_0_0_0;
             cause_o <= 0;
             epc_o <= 0;
             config_o <= 32'b0_000000000000000_0_00_000_000_000_0_000;
@@ -105,7 +105,24 @@ module cp0_reg(
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 8
-                    cause_o[6:2] <= 5'b01000;
+                    cause_o[6:2] <= 5'h08;
+                end
+                32'h00000009: begin
+                    // break
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 9
+                    cause_o[6:2] <= 5'h09;
                 end
                 32'h0000000a: begin
                     // inst invalid
