@@ -266,7 +266,7 @@ module mips(
            .aluop_o(ex_mem_aluop_i), .mem_addr_o(ex_mem_mem_addr_i), .reg2_o(ex_mem_reg2_i),
            .div_opdata1_o(div_opdata1), .div_opdata2_o(div_opdata2), .div_start_o(div_start), .signed_div_o(signed_div),	
            .div_result_i(div_result), .div_ready_i(div_ready),
-           .stallreq(stallreq_from_ex));
+           .stallreq(ex_stall));
 
     ex_mem ex_mem0(.clk(clk), .rst(rst | (!en_ex_mm & en_mm_wb)), .en(en_ex_mm), .flush(flush),
                     .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),

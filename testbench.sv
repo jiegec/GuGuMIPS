@@ -135,7 +135,7 @@ task test(string name);
     line = 1;
 
     // config
-    stop_on_error = 1;
+    stop_on_error = 0;
     debug = 1;
 
     while (!$feof(fans))
@@ -182,7 +182,6 @@ end
 always clk = #5 ~clk;
 
 initial begin
-    test("test_div");
     // bit
     test("inst_ori");
     test("inst_andi");
@@ -201,6 +200,7 @@ initial begin
     // arith
     test("test_arith");
     test("test_mul");
+    test("test_div");
     
     // mem
     test("test_store");

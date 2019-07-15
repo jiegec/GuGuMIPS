@@ -23,12 +23,17 @@ module div (
     reg[31:0] temp_op2;
 
     assign div_temp = {1'b0, dividend[63:32]} - {1'b0, divisor};
+    assign temp_op1 = (signed_div_i == 1'b1 && opdata1_i[31] == 1'b1) ? (~opdata1_i + 1) : opdata1_i;
+	assign temp_op2 = (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1) ? (~opdata2_i + 1) : opdata2_i;
 
-    always_ff @(posedge clk) begin
+    always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin
             state <= `DivFree;
             ready_o <= `DivResultNotReady;
             result_o <= {`ZeroWord, `ZeroWord};
+            dividend <= {`ZeroWord, `ZeroWord};
+            temp_op1 <= {`ZeroWord, `ZeroWord};
+            temp_op2 <= {`ZeroWord, `ZeroWord};
         end else begin
             case (state)
                 `DivFree: begin
@@ -39,16 +44,6 @@ module div (
                             state <= `DivOn;
                         end
                         cnt <= 6'b000000;
-                        if (signed_div_i == 1'b1 && opdata1_i[31] == 1'b1) begin
-                            temp_op1 = ~opdata1_i + 1;
-                        end else begin
-                            temp_op1 = opdata1_i;
-                        end
-                        if (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1) begin
-                            temp_op2 = ~opdata2_i + 1;
-                        end else begin
-                            temp_op2 = opdata2_i;
-                        end
                         dividend <= {`ZeroWord, `ZeroWord};
                         dividend[32:1] <= temp_op1;
                         divisor <= temp_op2;
