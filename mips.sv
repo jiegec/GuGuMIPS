@@ -50,6 +50,8 @@ module mips(
     wire[`InstBus] id_inst_i;
     wire[`InstBus] ex_inst_i;
 
+    logic [31:0] if_except_type_o;
+
     wire[`AluOpBus] id_aluop_o;
     wire[`AluSelBus] id_alusel_o;
     wire[`RegBus] id_reg1_o;
@@ -60,6 +62,7 @@ module mips(
     wire next_inst_in_delayslot;
     wire[`RegBus] id_link_addr;
     wire id_is_in_delayslot_i;
+    logic [31:0] id_except_type_i;
     logic [31:0] id_except_type_o;
 
     wire[`AluOpBus] ex_aluop_i;
@@ -222,11 +225,12 @@ module mips(
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
         .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o),
         .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
-        .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok));
+        .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok),
+        .except_type_o(if_except_type_o));
 
-    if_id if_id0(.clk(clk), .rst(rst | (!en_pc & en_if_id)), .flush(flush),
-                .if_pc(if_pc_o), .if_inst(rom_data), .en(en_if_id),
-                .id_pc(id_pc_i), .id_inst(id_inst_i));
+    if_id if_id0(.clk(clk), .rst(rst), .flush(flush), .en(en_if_id),
+                .if_pc(if_pc_o), .if_inst(rom_data), .if_except_type(if_except_type_o),
+                .id_pc(id_pc_i), .id_inst(id_inst_i), .id_except_type(id_except_type_i));
 
     id id0(.rst(rst), .pc_i(id_pc_i), .pc_o(id_pc_o), .inst_i(id_inst_i),
             .reg1_data_i(reg1_data), .reg2_data_i(reg2_data),
@@ -240,7 +244,7 @@ module mips(
             .is_in_delayslot_i(id_is_in_delayslot_i), .is_in_delayslot_o(id_is_in_delayslot_o),
             .next_inst_in_delayslot_o(next_inst_in_delayslot), .branch_flag_o(branch_flag),
             .branch_target_address_o(branch_target_address), .link_addr_o(id_link_addr),
-            .except_type_o(id_except_type_o));
+            .except_type_i(id_except_type_i), .except_type_o(id_except_type_o));
 
     regfile regfile0(.clk(clk), .rst(rst),
                     .we(wb_wreg_i), .waddr(wb_wd_i),

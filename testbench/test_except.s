@@ -21,6 +21,12 @@ _start:
 
     ori $1, $1, 0xffff  # ans: $1=0xffffffff
 
+    # unaligned instruction fetch
+    mtc0 $1, $14
+    eret
+
+    ori $1, $1, 0xffff  # ans: $1=0x0000ffff
+
     .org 0x380
     # add epc
     mfc0 $30, $14          # skip
@@ -32,5 +38,9 @@ _start:
     srl $29, $29, 2        # ans: $29=ExcCode
     # read bad vaddr
     mfc0 $28, $8           # ans: $28=BadVAddr
+    beq $28, $1, end
+    nop
     eret
+    
+end:
     ori $3, $0, 0x4321

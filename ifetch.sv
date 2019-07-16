@@ -18,8 +18,15 @@ module ifetch(
     input [`RegBus]addr,
     output logic [`RegBus]inst,
     output logic [`RegBus]pc_o,
+    output logic [31:0] except_type_o,
     output logic stall
 );
+
+    // for instruction load access exception,
+    // cp0_badvaddr = cp0_epc = branch_target_address_o
+    logic misaligned_access;
+    assign misaligned_access = addr[1:0] != 0;
+    assign except_type_o = {17'b0, misaligned_access, 14'b0};
 
     assign inst_size = 2'b10; // 4
     assign inst_wr = 0;
@@ -33,8 +40,8 @@ module ifetch(
     assign stall = !inst_data_ok;
     // TODO: MMU
     assign inst_addr = addr[28:0];
-    assign inst = inst_rdata;
-    assign inst_req = !rst && (state == 1 || (state == 0));
+    assign inst = inst_data_ok ? inst_rdata : 0;
+    assign inst_req = !rst && (state == 1 || (state == 0)) && !misaligned_access;
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
@@ -42,6 +49,9 @@ module ifetch(
             //inst_req <= 0;
         end else begin
             if (inst_addr_ok) begin
+                pc_o <= addr;
+            end else if (misaligned_access) begin
+                // instruction fetch load error
                 pc_o <= addr;
             end
             //inst_req <= ((!inst_data_ok & (state == 0)) | en) & !inst_req;

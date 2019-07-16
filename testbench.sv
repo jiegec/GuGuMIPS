@@ -213,6 +213,8 @@ initial begin
     // exception
     test("inst_syscall");
     test("test_trap");
+    test("test_except");
+
     $finish;
 end
 

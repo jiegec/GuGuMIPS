@@ -1,0 +1,22 @@
+except_type before mem:
+
+Bit 8: syscall
+Bit 9: inst invalid
+Bit 10: trap
+Bit 11: overflow
+Bit 12: eret
+Bit 13: break
+Bit 14: instruction fetch misaligned
+
+except_type after mem:
+
+0x1: interrupt ExcCode=0x0
+0x4: address error on data load ExcCode=0x4
+0x5: address error on data store ExcCode=0x5
+0x8: syscall ExcCode=0x8
+0x9: break ExcCode=0x9
+0xa: inst invalid ExcCode=0xa
+0xc: overflow ExcCode=0xc
+0xd: trap ExcCode=0xd
+0xe: eret
+0xf: address error on instruction load ExcCode=0x4
