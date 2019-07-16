@@ -55,6 +55,9 @@ module ex_mem(
 );
 
     always_ff @(posedge clk) begin
+	    hilo_o <= hilo_i;
+		cnt_o <= cnt_i;	
+		//$display("hilo_o = %h cnt_o = %h", hilo_o, cnt_o);
         if (rst == `RstEnable || flush) begin
             mem_wd <= `NOPRegAddr;
             mem_wreg <= `WriteDisable;
@@ -78,8 +81,8 @@ module ex_mem(
             mem_mem_addr <= `ZeroWord;
             mem_reg2 <= `ZeroWord;
             
-	    	hilo_o <= {`ZeroWord, `ZeroWord};
-			cnt_o <= 2'b00;	
+	    	//hilo_o <= {`ZeroWord, `ZeroWord};
+			//cnt_o <= 2'b00;	
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -103,12 +106,12 @@ module ex_mem(
             mem_mem_addr <= ex_mem_addr;
             mem_reg2 <= ex_reg2;
             
-	    	hilo_o <= {`ZeroWord, `ZeroWord};
-			cnt_o <= 2'b00;	
+	    	/*hilo_o <= hilo_i;
+			cnt_o <= cnt_i;	
         end else begin
 	    	hilo_o <= hilo_i;
-			cnt_o <= cnt_i;			  				    
-        end
+			cnt_o <= cnt_i;	*/
+		end
     end
 
 endmodule // ex_mem
