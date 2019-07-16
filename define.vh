@@ -44,6 +44,10 @@
 `define EXE_CLZ 6'b100000 // rd <- leading zeros of rs
 `define EXE_CLO 6'b100001 // rd <- leading ones of rs
 `define EXE_MUL 6'b000010 // rd <- rs * rt
+`define EXE_MADD 6'b000000
+`define EXE_MADDU 6'b000001
+`define EXE_MSUB 6'b000100
+`define EXE_MSUBU 6'b000101
 
 // check op3, when 31:21 are zeros
 `define EXE_SLL 6'b000000 // logic left shift
@@ -173,6 +177,10 @@
 `define EXE_MULT_OP 8'b00011011
 `define EXE_MULTU_OP 8'b00011100
 `define EXE_MUL_OP 8'b00011101
+`define EXE_MADD_OP 8'b10100110
+`define EXE_MADDU_OP 8'b10101000
+`define EXE_MSUB_OP 8'b10101010
+`define EXE_MSUBU_OP 8'b10101011
 `define EXE_CLZ_OP 8'b00011110
 `define EXE_CLO_OP 8'b00011111
 

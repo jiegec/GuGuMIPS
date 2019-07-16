@@ -141,6 +141,11 @@ module mips(
     wire[`AluOpBus] ex_mem_aluop_i;
     wire[`RegBus] ex_mem_mem_addr_i;
     wire[`RegBus] ex_mem_reg2_i;
+    
+	wire[`DoubleRegBus] hilo_temp_o;
+	wire[1:0] cnt_o;
+	wire[`DoubleRegBus] hilo_temp_i;
+	wire[1:0] cnt_i;
 
 	wire[`DoubleRegBus] div_result;
 	wire div_ready;
@@ -265,6 +270,7 @@ module mips(
            .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we),
            .is_in_delayslot_i(ex_is_in_delayslot), .link_address_i(ex_link_address),
            .aluop_o(ex_mem_aluop_i), .mem_addr_o(ex_mem_mem_addr_i), .reg2_o(ex_mem_reg2_i),
+           .hilo_temp_i(hilo_temp_i), .cnt_i(cnt_i), .hilo_temp_o(hilo_temp_o), .cnt_o(cnt_o),
            .div_opdata1_o(div_opdata1), .div_opdata2_o(div_opdata2), .div_start_o(div_start), .signed_div_o(signed_div),	
            .div_result_i(div_result), .div_ready_i(div_ready),
            .stallreq(ex_stall));
@@ -279,7 +285,8 @@ module mips(
                     .mem_cp0_reg_data(mem_cp0_reg_data_i), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_i), .mem_cp0_reg_we(mem_cp0_reg_we_i),
                     .mem_except_type(mem_except_type_i), .mem_is_in_delayslot(mem_is_in_delayslot),
                     .ex_alusel(ex_alusel_i), .ex_aluop(ex_mem_aluop_i), .ex_mem_addr(ex_mem_mem_addr_i), .ex_reg2(ex_mem_reg2_i),
-                    .mem_alusel(mem_alusel_i), .mem_aluop(mem_aluop_i), .mem_mem_addr(mem_mem_addr_i), .mem_reg2(mem_reg2_i));
+                    .mem_alusel(mem_alusel_i), .mem_aluop(mem_aluop_i), .mem_mem_addr(mem_mem_addr_i), .mem_reg2(mem_reg2_i),
+                    .hilo_i(hilo_temp_o), .cnt_i(cnt_o), .hilo_o(hilo_temp_i), .cnt_o(cnt_i));
 
     mem mem0(.rst(rst), .clk(clk),
              .wd_i(mem_wd_i), .wreg_i(mem_wreg_i), .wdata_i(mem_wdata_i),

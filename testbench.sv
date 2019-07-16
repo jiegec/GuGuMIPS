@@ -200,6 +200,7 @@ initial begin
     // arith
     test("test_arith");
     test("test_mul");
+	test("test_madd");
     test("test_div");
     
     // mem

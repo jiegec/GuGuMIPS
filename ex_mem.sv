@@ -21,6 +21,9 @@ module ex_mem(
     input [31:0] ex_except_type,
     input ex_is_in_delayslot,
 
+	input wire[`DoubleRegBus] hilo_i,	
+	input wire[1:0] cnt_i,	
+
     input wire[`AluOpBus] ex_aluop,
     input wire[`AluSelBus] ex_alusel,
     input wire[`RegBus] ex_mem_addr,
@@ -45,7 +48,10 @@ module ex_mem(
     output reg[`AluOpBus] mem_aluop,
     output reg[`AluSelBus] mem_alusel,
     output reg[`RegBus] mem_mem_addr,
-    output reg[`RegBus] mem_reg2
+    output reg[`RegBus] mem_reg2,
+	
+	output reg[`DoubleRegBus] hilo_o,
+	output reg[1:0] cnt_o	
 );
 
     always_ff @(posedge clk) begin
@@ -71,6 +77,9 @@ module ex_mem(
             mem_alusel <= `EXE_RES_NOP;
             mem_mem_addr <= `ZeroWord;
             mem_reg2 <= `ZeroWord;
+            
+	    	hilo_o <= {`ZeroWord, `ZeroWord};
+			cnt_o <= 2'b00;	
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -93,6 +102,12 @@ module ex_mem(
             mem_alusel <= ex_alusel;
             mem_mem_addr <= ex_mem_addr;
             mem_reg2 <= ex_reg2;
+            
+	    	hilo_o <= {`ZeroWord, `ZeroWord};
+			cnt_o <= 2'b00;	
+        end else begin
+	    	hilo_o <= hilo_i;
+			cnt_o <= cnt_i;			  				    
         end
     end
 
