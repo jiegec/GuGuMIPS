@@ -559,8 +559,8 @@ module id(
             if (reg1_o == reg2_o) begin
               branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
-              next_inst_in_delayslot_o = 1;
             end
+            next_inst_in_delayslot_o = 1;
           end
           `EXE_BGTZ: begin // r > 0
             wreg_o = `WriteDisable;
@@ -572,8 +572,8 @@ module id(
             if ((reg1_o[31] == 1'b0) && (reg1_o != `ZeroWord)) begin
               branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
-              next_inst_in_delayslot_o = 1;
             end
+            next_inst_in_delayslot_o = 1;
           end
           `EXE_BLEZ: begin // r <= 0
             wreg_o = `WriteDisable;
@@ -585,8 +585,8 @@ module id(
             if ((reg1_o[31] == 1'b1) || (reg1_o == `ZeroWord)) begin
               branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
-              next_inst_in_delayslot_o = 1;
             end
+            next_inst_in_delayslot_o = 1;
           end
           `EXE_BNE: begin // r1 != r2
             wreg_o = `WriteDisable;
@@ -598,8 +598,8 @@ module id(
             if (reg1_o != reg2_o) begin
               branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
-              next_inst_in_delayslot_o = 1;
             end
+            next_inst_in_delayslot_o = 1;
           end
 
           // load
@@ -688,8 +688,8 @@ module id(
                 if (reg1_o[31] == 1'b0) begin
                   branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
-                  next_inst_in_delayslot_o = 1;
                 end
+                next_inst_in_delayslot_o = 1;
               end
               `EXE_BGEZAL: begin // r1 >= 0, link $31
                 wreg_o = `WriteEnable;
@@ -703,8 +703,8 @@ module id(
                 if (reg1_o[31] == 1'b0) begin
                   branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
-                  next_inst_in_delayslot_o = 1;
                 end
+                next_inst_in_delayslot_o = 1;
               end
               `EXE_BLTZ: begin // r1 < 0
                 wreg_o = `WriteDisable;
@@ -716,8 +716,8 @@ module id(
                 if (reg1_o[31] == 1'b1) begin
                   branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
-                  next_inst_in_delayslot_o = 1;
                 end
+                next_inst_in_delayslot_o = 1;
               end
               `EXE_BLTZAL: begin // r1 < 0, link $31
                 wreg_o = `WriteEnable;
@@ -731,8 +731,8 @@ module id(
                 if (reg1_o[31] == 1'b1) begin
                   branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
-                  next_inst_in_delayslot_o = 1;
                 end
+                next_inst_in_delayslot_o = 1;
               end
 
               // trap
