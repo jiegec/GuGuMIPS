@@ -3,6 +3,7 @@
     .set noat
     .set noreorder
 _start:
+    ori $1, $0, 0x0000  # ans: $1=0x00000000
     ori $1, $1, 0x8000  # ans: $1=0x00008000
     ori $1, $1, 0x0800  # ans: $1=0x00008800
     ori $1, $1, 0x0080  # ans: $1=0x00008880
