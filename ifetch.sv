@@ -42,18 +42,19 @@ module ifetch(
     assign inst_addr = addr[28:0];
     assign inst = inst_data_ok ? inst_rdata : 0;
     assign inst_req = !rst && (state == 1 || (state == 0)) && !misaligned_access;
+    assign pc_o = addr;
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
             state <= 0;
             //inst_req <= 0;
         end else begin
-            if (inst_addr_ok) begin
-                pc_o <= addr;
-            end else if (misaligned_access) begin
+            //if (inst_addr_ok) begin
+                //pc_o <= addr;
+            //end else if (misaligned_access) begin
                 // instruction fetch load error
-                pc_o <= addr;
-            end
+                //pc_o <= addr;
+            //end
             //inst_req <= ((!inst_data_ok & (state == 0)) | en) & !inst_req;
             case (state)
                 0: begin

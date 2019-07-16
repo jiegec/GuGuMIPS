@@ -130,6 +130,8 @@ module cp0_reg(
                     cause_o[6:2] <= 5'h04;
                     // BadVAddr
                     badvaddr_o <= pc_i;
+                    // EPC
+                    epc_o <= pc_i;
                 end
                 32'h00000005: begin
                     // memory address error store
