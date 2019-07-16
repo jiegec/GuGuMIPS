@@ -58,7 +58,7 @@ module id(
     logic except_type_is_syscall;
     logic except_type_is_eret;
     logic except_type_is_break;
-    logic except_type_is_address_load;
+    logic except_type_is_address_load; // instruction
 
     assign except_type_o = {17'b0,
       except_type_is_address_load,
@@ -66,6 +66,8 @@ module id(
       ~instvalid, except_type_is_syscall, 8'b0};
 
     // assign inst_o = inst_i;
+    // for instruction load access exception,
+    // cp0_badvaddr = cp0_epc = branch_target_address_o
     assign pc_o = except_type_is_address_load ? branch_target_address_o : pc_i;
 
     always_comb begin
