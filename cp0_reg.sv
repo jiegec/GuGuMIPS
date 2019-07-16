@@ -63,7 +63,7 @@ module cp0_reg(
                         // EXL
                         status_o[1] <= data_i[1];
                         // IE
-                        status_o[1] <= data_i[0];
+                        status_o[0] <= data_i[0];
                     end
                     `CP0_REG_EPC: begin
                         epc_o <= data_i;
