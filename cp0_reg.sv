@@ -94,7 +94,7 @@ module cp0_reg(
                     cause_o[6:2] <= 5'b00000;
                 end
                 32'h00000004: begin
-                    // address error load
+                    // memory address error load
                     // EXL = 0
                     if (status_o[1] == 1'b0) begin
                         if (is_in_delayslot_i) begin
@@ -112,8 +112,27 @@ module cp0_reg(
                     // BadVAddr
                     badvaddr_o <= mem_addr_i;
                 end
+                32'h0000000f: begin
+                    // instruction address error load
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 4
+                    cause_o[6:2] <= 5'h04;
+                    // BadVAddr
+                    badvaddr_o <= pc_i;
+                end
                 32'h00000005: begin
-                    // address error store
+                    // memory address error store
                     // EXL = 0
                     if (status_o[1] == 1'b0) begin
                         if (is_in_delayslot_i) begin

@@ -34,6 +34,7 @@ module id(
     output logic[`RegBus] branch_target_address_o,
     output logic[`RegBus] link_addr_o,
     output logic is_in_delayslot_o,
+    output logic[`InstAddrBus] pc_o,
 
     output logic [31:0] except_type_o
 );
@@ -57,10 +58,15 @@ module id(
     logic except_type_is_syscall;
     logic except_type_is_eret;
     logic except_type_is_break;
+    logic except_type_is_address_load;
 
-    assign except_type_o = {18'b0, except_type_is_break, except_type_is_eret, 2'b0, ~instvalid, except_type_is_syscall, 8'b0};
+    assign except_type_o = {17'b0,
+      except_type_is_address_load,
+      except_type_is_break, except_type_is_eret, 2'b0,
+      ~instvalid, except_type_is_syscall, 8'b0};
 
     // assign inst_o = inst_i;
+    assign pc_o = except_type_is_address_load ? branch_target_address_o : pc_i;
 
     always_comb begin
       if (rst == `RstEnable) begin
@@ -82,6 +88,7 @@ module id(
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
         except_type_is_break = 0;
+        except_type_is_address_load = 0;
       end else begin
         aluop_o = `EXE_NOP_OP;
         alusel_o = `EXE_RES_NOP;
@@ -100,6 +107,7 @@ module id(
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
         except_type_is_break = 0;
+        except_type_is_address_load = 0;
 
         case (op)
           `EXE_SPECIAL_INST: begin
@@ -240,8 +248,13 @@ module id(
                     reg1_read_o = 1'b1;
                     reg2_read_o = 1'b0;
                     link_addr_o = 0;
+                    // check alignment
+                    if (reg1_o[1:0] != 0) begin
+                      except_type_is_address_load = 1;
+                    end else begin
+                      branch_flag_o = 1;
+                    end
                     branch_target_address_o = reg1_o;
-                    branch_flag_o = 1;
                     next_inst_in_delayslot_o = 1;
                     instvalid = 1;
                   end
@@ -253,8 +266,13 @@ module id(
                     reg2_read_o = 1'b0;
                     wd_o = inst_i[15:11];
                     link_addr_o = pc_plus_8; // skip delay slot
+                    // check alignment
+                    if (reg1_o[1:0] != 0) begin
+                      except_type_is_address_load = 1;
+                    end else begin
+                      branch_flag_o = 1;
+                    end
                     branch_target_address_o = reg1_o;
-                    branch_flag_o = 1;
                     next_inst_in_delayslot_o = 1;
                     instvalid = 1;
                   end

@@ -42,6 +42,7 @@ module mips(
     wire[`InstAddrBus] rom_data;
     wire[`InstAddrBus] if_pc_o;
     wire[`InstAddrBus] id_pc_i;
+    wire[`InstAddrBus] id_pc_o;
     wire[`InstAddrBus] ex_pc;
     wire[`InstAddrBus] mem_pc_i;
     wire[`InstAddrBus] mem_pc_o;
@@ -220,9 +221,9 @@ module mips(
 
     if_id if_id0(.clk(clk), .rst(rst | (!en_pc & en_if_id)), .flush(flush),
                 .if_pc(if_pc_o), .if_inst(rom_data), .en(en_if_id),
-                 .id_pc(id_pc_i), .id_inst(id_inst_i));
+                .id_pc(id_pc_i), .id_inst(id_inst_i));
 
-    id id0(.rst(rst), .pc_i(id_pc_i), .inst_i(id_inst_i),
+    id id0(.rst(rst), .pc_i(id_pc_i), .pc_o(id_pc_o), .inst_i(id_inst_i),
             .reg1_data_i(reg1_data), .reg2_data_i(reg2_data),
             .reg1_read_o(reg1_read), .reg2_read_o(reg2_read),
             .reg1_addr_o(reg1_addr), .reg2_addr_o(reg2_addr),
@@ -244,7 +245,7 @@ module mips(
                     .rdata2(reg2_data));
 
     id_ex id_ex0(.clk(clk), .rst(rst | (!en_id_ex & en_ex_mm)), .en(en_id_ex), .flush(flush),
-                .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o), .id_pc(id_pc_i), .id_inst(id_inst_i),
+                .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o), .id_pc(id_pc_o), .id_inst(id_inst_i),
                 .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i), .ex_pc(ex_pc), .ex_inst(ex_inst_i),
                 .id_is_in_delayslot(id_is_in_delayslot_o), .id_link_address(id_link_addr),
                 .next_inst_in_delayslot_i(next_inst_in_delayslot), .ex_link_address(ex_link_address),

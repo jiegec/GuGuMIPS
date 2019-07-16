@@ -135,6 +135,9 @@ module mem(
                 (cp0_status[1] == 1'b0) && cp0_status[0] == 1'b1) begin
                 // interrupt, pri=7
                 except_type_o = 32'h00000001;
+            end else if (except_type_i[14] == 1'b1) begin
+                // instruction fetch error, pri=11
+                except_type_o = 32'h0000000f;
             end else if (except_type_i[8] == 1'b1) begin
                 // syscall, pri=16.1
                 except_type_o = 32'h00000008;
