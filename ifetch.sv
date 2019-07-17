@@ -37,29 +37,26 @@ module ifetch(
     // 2: wait for data
     logic [1:0] state;
 
-    assign stall = !inst_data_ok;
+    // if inst_addr change upon fetching (e.g. long delay with syscall), redo it
+    logic [`InstAddrBus] saved_inst_addr;
+
+    assign stall = !inst_data_ok || (saved_inst_addr != inst_addr);
     // TODO: MMU
     assign inst_addr = addr[28:0];
-    assign inst = inst_data_ok ? inst_rdata : 0;
+    assign inst = (inst_data_ok && (saved_inst_addr == inst_addr)) ? inst_rdata : 0;
     assign inst_req = !rst && (state == 1 || (state == 0)) && !misaligned_access;
     assign pc_o = addr;
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
             state <= 0;
-            //inst_req <= 0;
+            saved_inst_addr <= 0;
         end else begin
-            //if (inst_addr_ok) begin
-                //pc_o <= addr;
-            //end else if (misaligned_access) begin
-                // instruction fetch load error
-                //pc_o <= addr;
-            //end
-            //inst_req <= ((!inst_data_ok & (state == 0)) | en) & !inst_req;
             case (state)
                 0: begin
                     if (inst_req) begin
                         if (inst_addr_ok) begin
+                            saved_inst_addr <= inst_addr;
                             state <= 2;
                         end else begin
                             state <= 1;
@@ -70,6 +67,7 @@ module ifetch(
                     if (inst_data_ok) begin
                         // 1 cycle
                         state <= 0;
+                        saved_inst_addr <= 0;
                     end else if (inst_addr_ok) begin
                         // >= 2 cycle
                         state <= 2;
@@ -78,9 +76,12 @@ module ifetch(
                 2: begin
                     if (inst_data_ok) begin
                         state <= 0;
+                        saved_inst_addr <= 0;
                     end
                 end
                 3: begin
+                    // impossible
+                    state <= 0;
                 end
             endcase
         end

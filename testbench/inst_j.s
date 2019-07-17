@@ -19,3 +19,15 @@ skip:
 last:
     ori $1, $1, 0x0008  # ans: $1=0x00008089
     
+    # delay slot
+    j jump
+    ori $1, $0, 0x0001  # ans: $1=0x00000001
+    ori $1, $0, 0x0002
+
+jump:
+    j jump2
+    ori $1, $0, 0x0003  # ans: $1=0x00000003
+    ori $1, $0, 0x0004
+
+jump2:
+    ori $1, $0, 0x0005  # ans: $1=0x00000005

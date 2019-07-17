@@ -135,7 +135,7 @@ task test(string name);
     line = 1;
 
     // config
-    stop_on_error = 0;
+    stop_on_error = 1;
     debug = 1;
 
     while (!$feof(fans))
