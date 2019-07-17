@@ -59,11 +59,11 @@ skip
 skip
 $29=0x00000005
 $28=0x00000003
-$1=0xffffffff
+$1=0x0000ffff
 skip
 skip
 skip
 skip
 $29=0x00000004
-$28=0xffffffff
+$28=0x0000ffff
 $3=0x00004321

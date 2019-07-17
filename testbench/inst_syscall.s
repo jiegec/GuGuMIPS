@@ -14,6 +14,12 @@ _start:
     syscall
     ori $2, $29, 0x0000     # ans: $2=0x00000008
 
+    j end
+    syscall
+
+end:
+    ori $2, $0, 0x0000
+
     .org 0x380
     # add epc
     mfc0 $30, $14          # ans: $30=pc

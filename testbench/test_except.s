@@ -19,13 +19,13 @@ _start:
     sh $1, 0x1($0)
     sh $1, 0x3($0)
 
-    ori $1, $1, 0xffff  # ans: $1=0xffffffff
+    ori $1, $0, 0xffff  # ans: $1=0x0000ffff
 
     # unaligned instruction fetch
     mtc0 $1, $14
     eret
 
-    ori $1, $1, 0xffff  # ans: $1=0x0000ffff
+    ori $1, $0, 0x1234
 
     .org 0x380
     # add epc

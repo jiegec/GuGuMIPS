@@ -3,6 +3,7 @@ module id_ex(
     input wire clk,
     input wire rst,
     input wire en,
+    input wire en_pc,
     input wire flush,
 
     input wire[`AluOpBus] id_aluop,
@@ -31,38 +32,58 @@ module id_ex(
     output reg is_in_delayslot_o,
     output logic [31:0] ex_except_type
 );
+    logic saved_next_inst_in_delayslot_i;
 
     always_ff @(posedge clk) begin
         if (rst == `RstEnable || flush) begin
-          ex_aluop <= `EXE_NOP_OP;
-          ex_alusel <= `EXE_RES_NOP;
-          ex_reg1 <= `ZeroWord;
-          ex_reg2 <= `ZeroWord;
-          ex_wd <= `NOPRegAddr;
-          ex_wreg <= `WriteDisable;
-          ex_pc <= 0;
-          ex_inst <= 0;
+            ex_aluop <= `EXE_NOP_OP;
+            ex_alusel <= `EXE_RES_NOP;
+            ex_reg1 <= `ZeroWord;
+            ex_reg2 <= `ZeroWord;
+            ex_wd <= `NOPRegAddr;
+            ex_wreg <= `WriteDisable;
+            ex_pc <= 0;
+            ex_inst <= 0;
 
-          ex_link_address <= 0;
-          ex_is_in_delayslot <= 0;
-          is_in_delayslot_o <= 0;
+            ex_link_address <= 0;
+            ex_is_in_delayslot <= 0;
 
-          ex_except_type <= 0;
+            ex_except_type <= 0;
         end else if (en) begin
-          ex_aluop <= id_aluop;
-          ex_alusel <= id_alusel;
-          ex_reg1 <= id_reg1;
-          ex_reg2 <= id_reg2;
-          ex_wd <= id_wd;
-          ex_wreg <= id_wreg;
-          ex_pc <= id_pc;
-          ex_inst <= id_inst;
+            ex_aluop <= id_aluop;
+            ex_alusel <= id_alusel;
+            ex_reg1 <= id_reg1;
+            ex_reg2 <= id_reg2;
+            ex_wd <= id_wd;
+            ex_wreg <= id_wreg;
+            ex_pc <= id_pc;
+            ex_inst <= id_inst;
 
-          ex_link_address <= id_link_address;
-          ex_is_in_delayslot <= id_is_in_delayslot;
-          is_in_delayslot_o <= next_inst_in_delayslot_i;
+            ex_link_address <= id_link_address;
+            ex_is_in_delayslot <= id_is_in_delayslot;
 
-          ex_except_type <= id_except_type;
+            ex_except_type <= id_except_type;
+        end
+    end
+    
+    logic [1:0] saved_en_pc;
+    logic en_delayslot;
+    // after if, two cycles: if->id, id->ex
+    assign en_delayslot = saved_en_pc[0];
+    // capture next_inst_delayslot_i for multicycle instruction fetch
+    always_ff @(posedge clk) begin
+        if (rst == `RstEnable || flush) begin
+          is_in_delayslot_o <= 0;
+          saved_next_inst_in_delayslot_i <= 0;
+          saved_en_pc <= 0;
+        end else begin
+            saved_en_pc <= {saved_en_pc[0], en_pc};
+            if (en_delayslot) begin
+                is_in_delayslot_o <= saved_next_inst_in_delayslot_i | next_inst_in_delayslot_i;
+                saved_next_inst_in_delayslot_i <= 0;
+            end else if (en) begin
+                saved_next_inst_in_delayslot_i <= saved_next_inst_in_delayslot_i | next_inst_in_delayslot_i;
+            end
         end
     end
 

@@ -123,6 +123,7 @@ module mips(
     wire[`RegBus] wb_cp0_reg_data;
     wire[4:0] wb_cp0_reg_write_addr;
     wire wb_cp0_reg_we;
+    logic [31:0]wb_except_type;
     logic wb_is_in_delayslot;
 
     logic [31:0] cp0_status_o;
@@ -162,6 +163,7 @@ module mips(
     logic [`AluOpBus] mem_aluop_i;
     logic [`AluSelBus] mem_alusel_i;
     logic [`RegBus] mem_mem_addr_i;
+    logic [`RegBus] wb_mem_addr;
     logic [`RegBus] mem_reg2_i;
 
     logic timer_int_o;
@@ -217,9 +219,9 @@ module mips(
                     .branch_flag_i(branch_flag & en_id_ex), .branch_target_address_i(branch_target_address));
 
     cp0_reg cp0_reg0(.clk(clk), .rst(rst), .int_i(interrupt),
-        .except_type_i(mem_except_type_o), .pc_i(mem_pc_i), .is_in_delayslot_i(wb_is_in_delayslot),
+        .except_type_i(wb_except_type), .pc_i(wb_pc), .is_in_delayslot_i(wb_is_in_delayslot),
         .data_i(wb_cp0_reg_data), .raddr_i(cp0_raddr_i), .waddr_i(wb_cp0_reg_write_addr), .we_i(wb_cp0_reg_we),
-        .data_o(cp0_data_o), .timer_int_o(timer_int_o), .mem_addr_i(mem_mem_addr_i),
+        .data_o(cp0_data_o), .timer_int_o(timer_int_o), .mem_addr_i(wb_mem_addr),
         .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
@@ -253,7 +255,7 @@ module mips(
                     .re2(reg2_read), .raddr2(reg2_addr),
                     .rdata2(reg2_data));
 
-    id_ex id_ex0(.clk(clk), .rst(rst | (!en_id_ex & en_ex_mm)), .en(en_id_ex), .flush(flush),
+    id_ex id_ex0(.clk(clk), .rst(rst | (!en_id_ex & en_ex_mm)), .en(en_id_ex), .en_pc(en_pc), .flush(flush),
                 .id_aluop(id_aluop_o), .id_alusel(id_alusel_o), .id_reg1(id_reg1_o), .id_reg2(id_reg2_o), .id_wd(id_wd_o), .id_wreg(id_wreg_o), .id_pc(id_pc_o), .id_inst(id_inst_i),
                 .ex_aluop(ex_aluop_i), .ex_alusel(ex_alusel_i), .ex_reg1(ex_reg1_i), .ex_reg2(ex_reg2_i), .ex_wd(ex_wd_i), .ex_wreg(ex_wreg_i), .ex_pc(ex_pc), .ex_inst(ex_inst_i),
                 .id_is_in_delayslot(id_is_in_delayslot_o), .id_link_address(id_link_addr),
@@ -317,6 +319,8 @@ module mips(
                    .wb_whilo(wb_whilo_i), .wb_hi(wb_hi_i), .wb_lo(wb_lo_i),
                    .mem_cp0_reg_data(mem_cp0_reg_data_o), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_o), .mem_cp0_reg_we(mem_cp0_reg_we_o),
                    .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we),
+                   .mem_except_type(mem_except_type_o), .wb_except_type(wb_except_type),
+                   .mem_mem_addr(mem_mem_addr_i), .wb_mem_addr(wb_mem_addr),
                    .mem_is_in_delayslot(mem_is_in_delayslot), .wb_is_in_delayslot(wb_is_in_delayslot));
 
     hilo_reg hilo_reg0(.clk(clk), .rst(rst),
