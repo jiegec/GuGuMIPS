@@ -189,9 +189,9 @@ module mips(
         if (rst) begin
             flush = 0;
             new_pc = 0;
-        end else if (mem_except_type_o != 0) begin
+        end else if (wb_except_type != 0) begin
             flush = 1;
-            if (mem_except_type_o == 32'h0000000e) begin
+            if (wb_except_type == 32'h0000000e) begin
                 new_pc = cp0_epc_o;
             end else begin
                 new_pc = reset_pc;
@@ -312,7 +312,7 @@ module mips(
              .data_addr(data_addr), .data_wdata(data_wdata), .data_rdata(data_rdata),
              .data_addr_ok(data_addr_ok), .data_data_ok(data_data_ok));
             
-    mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb),
+    mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb), .flush(flush),
                    .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc_o),
                    .wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc),
                    .mem_whilo(mem_whilo_o), .mem_hi(mem_hi_o), .mem_lo(mem_lo_o),
