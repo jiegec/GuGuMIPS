@@ -36,6 +36,8 @@ module pc_reg (
         saved_branch_flag_i_clk <= 0;
       end else if (flush) begin
         out_pc <= new_pc;
+        saved_branch_target_address_clk <= 0;
+        saved_branch_flag_i_clk <= 0;
       end else if (en) begin
         if (saved_branch_flag_i_clk) begin
           saved_branch_target_address_clk <= 0;
