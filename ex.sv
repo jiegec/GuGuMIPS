@@ -228,13 +228,13 @@ module ex(
             hi_o = mult_res[63:32];
             lo_o = mult_res[31:0];			
 		end else if ((aluop_i == `EXE_MADD_OP) || (aluop_i == `EXE_MADDU_OP)) begin
-			whilo_o <= `WriteEnable;
-			hi_o <= hilo_temp1[63:32];
-			lo_o <= hilo_temp1[31:0];
+			whilo_o = `WriteEnable;
+			hi_o = hilo_temp1[63:32];
+			lo_o = hilo_temp1[31:0];
 		end else if ((aluop_i == `EXE_MSUB_OP) || (aluop_i == `EXE_MSUBU_OP)) begin
-			whilo_o <= `WriteEnable;
-			hi_o <= hilo_temp1[63:32];
-			lo_o <= hilo_temp1[31:0];
+			whilo_o = `WriteEnable;
+			hi_o = hilo_temp1[63:32];
+			lo_o = hilo_temp1[31:0];
         end else if ((aluop_i == `EXE_DIV_OP) || (aluop_i == `EXE_DIVU_OP)) begin
             whilo_o = `WriteEnable;
             hi_o = div_result_i[63:32];
@@ -266,35 +266,37 @@ module ex(
     always_comb begin
         if (rst == `RstEnable) begin
             move_res = `ZeroWord;
+            cp0_reg_read_addr_o = 0;
         end else begin
+            cp0_reg_read_addr_o = 0;
             case (aluop_i)
-            `EXE_MFHI_OP: begin
-                move_res = hi;
-            end
-            `EXE_MFLO_OP: begin
-                move_res = lo;
-            end
-            `EXE_MOVZ_OP: begin
-                move_res = reg1_i;
-            end
-            `EXE_MOVN_OP: begin
-                move_res = reg1_i;
-            end
-            `EXE_MFC0_OP: begin
-                cp0_reg_read_addr_o = inst_i[15:11];
-
-                // data dependency
-                if (mem_cp0_reg_we == 1 && mem_cp0_reg_write_addr == inst_i[15:11]) begin
-                    move_res = mem_cp0_reg_data;
-                end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == inst_i[15:11]) begin
-                    move_res = wb_cp0_reg_data;
-                end else begin
-                    move_res = cp0_reg_data_i;
+                `EXE_MFHI_OP: begin
+                    move_res = hi;
                 end
-            end
-            default: begin
-                move_res = `ZeroWord;
-            end
+                `EXE_MFLO_OP: begin
+                    move_res = lo;
+                end
+                `EXE_MOVZ_OP: begin
+                    move_res = reg1_i;
+                end
+                `EXE_MOVN_OP: begin
+                    move_res = reg1_i;
+                end
+                `EXE_MFC0_OP: begin
+                    cp0_reg_read_addr_o = inst_i[15:11];
+
+                    // data dependency
+                    if (mem_cp0_reg_we == 1 && mem_cp0_reg_write_addr == inst_i[15:11]) begin
+                        move_res = mem_cp0_reg_data;
+                    end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == inst_i[15:11]) begin
+                        move_res = wb_cp0_reg_data;
+                    end else begin
+                        move_res = cp0_reg_data_i;
+                    end
+                end
+                default: begin
+                    move_res = `ZeroWord;
+                end
             endcase
         end
     end
@@ -355,6 +357,7 @@ module ex(
     always_comb begin
         if (rst == `RstEnable) begin
             overflow_assert = 1;
+            wreg_o = 0;
         end else begin
             if (((aluop_i == `EXE_ADD_OP) || (aluop_i == `EXE_ADDI_OP) ||
             (aluop_i == `EXE_SUB_OP)) && ov_sum) begin
@@ -394,40 +397,41 @@ module ex(
     
 	always_comb begin
 		if(rst) begin
-			hilo_temp_o <= {`ZeroWord,`ZeroWord};
-			cnt_o <= 2'b00;
-			stallreq_for_madd_msub <= `NoStop;
+			hilo_temp_o = {`ZeroWord,`ZeroWord};
+            hilo_temp1 = {`ZeroWord, `ZeroWord};
+			cnt_o = 2'b00;
+			stallreq_for_madd_msub = `NoStop;
 		end else begin	
+            hilo_temp_o = {`ZeroWord, `ZeroWord};
+            hilo_temp1 = {`ZeroWord, `ZeroWord};
+            cnt_o = 2'b00;
+            stallreq_for_madd_msub = `NoStop;				
+
 			case (aluop_i) 
 				`EXE_MADD_OP, `EXE_MADDU_OP: begin
 					if (cnt_i == 2'b00) begin
-						hilo_temp_o <= mult_res;
-						cnt_o <= 2'b01;
-						stallreq_for_madd_msub <= `Stop;//Stop
-						hilo_temp1 <= {`ZeroWord, `ZeroWord};
+						hilo_temp_o = mult_res;
+						cnt_o = 2'b01;
+						stallreq_for_madd_msub = `Stop;//Stop
+						hilo_temp1 = {`ZeroWord, `ZeroWord};
 					end else if(cnt_i == 2'b01) begin
-						hilo_temp_o <= {`ZeroWord, `ZeroWord};						
-						cnt_o <= 2'b10;
-						hilo_temp1 <= hilo_temp_i + {hi, lo};
-						stallreq_for_madd_msub <= `NoStop;
+						hilo_temp_o = {`ZeroWord, `ZeroWord};						
+						cnt_o = 2'b10;
+						hilo_temp1 = hilo_temp_i + {hi, lo};
+						stallreq_for_madd_msub = `NoStop;
 					end
 				end
 				`EXE_MSUB_OP, `EXE_MSUBU_OP: begin
 					if (cnt_i == 2'b00) begin
-						hilo_temp_o <=  ~mult_res + 1;
-						cnt_o <= 2'b01;
-						stallreq_for_madd_msub <= `Stop;//Stop
+						hilo_temp_o = ~mult_res + 1;
+						cnt_o = 2'b01;
+						stallreq_for_madd_msub = `Stop;//Stop
 					end else if (cnt_i == 2'b01)begin
-						hilo_temp_o <= {`ZeroWord, `ZeroWord};						
-						cnt_o <= 2'b10;
-						hilo_temp1 <= hilo_temp_i + {hi, lo};
-						stallreq_for_madd_msub <= `NoStop;
+						hilo_temp_o = {`ZeroWord, `ZeroWord};						
+						cnt_o = 2'b10;
+						hilo_temp1 = hilo_temp_i + {hi, lo};
+						stallreq_for_madd_msub = `NoStop;
 					end	
-				end
-				default: begin
-					hilo_temp_o <= {`ZeroWord, `ZeroWord};
-					cnt_o <= 2'b00;
-					stallreq_for_madd_msub <= `NoStop;				
 				end
 			endcase
 		end

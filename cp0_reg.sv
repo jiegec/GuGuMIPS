@@ -169,23 +169,6 @@ module cp0_reg(
                     // ExcCode = 8
                     cause_o[6:2] <= 5'h08;
                 end
-                32'h00000008: begin
-                    // syscall
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
-                    // EXL = 1
-                    status_o[1] <= 1'b1;
-                    // ExcCode = 8
-                    cause_o[6:2] <= 5'h08;
-                end
                 32'h00000009: begin
                     // break
                     // EXL = 0
@@ -293,6 +276,9 @@ module cp0_reg(
                 end
                 `CP0_REG_CONFIG: begin
                     data_o = config_o;
+                end
+                default: begin
+                    data_o = 0;
                 end
             endcase
         end

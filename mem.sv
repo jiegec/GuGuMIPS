@@ -96,6 +96,7 @@ module mem(
         if (rst == `RstEnable) begin
             cp0_cause = 0;
         end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == `CP0_REG_EPC) begin
+            cp0_cause = cp0_cause_i;
             // IP[1:0]
             cp0_cause[9:8] = wb_cp0_reg_data[9:8];
             // WP
@@ -180,6 +181,7 @@ module mem(
     logic [`RegAddrBus] saved_wd;
     logic [`AluOpBus] saved_aluop;
     logic [`RegBus] saved_mem_addr_i;
+    logic [`RegBus] saved_mem_data_o;
     logic [`RegBus] saved_pc_i;
     logic saved_data_wr;
     logic [1:0] saved_data_size;
@@ -188,7 +190,7 @@ module mem(
     assign data_req = state == 2 ? 0 : (state == 1 ? 1 : mem_ce_o);
     assign data_addr = state == 1 ? saved_mem_addr_i : mem_addr_o;
     assign mem_data_i = data_rdata;
-    assign data_wdata = mem_data_o;
+    assign data_wdata = state == 0 ? mem_data_o : saved_mem_data_o;
     assign data_wr = state == 0 ? mem_we : (data_req & saved_data_wr);
     assign data_size = state == 0 ? data_size_o : saved_data_size;
     assign mem_stall = data_req || ((state != 0) && !data_data_ok);
@@ -205,6 +207,7 @@ module mem(
             saved_wd <= 0;
             saved_aluop <= 0;
             saved_mem_addr_i <= 0;
+            saved_mem_data_o <= 0;
             saved_pc_i <= 0;
             saved_data_wr <= 0;
             saved_data_size <= 0;
@@ -213,6 +216,7 @@ module mem(
             saved_wd <= wd_i;
             saved_aluop <= aluop_i;
             saved_mem_addr_i <= mem_addr_o;
+            saved_mem_data_o <= mem_data_o;
             saved_pc_i <= pc_i;
             saved_data_wr <= data_wr;
             saved_data_size <= data_size_o;
@@ -223,6 +227,7 @@ module mem(
             saved_wd <= 0;
             saved_aluop <= 0;
             saved_mem_addr_i <= 0;
+            saved_mem_data_o <= 0;
             saved_pc_i <= 0;
             saved_data_wr <= 0;
             saved_data_size <= 0;
@@ -242,14 +247,17 @@ module mem(
 
             misaligned_access = 0;
             inst_store = 0;
+            data_size_o = 2'b00;
         end else begin
             mem_addr_o = `ZeroWord;
             mem_we = `WriteDisable;
+            mem_data_o = `ZeroWord;
             mem_ce_o = `ChipDisable;
             wreg_o = (data_req | state) ? (data_data_ok & !saved_data_wr) : (wreg_i && !misaligned_access);
             wd_o = data_data_ok ? saved_wd : wd_i;
             misaligned_access = 0;
             inst_store = 0;
+            data_size_o = 2'b00;
 
             wdata_o = wdata_i;
             case (aluop_i)
@@ -342,9 +350,6 @@ module mem(
                     end
                     data_size_o = 2'b10; // 4
                     inst_store = 1;
-                end
-                default:		begin
-                    data_size_o = 0;
                 end
             endcase							
 
