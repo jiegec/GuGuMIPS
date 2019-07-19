@@ -60,7 +60,7 @@ module ex(
     output reg[`RegBus] div_opdata2_o,
     output reg div_start_o,
     output reg signed_div_o,
-	
+
 	output reg[`DoubleRegBus] hilo_temp_o,
 	output reg[1:0] cnt_o,
 
@@ -79,8 +79,8 @@ module ex(
     logic ov_sum;
     logic reg1_lt_reg2;
     logic[`RegBus] reg1_i_not;
-    logic[`RegBus] opdata1_mult;
-    logic[`RegBus] opdata2_mult;
+    logic signed [`RegBus] opdata1_mult;
+    logic signed [`RegBus] opdata2_mult;
     logic[`DoubleRegBus] hilo_temp;
 	reg[`DoubleRegBus] hilo_temp1;
 
@@ -110,7 +110,7 @@ module ex(
                 wdata_o = arithmetic_res;
             end
             `EXE_RES_MUL: begin
-                wdata_o = mult_res[31:0];
+                wdata_o = hilo_temp1[31:0];
             end
             `EXE_RES_JUMP_BRANCH: begin
                 wdata_o = link_address_i;
@@ -225,8 +225,8 @@ module ex(
             lo_o = reg1_i;
         end else if ((aluop_i == `EXE_MULT_OP) || (aluop_i == `EXE_MULTU_OP)) begin
             whilo_o = `WriteEnable;
-            hi_o = mult_res[63:32];
-            lo_o = mult_res[31:0];			
+            hi_o = hilo_temp1[63:32];
+            lo_o = hilo_temp1[31:0];
 		end else if ((aluop_i == `EXE_MADD_OP) || (aluop_i == `EXE_MADDU_OP)) begin
 			whilo_o = `WriteEnable;
 			hi_o = hilo_temp1[63:32];
@@ -370,13 +370,9 @@ module ex(
         end
     end
 
-    assign opdata1_mult = (((aluop_i == `EXE_MUL_OP) || (aluop_i == `EXE_MULT_OP)
-    	|| (aluop_i == `EXE_MADD_OP) || (aluop_i == `EXE_MSUB_OP))
-        && (reg1_i[31] == 1'b1)) ? (~reg1_i + 1) : reg1_i;
+    assign opdata1_mult = reg1_i;
 
-    assign opdata2_mult = (((aluop_i == `EXE_MUL_OP) || (aluop_i == `EXE_MULT_OP)
-    	|| (aluop_i == `EXE_MADD_OP) || (aluop_i == `EXE_MSUB_OP))
-        && (reg2_i[31] == 1'b1)) ? (~reg2_i + 1) : reg2_i;
+    assign opdata2_mult = reg2_i;
 
     assign hilo_temp = opdata1_mult * opdata2_mult;
 
@@ -385,13 +381,9 @@ module ex(
             mult_res = {`ZeroWord, `ZeroWord};
         end else if ((aluop_i == `EXE_MULT_OP) || (aluop_i == `EXE_MUL_OP)
         || (aluop_i == `EXE_MADD_OP) || (aluop_i == `EXE_MSUB_OP)) begin
-            if (reg1_i[31] ^ reg2_i[31] == 1'b1) begin
-                mult_res = ~hilo_temp + 1;
-            end else begin
-                mult_res = hilo_temp;
-            end
-        end else begin
             mult_res = hilo_temp;
+        end else begin
+            mult_res = reg1_i * reg2_i;
         end
     end
     
@@ -425,13 +417,25 @@ module ex(
 					if (cnt_i == 2'b00) begin
 						hilo_temp_o = ~mult_res + 1;
 						cnt_o = 2'b01;
-						stallreq_for_madd_msub = `Stop;//Stop
+						stallreq_for_madd_msub = `Stop; //Stop
 					end else if (cnt_i == 2'b01)begin
 						hilo_temp_o = {`ZeroWord, `ZeroWord};						
 						cnt_o = 2'b10;
 						hilo_temp1 = hilo_temp_i + {hi, lo};
 						stallreq_for_madd_msub = `NoStop;
 					end	
+				end
+				`EXE_MULT_OP, `EXE_MULTU_OP, `EXE_MUL_OP: begin
+					if (cnt_i == 2'b00) begin
+						hilo_temp_o = mult_res;
+						cnt_o = 2'b01;
+						stallreq_for_madd_msub = `Stop; //Stop
+					end else if (cnt_i == 2'b01) begin
+						hilo_temp_o = {`ZeroWord, `ZeroWord};
+						cnt_o = 2'b10;
+						hilo_temp1 = hilo_temp_i;
+						stallreq_for_madd_msub = `NoStop;
+					end
 				end
 			endcase
 		end

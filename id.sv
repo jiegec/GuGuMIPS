@@ -556,8 +556,8 @@ module id(
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b1;
             instvalid = 1;
+            branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
             if (reg1_o == reg2_o) begin
-              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
             end
             next_inst_in_delayslot_o = 1;
@@ -569,8 +569,8 @@ module id(
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b0;
             instvalid = 1;
+            branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
             if ((reg1_o[31] == 1'b0) && (reg1_o != `ZeroWord)) begin
-              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
             end
             next_inst_in_delayslot_o = 1;
@@ -582,8 +582,8 @@ module id(
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b0;
             instvalid = 1;
+            branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
             if ((reg1_o[31] == 1'b1) || (reg1_o == `ZeroWord)) begin
-              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
             end
             next_inst_in_delayslot_o = 1;
@@ -595,8 +595,8 @@ module id(
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b1;
             instvalid = 1;
+            branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
             if (reg1_o != reg2_o) begin
-              branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
               branch_flag_o = 1;
             end
             next_inst_in_delayslot_o = 1;
@@ -685,8 +685,8 @@ module id(
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 instvalid = 1;
+                branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                 if (reg1_o[31] == 1'b0) begin
-                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
                 end
                 next_inst_in_delayslot_o = 1;
@@ -700,8 +700,8 @@ module id(
                 link_addr_o = pc_plus_8;
                 wd_o = 5'b11111;
                 instvalid = 1;
+                branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                 if (reg1_o[31] == 1'b0) begin
-                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
                 end
                 next_inst_in_delayslot_o = 1;
@@ -713,8 +713,8 @@ module id(
                 reg1_read_o = 1'b1;
                 reg2_read_o = 1'b0;
                 instvalid = 1;
+                branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                 if (reg1_o[31] == 1'b1) begin
-                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
                 end
                 next_inst_in_delayslot_o = 1;
@@ -728,8 +728,8 @@ module id(
                 link_addr_o = pc_plus_8;
                 wd_o = 5'b11111;
                 instvalid = 1;
+                branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                 if (reg1_o[31] == 1'b1) begin
-                  branch_target_address_o = pc_plus_4 + imm_sll2_signedext;
                   branch_flag_o = 1;
                 end
                 next_inst_in_delayslot_o = 1;
@@ -812,6 +812,8 @@ module id(
                 reg2_read_o = 1'b0;
                 instvalid = 1;
               end
+
+              // multiply
               `EXE_MUL: begin
                 wreg_o = `WriteEnable;
                 aluop_o = `EXE_MUL_OP;
@@ -820,38 +822,38 @@ module id(
                 reg2_read_o = 1'b1;
                 instvalid = 1;
               end
-			  `EXE_MADD: begin
-				wreg_o = `WriteDisable;		
-				aluop_o = `EXE_MADD_OP;
+              `EXE_MADD: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_MADD_OP;
                 alusel_o = `EXE_RES_ARITHMETIC;
-		  		reg1_read_o = 1'b1;	
-		  		reg2_read_o = 1'b1;	  			
-		  		instvalid = `InstValid;	
-			  end
-			  `EXE_MADDU: begin
-				wreg_o = `WriteDisable;		
-				aluop_o = `EXE_MADDU_OP;
+                reg1_read_o = 1'b1;	
+                reg2_read_o = 1'b1;
+                instvalid = `InstValid;
+              end
+              `EXE_MADDU: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_MADDU_OP;
                 alusel_o = `EXE_RES_ARITHMETIC;
-				reg1_read_o = 1'b1;	
-				reg2_read_o = 1'b1;	  			
-		  		instvalid = `InstValid;	
-			  end
-			  `EXE_MSUB: begin
-				wreg_o = `WriteDisable;		
-				aluop_o = `EXE_MSUB_OP;
+                reg1_read_o = 1'b1;	
+                reg2_read_o = 1'b1;
+                instvalid = `InstValid;	
+              end
+              `EXE_MSUB: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_MSUB_OP;
                 alusel_o = `EXE_RES_ARITHMETIC;
-				reg1_read_o = 1'b1;	
-				reg2_read_o = 1'b1;	  			
-		  		instvalid = `InstValid;	
-			  end
-			  `EXE_MSUBU: begin
-				wreg_o = `WriteDisable;
-				aluop_o = `EXE_MSUBU_OP;
+                reg1_read_o = 1'b1;	
+                reg2_read_o = 1'b1;
+                instvalid = `InstValid;	
+              end
+              `EXE_MSUBU: begin
+                wreg_o = `WriteDisable;
+                aluop_o = `EXE_MSUBU_OP;
                 alusel_o = `EXE_RES_ARITHMETIC;
-				reg1_read_o = 1'b1;
-				reg2_read_o = 1'b1;	  			
-		  		instvalid = `InstValid;	
-			  end
+                reg1_read_o = 1'b1;
+                reg2_read_o = 1'b1;
+                instvalid = `InstValid;	
+              end
             endcase // op3 case
           end
           default: begin

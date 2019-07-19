@@ -27,9 +27,30 @@ _start:
 
     # TODO: CLO/CLZ
 
-	# TODO: MUL*
+    lui $1, 0xffff         # ans: $1=0xffff0000
+    ori $1, $1, 0xfffb     # ans: $1=0xfffffffb
+    ori $2, $0, 0x0006     # ans: $2=0x00000006
+    mul $3, $1, $2         # ans: $3=0xffffffe2
 
-    # TODO: MADD/MSUB
+    mult  $1, $2  # ans: $hilo=0xffffffffffffffe2
+	mfhi $3
+	mflo $3
+    multu $1, $2  # ans: $hilo=0x00000005ffffffe2
+	mfhi $3
+	mflo $3
+
+	maddu $1, $1  # ans: $hilo=0xfffffffbfffffffb
+	mfhi $3
+	mflo $3
+	msub  $1, $2  # ans: $hilo=0xfffffffc00000019
+	mfhi $3
+	mflo $3
+	msubu $1, $2  # ans: $hilo=0xfffffff600000037
+	mfhi $3
+	mflo $3
+	madd  $1, $2  # ans: $hilo=0xfffffff600000019
+	mfhi $3
+	mflo $3
 
 	# compare
 	lui   $1, 0xffff     # ans: $1=0xffff0000

@@ -185,7 +185,7 @@ module mem(
     logic [`RegBus] saved_mem_addr_i;
     logic [`RegBus] saved_mem_data_o;
     logic [`RegBus] saved_pc_i;
-    logic [`RegBus] saved_data_uncached;
+    logic saved_data_uncached;
     logic saved_data_wr;
     logic [1:0] saved_data_size;
     logic [1:0] data_size_o;
