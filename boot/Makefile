@@ -1,5 +1,5 @@
 TARGET ?= mipsel-linux-gnu
-DATA ?= serial.coe
+DATA ?= serial.coe bootloader.coe
 
 # disable builtin rules
 MAKEFLAGS += --no-builtin-rules

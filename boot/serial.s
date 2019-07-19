@@ -6,6 +6,7 @@ __start:
     li $1, 0x61
     li $2, 0xbfd00004
 
+    # print 'a' to UART indefinitely
 loop:
     sw $1, 0x0($2)
     j loop
