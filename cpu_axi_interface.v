@@ -45,6 +45,7 @@ module cpu_axi_interface
     output [31:0] inst_rdata   ,
     output        inst_addr_ok ,
     output        inst_data_ok ,
+    input         inst_uncached,
     
     //data sram-like 
     input         data_req     ,
@@ -55,6 +56,7 @@ module cpu_axi_interface
     output [31:0] data_rdata   ,
     output        data_addr_ok ,
     output        data_data_ok ,
+    input         data_uncached,
 
     //axi
     //ar
@@ -106,6 +108,7 @@ reg        do_wr_r;
 reg [1 :0] do_size_r;
 reg [31:0] do_addr_r;
 reg [31:0] do_wdata_r;
+reg do_uncached_r;
 wire data_back;
 
 assign inst_addr_ok = !do_req&&!data_req;
@@ -126,6 +129,8 @@ begin
                   inst_req&&inst_addr_ok ? inst_addr : do_addr_r;
     do_wdata_r <= data_req&&data_addr_ok ? data_wdata :
                   inst_req&&inst_addr_ok ? inst_wdata :do_wdata_r;
+    do_uncached_r <= data_req&&data_addr_ok ? data_uncached :
+                  inst_req&&inst_addr_ok ? inst_uncached :do_uncached_r;
 end
 
 //inst sram-like
@@ -156,7 +161,7 @@ assign arlen   = 4'd0;
 assign arsize  = do_size_r;
 assign arburst = 2'b01;
 assign arlock  = 1'd0;
-assign arcache = do_req_or ? 4'b0000 : 4'b1110;
+assign arcache = do_uncached_r ? 4'b0000 : 4'b1110;
 assign arprot  = 3'd0;
 assign arvalid = do_req&&!do_wr_r&&!addr_rcv;
 //r
@@ -169,7 +174,7 @@ assign awlen   = 4'd0;
 assign awsize  = do_size_r;
 assign awburst = 2'b01;
 assign awlock  = 1'd0;
-assign awcache = do_req_or ? 4'b0000 : 4'b1110;
+assign awcache = do_uncached_r ? 4'b0000 : 4'b1110;
 assign awprot  = 3'd0;
 assign awvalid = do_req&&do_wr_r&&!addr_rcv;
 //w

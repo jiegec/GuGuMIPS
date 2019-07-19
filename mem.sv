@@ -49,15 +49,17 @@ module mem(
     output mem_stall,
     output mem_load,
 
-    output         data_req,
-    output         data_wr,
-    output logic [1 :0] data_size,
-    output  [31:0] data_addr,
-    output  [31:0] data_wdata,
+    // sram interface
+    output data_req,
+    output data_wr,
+    output [1 :0] data_size,
+    output [31:0] data_addr,
+    output [31:0] data_wdata,
+    output data_uncached,
 
     input [31:0] data_rdata,
-    input        data_addr_ok,
-    input        data_data_ok
+    input data_addr_ok,
+    input data_data_ok
 );
     logic [31:0] cp0_status;
     logic [31:0] cp0_cause;
@@ -183,9 +185,11 @@ module mem(
     logic [`RegBus] saved_mem_addr_i;
     logic [`RegBus] saved_mem_data_o;
     logic [`RegBus] saved_pc_i;
+    logic [`RegBus] saved_data_uncached;
     logic saved_data_wr;
     logic [1:0] saved_data_size;
     logic [1:0] data_size_o;
+    logic data_uncached_o;
 
     assign data_req = state == 2 ? 0 : (state == 1 ? 1 : mem_ce_o);
     assign data_addr = state == 1 ? saved_mem_addr_i : mem_addr_o;
@@ -193,6 +197,7 @@ module mem(
     assign data_wdata = state == 0 ? mem_data_o : saved_mem_data_o;
     assign data_wr = state == 0 ? mem_we : (data_req & saved_data_wr);
     assign data_size = state == 0 ? data_size_o : saved_data_size;
+    assign data_uncached = state == 0 ? data_uncached_o : saved_data_uncached;
     assign mem_stall = data_req || ((state != 0) && !data_data_ok);
     assign pc_o = data_data_ok ? saved_pc_i : pc_i;
     assign mem_load = state != 0 && !saved_data_wr;
@@ -200,6 +205,9 @@ module mem(
 	// TODO: MMU
     logic [31:0] mem_phy_addr;
     assign mem_phy_addr = mem_addr_i[28:0];
+    // 0xA000_0000 - 0xBFFF_FFFF uncached
+    // 0x8000_0000 - 0x9FFF_FFFF cached
+    assign data_uncached_o = mem_addr_i[29];
 
     always_ff @ (posedge clk) begin
         if (rst) begin
@@ -211,6 +219,7 @@ module mem(
             saved_pc_i <= 0;
             saved_data_wr <= 0;
             saved_data_size <= 0;
+            saved_data_uncached <= 0;
         end else if (data_req && state == 0 && !misaligned_access) begin
             state <= data_addr_ok ? 2 : 1;
             saved_wd <= wd_i;
@@ -220,6 +229,7 @@ module mem(
             saved_pc_i <= pc_i;
             saved_data_wr <= data_wr;
             saved_data_size <= data_size_o;
+            saved_data_uncached <= data_uncached_o;
         end else if (state == 1 && data_addr_ok) begin
             state <= 2;
         end else if (data_data_ok) begin
@@ -231,6 +241,7 @@ module mem(
             saved_pc_i <= 0;
             saved_data_wr <= 0;
             saved_data_size <= 0;
+            saved_data_uncached <= 0;
         end
     end
 

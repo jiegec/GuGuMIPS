@@ -74,23 +74,25 @@ module mycpu_top(
 );
 
 `ifdef USE_AXI
-wire         inst_req     ;
-wire         inst_wr      ;
-wire  [1 :0] inst_size    ;
-wire  [31:0] inst_addr    ;
-wire  [31:0] inst_wdata   ;
-wire [31:0] inst_rdata   ;
-wire        inst_addr_ok ;
-wire        inst_data_ok ;
+wire inst_req;
+wire inst_wr;
+wire [1 :0] inst_size;
+wire [31:0] inst_addr;
+wire [31:0] inst_wdata;
+wire [31:0] inst_rdata;
+wire inst_addr_ok;
+wire inst_data_ok;
+wire inst_uncached;
 
-wire         data_req     ;
-wire         data_wr      ;
-wire  [1 :0] data_size    ;
-wire  [31:0] data_addr    ;
-wire  [31:0] data_wdata   ;
-wire [31:0] data_rdata   ;
-wire        data_addr_ok ;
-wire        data_data_ok;
+wire data_req;
+wire data_wr;
+wire [1 :0] data_size;
+wire [31:0] data_addr;
+wire [31:0] data_wdata;
+wire [31:0] data_rdata;
+wire data_addr_ok;
+wire data_data_ok;
+wire data_uncached;
 
 wire rst;
 assign rst = ~aresetn;
@@ -150,6 +152,7 @@ mips mips_inst(
     .inst_rdata(inst_rdata),
     .inst_addr_ok(inst_addr_ok),
     .inst_data_ok(inst_data_ok),
+    .inst_uncached(inst_uncached),
 
     .data_req(data_req),
     .data_wr(data_wr),
@@ -159,6 +162,7 @@ mips mips_inst(
     .data_rdata(data_rdata),
     .data_addr_ok(data_addr_ok),
     .data_data_ok(data_data_ok),
+    .data_uncached(data_uncached),
 
     .debug_wb_pc(debug_wb_pc),
     .debug_wb_rf_wen(debug_wb_rf_wen),
@@ -178,6 +182,7 @@ cpu_axi_interface cpu_axi_interface_inst(
     .inst_rdata(inst_rdata),
     .inst_addr_ok(inst_addr_ok),
     .inst_data_ok(inst_data_ok),
+    .inst_uncached(inst_uncached),
 
     .data_req(data_req),
     .data_wr(data_wr),
@@ -187,6 +192,7 @@ cpu_axi_interface cpu_axi_interface_inst(
     .data_rdata(data_rdata),
     .data_addr_ok(data_addr_ok),
     .data_data_ok(data_data_ok),
+    .data_uncached(data_uncached),
 
     .arid      (cache_arid      ),
     .araddr    (cache_araddr    ),

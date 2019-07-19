@@ -13,6 +13,7 @@ module mips(
     input [31:0] inst_rdata,
     input inst_addr_ok,
     input inst_data_ok,
+    output inst_uncached,
     
     // data sram-like 
     output data_req,
@@ -20,6 +21,7 @@ module mips(
     output [1:0] data_size,
     output [31:0] data_addr,
     output [31:0] data_wdata,
+    output data_uncached,
 
     input [31:0] data_rdata,
     input data_addr_ok,
@@ -225,10 +227,10 @@ module mips(
         .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
-        .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o),
+        .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o), .except_type_o(if_except_type_o),
         .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
         .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok),
-        .except_type_o(if_except_type_o));
+        .inst_uncached(inst_uncached));
 
     if_id if_id0(.clk(clk), .rst(rst), .flush(flush), .en(en_if_id),
                 .if_pc(if_pc_o), .if_inst(rom_data), .if_except_type(if_except_type_o),
@@ -305,7 +307,7 @@ module mips(
              .except_type_i(mem_except_type_i), .is_in_delayslot_i(mem_is_in_delayslot), .pc_i(mem_pc_i), .pc_o(mem_pc_o),
              .cp0_status_i(cp0_status_o), .cp0_cause_i(cp0_cause_o), .cp0_epc_i(cp0_epc_o),
              .wb_cp0_reg_we(wb_cp0_reg_we), .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr),
-             .except_type_o(mem_except_type_o),
+             .except_type_o(mem_except_type_o), .data_uncached(data_uncached),
              .aluop_i(mem_aluop_i), .mem_addr_i(mem_mem_addr_i), .reg2_i(mem_reg2_i),
              .mem_stall(mem_stall), .mem_load(mem_load),
              .data_req(data_req), .data_wr(data_wr), .data_size(data_size),

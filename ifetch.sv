@@ -3,6 +3,7 @@
 module ifetch(
     input clk,
     input rst,
+    input en,
 
     // inst sram-like
     output logic inst_req,
@@ -13,8 +14,8 @@ module ifetch(
     input [31:0] inst_rdata,
     input inst_addr_ok,
     input inst_data_ok,
+    output inst_uncached,
 
-    input en,
     input [`RegBus]addr,
     output logic [`RegBus]inst,
     output logic [`RegBus]pc_o,
@@ -43,6 +44,9 @@ module ifetch(
     assign stall = !inst_data_ok || (saved_inst_addr != inst_addr);
     // TODO: MMU
     assign inst_addr = addr[28:0];
+    // 0xA000_0000 - 0xBFFF_FFFF uncached
+    // 0x8000_0000 - 0x9FFF_FFFF cached
+    assign inst_uncached = addr[29];
     assign inst = (inst_data_ok && (saved_inst_addr == inst_addr)) ? inst_rdata : 0;
     assign inst_req = !rst && (state == 1 || (state == 0)) && !misaligned_access;
     assign pc_o = addr;
