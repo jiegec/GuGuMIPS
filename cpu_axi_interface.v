@@ -58,18 +58,18 @@ module cpu_axi_interface
 
     //axi
     //ar
-    output [3 :0] arid         ,
+    output [0 :0] arid         ,
     output [31:0] araddr       ,
     output [3 :0] arlen        ,
     output [2 :0] arsize       ,
     output [1 :0] arburst      ,
-    output [1 :0] arlock        ,
+    output [0 :0] arlock        ,
     output [3 :0] arcache      ,
     output [2 :0] arprot       ,
     output        arvalid      ,
     input         arready      ,
     //r           
-    input  [3 :0] rid          ,
+    input  [0 :0] rid          ,
     input  [31:0] rdata        ,
     input  [1 :0] rresp        ,
     input         rlast        ,
@@ -81,7 +81,7 @@ module cpu_axi_interface
     output [3 :0] awlen        ,
     output [2 :0] awsize       ,
     output [1 :0] awburst      ,
-    output [1 :0] awlock       ,
+    output [0 :0] awlock       ,
     output [3 :0] awcache      ,
     output [2 :0] awprot       ,
     output        awvalid      ,
@@ -150,13 +150,13 @@ begin
                  data_back      ? 1'b0 : wdata_rcv;
 end
 //ar
-assign arid    = 4'd0;
+assign arid    = 1'd0;
 assign araddr  = do_addr_r;
 assign arlen   = 4'd0;
 assign arsize  = do_size_r;
-assign arburst = 2'd0;
-assign arlock  = 2'd0;
-assign arcache = 4'd0;
+assign arburst = 2'b01;
+assign arlock  = 1'd0;
+assign arcache = do_req_or ? 4'b0000 : 4'b1110;
 assign arprot  = 3'd0;
 assign arvalid = do_req&&!do_wr_r&&!addr_rcv;
 //r
@@ -167,9 +167,9 @@ assign awid    = 4'd0;
 assign awaddr  = do_addr_r;
 assign awlen   = 4'd0;
 assign awsize  = do_size_r;
-assign awburst = 2'd0;
-assign awlock  = 2'd0;
-assign awcache = 4'd0;
+assign awburst = 2'b01;
+assign awlock  = 1'd0;
+assign awcache = do_req_or ? 4'b0000 : 4'b1110;
 assign awprot  = 3'd0;
 assign awvalid = do_req&&do_wr_r&&!addr_rcv;
 //w
