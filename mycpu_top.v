@@ -1,6 +1,7 @@
 `define USE_AXI
+//`define USE_DEBUG
 
-module mycpu_top(
+module mycpu_top (
 `ifdef USE_AXI 
     input aclk,
     input aresetn,
@@ -64,13 +65,15 @@ module mycpu_top(
     input [31:0] data_sram_rdata,
 `endif
 
-    input [5:0] int,
-
+`ifdef USE_DEBUG
     // debug
     output [31:0] debug_wb_pc,
     output [3 :0] debug_wb_rf_wen,
     output [4 :0] debug_wb_rf_wnum,
-    output [31:0] debug_wb_rf_wdata
+    output [31:0] debug_wb_rf_wdata,
+`endif
+
+    input [5:0] int
 );
 
 `ifdef USE_AXI
