@@ -303,6 +303,7 @@ system_cache_0 system_cache_inst(
     .M0_AXI_ARSIZE  (arsize),
     .M0_AXI_ARBURST (arburst),
     .M0_AXI_ARLOCK  (arlock[0]),
+    .M0_AXI_ARCACHE (arcache),
     .M0_AXI_ARPROT  (arprot),
     //.M0_AXI_ARQOS   (arqos),
     .M0_AXI_ARVALID (arvalid),
