@@ -2,11 +2,14 @@ TARGET ?= mipsel-linux-gnu
 DATA ?= serial.coe
 
 # disable builtin rules
-.SUFFIEXES:
+MAKEFLAGS += --no-builtin-rules
 .SECONDARY:
 
-%.o: %.s
+%.s.o: %.s
 	$(TARGET)-as -mips32 -EB $^ -o $@
+
+%.o: %.s.o
+	$(TARGET)-ld -EB $^ boot.lds -o $@
 
 %.bin: %.o
 	$(TARGET)-objcopy -O binary $^ -j .text $@
@@ -24,5 +27,5 @@ all: $(DATA)
 
 .PHONY: clean
 clean:
-	rm -f *.bin *.o *.coe *.gen.s
+	rm -f *.bin *.o *.coe *.gen.s *.s.o
 
