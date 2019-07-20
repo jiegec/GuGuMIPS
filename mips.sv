@@ -131,6 +131,7 @@ module mips(
     logic [31:0] cp0_status_o;
     logic [31:0] cp0_cause_o;
     logic [31:0] cp0_epc_o;
+    logic [31:0] cp0_exception_vector_o;
 
     assign debug_wb_pc = wb_pc;
     assign debug_wb_rf_wen = {4{wb_wreg_i}};
@@ -193,11 +194,7 @@ module mips(
             new_pc = 0;
         end else if (wb_except_type != 0) begin
             flush = 1;
-            if (wb_except_type == 32'h0000000e) begin
-                new_pc = cp0_epc_o;
-            end else begin
-                new_pc = reset_pc;
-            end
+            new_pc = cp0_exception_vector_o;
         end else begin
             flush = 0;
             new_pc = 0;
@@ -224,7 +221,7 @@ module mips(
         .except_type_i(wb_except_type), .pc_i(wb_pc), .is_in_delayslot_i(wb_is_in_delayslot),
         .data_i(wb_cp0_reg_data), .raddr_i(cp0_raddr_i), .waddr_i(wb_cp0_reg_write_addr), .we_i(wb_cp0_reg_we),
         .data_o(cp0_data_o), .timer_int_o(timer_int_o), .mem_addr_i(wb_mem_addr),
-        .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o));
+        .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o), .exception_vector_o(cp0_exception_vector_o));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
         .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o), .except_type_o(if_except_type_o),

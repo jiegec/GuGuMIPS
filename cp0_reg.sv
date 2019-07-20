@@ -24,9 +24,18 @@ module cp0_reg(
     output logic [`RegBus] config_o,
     output logic [`RegBus] prid_o,
     output logic [`RegBus] badvaddr_o,
+    output logic [`RegBus] exception_vector_o,
 
     output logic timer_int_o
 );
+    logic status_bev;
+    logic status_exl;
+    logic cause_iv;
+
+    assign status_bev = status_o[22];
+    assign status_exl = status_o[1];
+    assign cause_iv = cause_o[23];
+
 
     always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin
@@ -58,6 +67,8 @@ module cp0_reg(
                         timer_int_o <= 0;
                     end
                     `CP0_REG_STATUS: begin
+                        // BEV
+                        status_o[22] <= data_i[22];
                         // IM7..IM0
                         status_o[15:8] <= data_i[15:8];
                         // EXL
@@ -282,5 +293,28 @@ module cp0_reg(
                 end
             endcase
         end
+    end
+
+    // MIPS32 Volume 3 Table 5-4 Exception Vectors
+    always_comb begin
+        exception_vector_o = status_bev ? 32'hbfc00380 : 32'h80000180;
+        case (except_type_i)
+            32'h00000001: begin
+                // interrupt
+                if (status_bev && cause_iv) begin
+                    exception_vector_o = 32'hbfc00400;
+                end else if (status_bev && !cause_iv) begin
+                    exception_vector_o = 32'hbfc00380;
+                end else if (!status_bev && cause_iv) begin
+                    exception_vector_o = 32'h80000200;
+                end else if (!status_bev && !cause_iv) begin
+                    exception_vector_o = 32'h80000180;
+                end
+            end
+            32'h00000000e: begin
+                // eret
+                exception_vector_o = epc_o;
+            end
+        endcase
     end
 endmodule
