@@ -10,21 +10,21 @@ void putc(char ch) {
   *UART_TX = ch;
 }
 
-char getc() {
+uint8_t getc() {
   while (!(*UART_STAT & 0x1))
     ;
-  return *UART_RX;
+  return (uint8_t)*UART_RX;
 }
 
 uint32_t getlen() {
-  uint32_t len;
-  len = getc();
+  uint32_t len = 0;
+  len |= getc();
   len = len << 8;
-  len = getc();
+  len |= getc();
   len = len << 8;
-  len = getc();
+  len |= getc();
   len = len << 8;
-  len = getc();
+  len |= getc();
   return len;
 }
 
@@ -63,6 +63,6 @@ void bootloader() {
 }
 
 void halt(uint32_t epc) {
-  puts("HALT");
+  puts("HALT ");
   puthex(epc);
 }

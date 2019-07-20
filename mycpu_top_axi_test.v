@@ -65,11 +65,11 @@ module mycpu_top (
     input [31:0] data_sram_rdata,
 `endif
 
-`ifdef USE_DEBUG
     // debug
     output [31:0] debug_wb_pc,
     output [3 :0] debug_wb_rf_wen,
     output [4 :0] debug_wb_rf_wnum,
+`ifdef USE_DEBUG
     output [31:0] debug_wb_rf_wdata,
 `endif
 
