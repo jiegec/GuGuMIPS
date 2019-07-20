@@ -5,14 +5,20 @@ DATA ?= serial.coe bootloader.coe
 MAKEFLAGS += --no-builtin-rules
 .SECONDARY:
 
-%.s.o: %.s
-	$(TARGET)-as -mips32 -EB $^ -o $@
+bootloader.c.o: bootloader.c
+	$(TARGET)-gcc -c $^ -EL -o $@ -ffreestanding -mips32r2
 
-%.o: %.s.o
-	$(TARGET)-ld -EB $^ boot.lds -o $@
+bootloader.o: bootloader.c.o bootloader.s.o boot.lds
+	$(TARGET)-ld -EL $^ -T boot.lds -o $@
+
+%.s.o: %.s
+	$(TARGET)-as -mips32 -EL $^ -o $@
+
+%.o: %.s.o boot.lds
+	$(TARGET)-ld -EL $^ -T boot.lds -o $@
 
 %.bin: %.o
-	$(TARGET)-objcopy -O binary $^ -j .text $@
+	$(TARGET)-objcopy -O binary $^ -j .text -j .rodata -j .data $@
 
 %.gen.s: %.o
 	$(TARGET)-objdump -D $^ -M no-aliases,gpr-names=numeric > $@
@@ -20,7 +26,7 @@ MAKEFLAGS += --no-builtin-rules
 %.coe: %.bin %.gen.s
 	echo 'memory_initialization_radix = 16;' > $@
 	echo 'memory_initialization_vector = ' >> $@
-	xxd -p $< | tr -d '\n' | fold -w8 >> $@
+	xxd -p $< | tr -d '\n' | fold -w8 | awk '{print substr($$0,7,2) substr($$0,5,2) substr($$0,3,2) substr($$0,1,2)}' >> $@
 
 .PHONY: all
 all: $(DATA)

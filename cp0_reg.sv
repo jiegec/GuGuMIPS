@@ -51,6 +51,8 @@ module cp0_reg(
             badvaddr_o <= 0;
         end else begin
             count_o <= count_o + 1;
+            // IP[7:2] = I[5:0]
+            // IP[1:2] left for software
             cause_o[15:10] <= int_i;
 
             if (compare_o != 0 && count_o == compare_o) begin

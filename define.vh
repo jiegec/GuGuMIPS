@@ -14,132 +14,136 @@
 `define ChipEnable 1'b1
 `define ChipDisable 1'b0
 
-// special, check op3
+// op = 31:26
+// op2 = 10:6
+// op3 = 5:0
+// op4 = 20:16
+// op5 = 25:21
+
+// op = SPECIAL
+`define EXE_SPECIAL_INST 6'b000000
+// op3
+`define EXE_SLL 6'b000000
+`define EXE_SRL 6'b000010
+`define EXE_SRA 6'b000011
+`define EXE_SLLV 6'b000100
+`define EXE_SRLV 6'b000110
+`define EXE_SRAV 6'b000111
+`define EXE_JR 6'b001000
+`define EXE_JALR 6'b001001
+`define EXE_MOVZ 6'b001010
+`define EXE_MOVN 6'b001011
+`define EXE_SYSCALL 6'b001100
+`define EXE_BREAK 6'b001101
+`define EXE_SYNC 6'b001111
+`define EXE_MFHI 6'b010000
+`define EXE_MTHI 6'b010001
+`define EXE_MFLO 6'b010010
+`define EXE_MTLO 6'b010011
+`define EXE_MULT 6'b011000
+`define EXE_MULTU 6'b011001
+`define EXE_DIV 6'b011010
+`define EXE_DIVU 6'b011011
+`define EXE_ADD 6'b100000
+`define EXE_ADDU 6'b100001
+`define EXE_SUB 6'b100010
+`define EXE_SUBU 6'b100011
 `define EXE_AND 6'b100100
 `define EXE_OR 6'b100101
 `define EXE_XOR 6'b100110
 `define EXE_NOR 6'b100111
+`define EXE_SLT 6'b101010
+`define EXE_SLTU 6'b101011
+`define EXE_TGE 6'b110000
+`define EXE_TGEU 6'b110001
+`define EXE_TLT 6'b110010
+`define EXE_TLTU 6'b110011
+`define EXE_TEQ 6'b110100
+`define EXE_TNE 6'b110110
 
-// special, check op3
-`define EXE_MULT 6'b011000 // {hi, lo} <- rs * rt as signed
-`define EXE_MULTU 6'b011001 // {hi, lo} <- rs * rt as unsigned
-`define EXE_MUL 6'b000010 // rd <- rs * rt
+// op = REGIMM
+`define EXE_REGIMM_INST 6'b000001
+// op4
+`define EXE_BLTZ 5'b00000
+`define EXE_BGEZ 5'b00001
+`define EXE_BLTZL 5'b00010
+`define EXE_BGEZL 5'b00011
+`define EXE_TGEI 5'b01000
+`define EXE_TGEIU 5'b01001
+`define EXE_TLTI 5'b01010
+`define EXE_TLTIU 5'b01011
+`define EXE_TEQI 5'b01100
+`define EXE_TNEI 5'b01110
+`define EXE_BLTZAL 5'b10000
+`define EXE_BGEZAL 5'b10001
+`define EXE_BLTZALL 5'b10010
+`define EXE_BGEZALL 5'b10011
+`define EXE_SYNCI 5'b11111
 
-`define EXE_DIV 6'b011010
-`define EXE_DIVU 6'b011011
+// op = COP0
+`define EXE_COP0_INST 6'b010000
+// op5
+`define EXE_MFC0 5'b00000
+`define EXE_MTC0 5'b00100
 
-// check op
+// op = COP1
+`define EXE_COP1_INST 6'b010001
+
+// op = COP2
+`define EXE_COP2_INST 6'b010010
+
+// op = SPECIAL2
+`define EXE_SPECIAL2_INST 6'b011100
+// op3
+`define EXE_MADD 6'b000000
+`define EXE_MADDU 6'b000001
+`define EXE_MUL 6'b000010
+`define EXE_MSUB 6'b000100
+`define EXE_MSUBU 6'b000101
+`define EXE_CLZ 6'b100000
+`define EXE_CLO 6'b100001
+`define EXE_SDBBP 6'b111111
+
+// op = SPECIAL3
+`define EXE_SPECIAL3_INST 6'b011111
+// op3
+`define EXE_BSHFL 6'b100000
+// op3 = BSHFL
+// op2
+`define EXE_SEB 5'b10000
+`define EXE_SEH 5'b11000
+
+// op
+`define EXE_J 6'b000010
+`define EXE_JAL 6'b000011
+`define EXE_BEQ 6'b000100
+`define EXE_BNE 6'b000101
+`define EXE_BLEZ 6'b000110
+`define EXE_BGTZ 6'b000111
+`define EXE_ADDI 6'b001000
+`define EXE_ADDIU 6'b001001
+`define EXE_SLTI 6'b001010
+`define EXE_SLTIU 6'b001011
 `define EXE_ANDI 6'b001100
 `define EXE_ORI 6'b001101
 `define EXE_XORI 6'b001110
 `define EXE_LUI 6'b001111
-
-// check op
-`define EXE_ADDI 6'b001000 // rt <- rs + imm fail when overflow
-`define EXE_ADDIU 6'b001001 // rt <- rs + imm
-`define EXE_SLTI 6'b001010 // rt <- (rs < imm) as signed
-`define EXE_SLTIU 6'b001011 // rt <- (rs < imm) as unsigned
-
-// special2, check op3
-`define EXE_CLZ 6'b100000 // rd <- leading zeros of rs
-`define EXE_CLO 6'b100001 // rd <- leading ones of rs
-`define EXE_MUL 6'b000010 // rd <- rs * rt
-`define EXE_MADD 6'b000000
-`define EXE_MADDU 6'b000001
-`define EXE_MSUB 6'b000100
-`define EXE_MSUBU 6'b000101
-
-// check op3, when 31:21 are zeros
-`define EXE_SLL 6'b000000 // logic left shift
-`define EXE_SRL 6'b000010 // logic right shift
-`define EXE_SRA 6'b000011 // arithmetic right shift
-
-// special, check op3
-`define EXE_SLLV 6'b000100 // logic left shift with variable
-`define EXE_SRLV 6'b000110 // logic right shift with variable
-`define EXE_SRAV 6'b000111 // arithmetic right shift with variable
-
-// special, check op3
-`define EXE_MOVN 6'b001011 // rd <- rs when rt non zero
-`define EXE_MOVZ 6'b001010 // rd <- rs when rt zero
-`define EXE_MFHI 6'b010000 // rd <- hi
-`define EXE_MFLO 6'b010010 // rd <- lo
-`define EXE_MTHI 6'b010001 // hi <- rs
-`define EXE_MTLO 6'b010011 // lo <- rs
-
-// special, check op3
-`define EXE_SLT 6'b101010 // rd <- (rs < rt) as signed
-`define EXE_SLTU 6'b101011 // rd <- (rs < rt) as unsigned
-`define EXE_ADD 6'b100000 // rd <- rs + rt fail when overflow
-`define EXE_ADDU 6'b100001 // rd <- rs + rt
-`define EXE_SUB 6'b100010 // rd <- rs - rt fail when overflow
-`define EXE_SUBU 6'b100011 // rd <- rs - rt
-
-`define EXE_SPECIAL_INST 6'b000000 // check op3 for sub type
-`define EXE_REGIMM_INST 6'b000001
-`define EXE_SPECIAL2_INST 6'b011100 // check op3 for sub type
-
-// these are implemented as nop
-// special, check op3
-`define EXE_SYNC 6'b001111
-// check op
-`define EXE_PREF 6'b110011
-// this is sll in fact
-`define EXE_NOP 6'b000000
-
-// jump
-`define EXE_J 6'b000010
-`define EXE_JAL 6'b000011
-`define EXE_JALR 6'b001001
-`define EXE_JR 6'b001000
-
-// branch
-`define EXE_BEQ 6'b000100
-`define EXE_BGEZ 5'b00001
-`define EXE_BGEZAL 5'b10001
-`define EXE_BGTZ 5'b00111
-`define EXE_BLEZ 5'b00110
-`define EXE_BLTZ 5'b00000
-`define EXE_BLTZAL 5'b10000
-`define EXE_BNE 6'b000101
-
-// syscall
-`define EXE_SYSCALL 6'b001100
-
-// break
-`define EXE_BREAK 6'b001101
-
-// trap
-`define EXE_TEQ 6'b110100
-`define EXE_TEQI 5'b01100
-`define EXE_TGE 6'b110000
-`define EXE_TGEI 5'b01000
-`define EXE_TGEIU 5'b01001
-`define EXE_TGEU 6'b110001
-`define EXE_TLT 6'b110010
-`define EXE_TLTI 5'b01010
-`define EXE_TLTIU 5'b01011
-`define EXE_TLTU 6'b110011
-`define EXE_TNE 6'b110110
-`define EXE_TNEI 5'b01110
-
-// mem
 `define EXE_LB 6'b100000
-`define EXE_LBU 6'b100100
 `define EXE_LH 6'b100001
-`define EXE_LHU 6'b100101
+`define EXE_LWL 6'b100010
 `define EXE_LW 6'b100011
-// won't implement
-// `define EXE_LWL 6'b100010
-// `define EXE_LWR 6'b100110
+`define EXE_LBU 6'b100100
+`define EXE_LHU 6'b100101
+`define EXE_LWR 6'b100110
 `define EXE_SB 6'b101000
 `define EXE_SH 6'b101001
+`define EXE_SWL 6'b101010
 `define EXE_SW 6'b101011
-// won't implement
-// `define EXE_SWL 6'b101010
-// `define EXE_SWR 6'b101110
+`define EXE_SWR 6'b101110
+`define EXE_CACHE 6'b101111
+`define EXE_PREF 6'b110011
 
-
+// others
 `define EXE_ERET 32'b01000010_00000000_00000000_00011000
 
 // just assign one by one, order is unrelated
@@ -235,6 +239,8 @@
 
 `define EXE_BREAK_OP 8'b11110001
 
+`define EXE_SEB_OP 8'b11110010
+`define EXE_SEH_OP 8'b11110011
 
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001
