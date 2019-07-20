@@ -882,7 +882,35 @@ module id(
                 instvalid = `InstValid;	
               end
             endcase // op3 case
-          end
+          end // SPECIAL2
+
+          `EXE_SPECIAL3_INST: begin		
+            case (op3)
+              `EXE_BSHFL: begin
+                case (op2)
+                  `EXE_SEB: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_SEB_OP;
+                    alusel_o = `EXE_RES_MOVE;
+                    reg1_read_o = 1'b0;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                  `EXE_SEH: begin
+                    wreg_o = `WriteEnable;
+                    aluop_o = `EXE_SEH_OP;
+                    alusel_o = `EXE_RES_MOVE;
+                    reg1_read_o = 1'b0;
+                    reg2_read_o = 1'b1;
+                    instvalid = 1;
+                  end
+                endcase // op2 case
+              end
+              default: begin
+              end
+            endcase // op3 case
+          end // SPECIAL3
+
           `EXE_COP0_INST: begin
             case (op5)
               `EXE_MFC0: begin

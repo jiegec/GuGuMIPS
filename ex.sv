@@ -294,6 +294,12 @@ module ex(
                         move_res = cp0_reg_data_i;
                     end
                 end
+                `EXE_SEB_OP: begin
+                    move_res = {{24{reg2_i[7]}}, reg2_i[7:0]};
+                end
+                `EXE_SEH_OP: begin
+                    move_res = {{16{reg2_i[15]}}, reg2_i[15:0]};
+                end
                 default: begin
                     move_res = `ZeroWord;
                 end
