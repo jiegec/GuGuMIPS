@@ -192,14 +192,14 @@ cpu_axi_interface cpu_axi_interface_inst(
     .arprot    (cache_arprot    ),
     .arvalid   (cache_arvalid   ),
     .arready   (cache_arready   ),
-                
+
     .rid       (cache_rid       ),
     .rdata     (cache_rdata     ),
     .rresp     (cache_rresp     ),
     .rlast     (cache_rlast     ),
     .rvalid    (cache_rvalid    ),
     .rready    (cache_rready    ),
-               
+
     .awid      (cache_awid      ),
     .awaddr    (cache_awaddr    ),
     .awlen     (cache_awlen     ),
@@ -210,14 +210,14 @@ cpu_axi_interface cpu_axi_interface_inst(
     .awprot    (cache_awprot    ),
     .awvalid   (cache_awvalid   ),
     .awready   (cache_awready   ),
-    
+
     .wid       (cache_wid       ),
     .wdata     (cache_wdata     ),
     .wstrb     (cache_wstrb     ),
     .wlast     (cache_wlast     ),
     .wvalid    (cache_wvalid    ),
     .wready    (cache_wready    ),
-    
+
     .bid       (cache_bid       ),
     .bresp     (cache_bresp     ),
     .bvalid    (cache_bvalid    ),
@@ -273,7 +273,7 @@ system_cache_0 system_cache_inst(
     .S0_AXI_WLAST     (cache_wlast     ),
     .S0_AXI_WVALID    (cache_wvalid    ),
     .S0_AXI_WREADY    (cache_wready    ),
-    
+
     // b
     .S0_AXI_BRESP     (cache_bresp     ),
     .S0_AXI_BID       (cache_bid       ),
@@ -321,7 +321,7 @@ system_cache_0 system_cache_inst(
     .M0_AXI_WLAST     (wlast     ),
     .M0_AXI_WVALID    (wvalid    ),
     .M0_AXI_WREADY    (wready    ),
-    
+
     // b
     .M0_AXI_BRESP     (bresp     ),
     .M0_AXI_BID       (bid       ),

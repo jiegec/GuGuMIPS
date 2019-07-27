@@ -24,7 +24,7 @@ module div (
 
     assign div_temp = {1'b0, dividend[63:32]} - {1'b0, divisor};
     assign temp_op1 = (signed_div_i == 1'b1 && opdata1_i[31] == 1'b1) ? (~opdata1_i + 1) : opdata1_i;
-	assign temp_op2 = (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1) ? (~opdata2_i + 1) : opdata2_i;
+    assign temp_op2 = (signed_div_i == 1'b1 && opdata2_i[31] == 1'b1) ? (~opdata2_i + 1) : opdata2_i;
 
     always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin

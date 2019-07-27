@@ -1,6 +1,6 @@
 `include "define.vh"
 module mem(
-	input wire clk,
+    input wire clk,
     input wire  rst,
     input wire[`RegAddrBus] wd_i,
     input wire wreg_i,
@@ -202,7 +202,7 @@ module mem(
     assign pc_o = data_data_ok ? saved_pc_i : pc_i;
     assign mem_load = state != 0 && !saved_data_wr;
 
-	// TODO: MMU
+    // TODO: MMU
     logic [31:0] mem_phy_addr;
     assign mem_phy_addr = mem_addr_i[28:0];
     // 0xA000_0000 - 0xBFFF_FFFF uncached
@@ -319,10 +319,10 @@ module mem(
                     end else begin
                         mem_ce_o = `ChipEnable;
                     end
-                    mem_ce_o = `ChipEnable;		
+                    mem_ce_o = `ChipEnable;
                     data_size_o = 2'b10; // 4
                 end
-                
+
                 // store
                 `EXE_SB_OP:		begin
                     mem_addr_o = mem_phy_addr;
@@ -362,7 +362,7 @@ module mem(
                     data_size_o = 2'b10; // 4
                     inst_store = 1;
                 end
-            endcase							
+            endcase
 
             case (saved_aluop)
                 // load
@@ -435,7 +435,7 @@ module mem(
                 end
                 default: begin
                 end
-            endcase							
+            endcase
         end
     end
 

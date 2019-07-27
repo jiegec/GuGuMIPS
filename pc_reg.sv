@@ -23,30 +23,29 @@ module pc_reg (
     assign pc = flush ? new_pc : out_pc;
 
     always_ff @ (posedge clk) begin
-      if (rst == `RstEnable) begin
-        out_pc <= reset_pc;
-        saved_branch_target_address_clk <= 0;
-        saved_branch_flag_i_clk <= 0;
-      end else if (flush) begin
-        out_pc <= new_pc;
-        saved_branch_target_address_clk <= 0;
-        saved_branch_flag_i_clk <= 0;
-      end else if (en) begin
-        if (saved_branch_flag_i_clk) begin
-          saved_branch_target_address_clk <= 0;
-          saved_branch_flag_i_clk <= 0;
-          out_pc <= saved_branch_target_address_clk;
+        if (rst == `RstEnable) begin
+            out_pc <= reset_pc;
+            saved_branch_target_address_clk <= 0;
+            saved_branch_flag_i_clk <= 0;
+        end else if (flush) begin
+            out_pc <= new_pc;
+            saved_branch_target_address_clk <= 0;
+            saved_branch_flag_i_clk <= 0;
+        end else if (en) begin
+            if (saved_branch_flag_i_clk) begin
+                saved_branch_target_address_clk <= 0;
+                saved_branch_flag_i_clk <= 0;
+                out_pc <= saved_branch_target_address_clk;
+            end else if (branch_flag_i) begin
+                saved_branch_flag_i_clk <= 0;
+                out_pc <= branch_target_address_i;
+            end else begin
+                out_pc <= out_pc + 32'h00000004;
+            end
         end else if (branch_flag_i) begin
-          saved_branch_flag_i_clk <= 0;
-          out_pc <= branch_target_address_i;
-        end else begin
-          out_pc <= out_pc + 32'h00000004;
+            saved_branch_target_address_clk <= branch_target_address_i;
+            saved_branch_flag_i_clk <= 1;
         end
-      end else if (branch_flag_i) begin
-        saved_branch_target_address_clk <= branch_target_address_i;
-        saved_branch_flag_i_clk <= 1;
-      end
     end
-
 endmodule // pc_reg
 

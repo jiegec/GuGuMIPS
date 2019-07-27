@@ -141,6 +141,8 @@ module mips #(
     wire [31:0]wb_except_type;
     wire wb_is_in_delayslot;
     wire wb_tlb_wi;
+    wire wb_tlb_p;
+    wire [31:0] wb_tlb_p_res;
 
     wire [31:0] cp0_status_o;
     wire [31:0] cp0_cause_o;
@@ -167,18 +169,18 @@ module mips #(
     wire[`RegBus] ex_mem_mem_addr_i;
     wire[`RegBus] ex_mem_reg2_i;
     
-	wire[`DoubleRegBus] hilo_temp_o;
-	wire[1:0] cnt_o;
-	wire[`DoubleRegBus] hilo_temp_i;
-	wire[1:0] cnt_i;
+    wire[`DoubleRegBus] hilo_temp_o;
+    wire[1:0] cnt_o;
+    wire[`DoubleRegBus] hilo_temp_i;
+    wire[1:0] cnt_i;
 
-	wire[`DoubleRegBus] div_result;
-	wire div_ready;
-	wire[`RegBus] div_opdata1;
-	wire[`RegBus] div_opdata2;
-	wire div_start;
-	wire div_annul;
-	wire signed_div;
+    wire[`DoubleRegBus] div_result;
+    wire div_ready;
+    wire[`RegBus] div_opdata1;
+    wire[`RegBus] div_opdata2;
+    wire div_start;
+    wire div_annul;
+    wire signed_div;
     wire ex_stall;
 
     logic [`AluOpBus] mem_aluop_i;
@@ -344,7 +346,7 @@ module mips #(
             
     mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb), .flush(flush)
         ,.mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc_o)
-        ,wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc)
+        ,.wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc)
         ,.mem_whilo(mem_whilo_o), .mem_hi(mem_hi_o), .mem_lo(mem_lo_o)
         ,.wb_whilo(wb_whilo_i), .wb_hi(wb_hi_i), .wb_lo(wb_lo_i)
         ,.mem_cp0_reg_data(mem_cp0_reg_data_o), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_o), .mem_cp0_reg_we(mem_cp0_reg_we_o)
@@ -360,8 +362,8 @@ module mips #(
         ,.hi_o(ex_hi_i), .lo_o(ex_lo_i)
     );
 
-	div div0(.clk(clk), .rst(rst)
-		,.signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .annul_i(1'b0)
+    div div0(.clk(clk), .rst(rst)
+        ,.signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .annul_i(1'b0)
         ,.result_o(div_result), .ready_o(div_ready)
     );
         
@@ -372,7 +374,7 @@ module mips #(
         // TODO: translate data
         ,.inst_addr_i(if_mmu_virt_addr), .inst_en(if_mmu_en), .inst_addr_o(if_mmu_phys_addr), .inst_uncached(if_mmu_uncached), .inst_except_miss(if_mmu_except_miss), .inst_except_invalid(if_mmu_except_invalid), .inst_except_user(if_mmu_except_user)
         ,.tlb_config(cp0_tlb_config_o), .tlb_wi(wb_tlb_wi)
-        ,.tlb_p(id_tlb_p), .tlb_p_res_o(id_tlb_p_res)
+        ,.tlb_p(wb_tlb_p), .tlb_p_res_o(wb_tlb_p_res)
     );
 
 endmodule // mips
