@@ -1,5 +1,7 @@
 `include "define.vh"
-module mips(
+module mips #(
+    ENABLE_TLB = 0
+)(
     input clk,
     input rst,
     input [5:0] intr,
@@ -217,7 +219,9 @@ module mips(
                     .pc(pc), .en(en_pc), .new_pc(new_pc),
                     .branch_flag_i(branch_flag & en_id_ex), .branch_target_address_i(branch_target_address));
 
-    cp0_reg cp0_reg0(.clk(clk), .rst(rst), .int_i(interrupt),
+    cp0_reg #(
+        .ENABLE_TLB(ENABLE_TLB)
+    ) cp0_reg0 (.clk(clk), .rst(rst), .int_i(interrupt),
         .except_type_i(wb_except_type), .pc_i(wb_pc), .is_in_delayslot_i(wb_is_in_delayslot),
         .data_i(wb_cp0_reg_data), .raddr_i(cp0_raddr_i), .waddr_i(wb_cp0_reg_write_addr), .we_i(wb_cp0_reg_we),
         .data_o(cp0_data_o), .timer_int_o(timer_int_o), .mem_addr_i(wb_mem_addr),
@@ -233,7 +237,9 @@ module mips(
                 .if_pc(if_pc_o), .if_inst(rom_data), .if_except_type(if_except_type_o),
                 .id_pc(id_pc_i), .id_inst(id_inst_i), .id_except_type(id_except_type_i));
 
-    id id0(.rst(rst), .pc_i(id_pc_i), .pc_o(id_pc_o), .inst_i(id_inst_i),
+    id #(
+        .ENABLE_TLB(ENABLE_TLB)
+    ) id0 (.rst(rst), .pc_i(id_pc_i), .pc_o(id_pc_o), .inst_i(id_inst_i),
             .reg1_data_i(reg1_data), .reg2_data_i(reg2_data),
             .reg1_read_o(reg1_read), .reg2_read_o(reg2_read),
             .reg1_addr_o(reg1_addr), .reg2_addr_o(reg2_addr),

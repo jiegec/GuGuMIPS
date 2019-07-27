@@ -1,6 +1,8 @@
 `include "define.vh"
 
-module cp0_reg(
+module cp0_reg #(
+    ENABLE_TLB = 0
+)(
     input clk,
     input rst,
     input [5:0] int_i,
@@ -75,20 +77,28 @@ module cp0_reg(
             if (we_i) begin
                 case(waddr_i)
                     `CP0_REG_INDEX: begin
-                        // only low TLB_WIDTH bits are writable
-                        index_o[TLB_WIDTH-1:0] <= data_i[TLB_WIDTH-1:0];
+                        if (ENABLE_TLB) begin
+                            // only low TLB_WIDTH bits are writable
+                            index_o[TLB_WIDTH-1:0] <= data_i[TLB_WIDTH-1:0];
+                        end
                     end
                     `CP0_REG_ENTRYLO0: begin
-                        // only low 26bits writable
-                        entrylo0_o[25:0] <= data_i[25:0];
+                        if (ENABLE_TLB) begin
+                            // only low 26bits writable
+                            entrylo0_o[25:0] <= data_i[25:0];
+                        end
                     end
                     `CP0_REG_ENTRYLO1: begin
-                        // only low 26bits writable
-                        entrylo1_o[25:0] <= data_i[25:0];
+                        if (ENABLE_TLB) begin
+                            // only low 26bits writable
+                            entrylo1_o[25:0] <= data_i[25:0];
+                        end
                     end
                     `CP0_REG_PAGEMASK: begin
-                        // only mask bits writable
-                        pagemask_o[24:13] <= data_i[24:13];
+                        if (ENABLE_TLB) begin
+                            // only mask bits writable
+                            pagemask_o[24:13] <= data_i[24:13];
+                        end
                     end
                     `CP0_REG_COUNT: begin
                         count_o <= data_i;

@@ -85,6 +85,13 @@
 // op5
 `define EXE_MFC0 5'b00000
 `define EXE_MTC0 5'b00100
+`define EXE_CO 5'b10000
+// op5 = CO
+// op3
+`define EXE_TLBR 6'b000001
+`define EXE_TLBWI 6'b000010
+`define EXE_TLBWR 6'b000110
+`define EXE_TLBP 6'b001000
 
 // op = COP1
 `define EXE_COP1_INST 6'b010001

@@ -1,5 +1,7 @@
 `include "define.vh"
-module id(
+module id # (
+  ENABLE_TLB = 0
+)(
     input wire rst,
     input wire[`InstAddrBus] pc_i,
     input wire[`InstBus] inst_i,
@@ -931,9 +933,28 @@ module id(
                 reg1_addr_o = inst_i[20:16];
                 reg2_read_o = 1'b0;
               end
+              `EXE_CO: begin
+                if (ENABLE_TLB) begin
+                  // TLB
+                  case(op3)
+                    `EXE_TLBR: begin
+                      instvalid = 1'b1;
+                    end
+                    `EXE_TLBWI: begin
+                      instvalid = 1'b1;
+                    end
+                    `EXE_TLBWR: begin
+                      instvalid = 1'b1;
+                    end
+                    `EXE_TLBP: begin
+                      instvalid = 1'b1;
+                    end
+                  endcase // op3 case
+                end
+              end
               default: begin
               end
-            endcase
+            endcase // op5 case
           end
           default: begin
           end
