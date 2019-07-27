@@ -296,3 +296,7 @@
 `define DivStop 1'b0
 `define Stop 1'b1
 `define NoStop 1'b0
+
+// 32 entries
+`define TLB_WIDTH 5
+`define TLB_ENTRIES 32

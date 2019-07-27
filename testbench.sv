@@ -28,7 +28,9 @@ logic [3 :0] debug_wb_rf_wen;
 logic [4 :0] debug_wb_rf_wnum;
 logic [31:0] debug_wb_rf_wdata;
 
-mips mips_0(
+mips #(
+    .ENABLE_TLB(1)
+)mips_0(
     .clk(clk),
     .rst(rst),
     .intr(6'b0),
@@ -215,6 +217,9 @@ initial begin
     test("inst_syscall");
     test("test_trap");
     test("test_except");
+
+    // tlb
+    test("test_tlb1");
 
     $finish;
 end

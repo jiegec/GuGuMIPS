@@ -16,6 +16,15 @@ module ifetch(
     input inst_data_ok,
     output inst_uncached,
 
+    // mmu
+    output [31:0] mmu_virt_addr,
+    output mmu_en,
+    input [31:0] mmu_phys_addr,
+    input mmu_uncached,
+    input mmu_except_miss,
+    input mmu_except_invalid,
+    input mmu_except_user,
+
     input [`RegBus]addr,
     output logic [`RegBus]inst,
     output logic [`RegBus]pc_o,
@@ -42,11 +51,12 @@ module ifetch(
     logic [`InstAddrBus] saved_inst_addr;
 
     assign stall = !inst_data_ok || (saved_inst_addr != inst_addr);
-    // TODO: MMU
-    assign inst_addr = addr[28:0];
-    // 0xA000_0000 - 0xBFFF_FFFF uncached
-    // 0x8000_0000 - 0x9FFF_FFFF cached
-    assign inst_uncached = addr[29];
+    // MMU
+    // TODO: MMU Exception Handling
+    assign mmu_en = 1'b1;
+    assign mmu_virt_addr = addr;
+    assign inst_addr = mmu_phys_addr;
+    assign inst_uncached = mmu_uncached;
     assign inst = (inst_data_ok && (saved_inst_addr == inst_addr)) ? inst_rdata : 0;
     assign inst_req = !rst && (state == 1 || (state == 0)) && !misaligned_access;
     assign pc_o = addr;

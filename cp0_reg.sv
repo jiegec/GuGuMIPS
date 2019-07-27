@@ -34,18 +34,39 @@ module cp0_reg #(
     output logic [`RegBus] pagemask_o,
     output logic [`RegBus] entrylo0_o,
     output logic [`RegBus] entrylo1_o,
+    output logic [85+`TLB_WIDTH:0] tlb_config_o,
+
+    output logic user_mode,
 
     output logic timer_int_o
 );
-    localparam TLB_WIDTH = 5;
-
     logic status_bev;
+    logic [1:0] status_ksu;
+    logic status_erl;
     logic status_exl;
     logic cause_iv;
 
     assign status_bev = status_o[22];
+    assign status_ksu = status_o[4:3];
+    assign status_erl = status_o[2];
     assign status_exl = status_o[1];
     assign cause_iv = cause_o[23];
+
+    assign tlb_config_o = {
+        entrylo0_o[5:3], // C0 85:83
+        entrylo1_o[5:3], // C1 82:80
+        entryhi_o[7:0], // ASID 79:72
+        entrylo1_o[0] & entrylo0_o[0], // G 71
+        entryhi_o[31:13], // VPN2 70:52
+        entrylo1_o[29:6], // PFN1 51:28
+        entrylo1_o[2:1], // D1 V1 27:26
+        entrylo0_o[29:6], // PFN0 25:2
+        entrylo0_o[2:1], // D0 V0 1:0
+        index_o[`TLB_WIDTH-1:0]
+    };
+
+    // MIPS Vol3 3.4
+    assign user_mode = (status_ksu == 2'b10 && ~status_exl && ~status_erl);
 
     always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin
@@ -79,7 +100,7 @@ module cp0_reg #(
                     `CP0_REG_INDEX: begin
                         if (ENABLE_TLB) begin
                             // only low TLB_WIDTH bits are writable
-                            index_o[TLB_WIDTH-1:0] <= data_i[TLB_WIDTH-1:0];
+                            index_o[`TLB_WIDTH-1:0] <= data_i[`TLB_WIDTH-1:0];
                         end
                     end
                     `CP0_REG_ENTRYLO0: begin
@@ -96,8 +117,8 @@ module cp0_reg #(
                     end
                     `CP0_REG_PAGEMASK: begin
                         if (ENABLE_TLB) begin
-                            // only mask bits writable
-                            pagemask_o[24:13] <= data_i[24:13];
+                            // only support 4k pages now
+                            //pagemask_o[24:13] <= data_i[24:13];
                         end
                     end
                     `CP0_REG_COUNT: begin

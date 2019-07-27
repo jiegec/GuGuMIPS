@@ -54,7 +54,15 @@ module mips #(
     wire[`InstBus] id_inst_i;
     wire[`InstBus] ex_inst_i;
 
-    logic [31:0] if_except_type_o;
+    // if
+    wire [31:0] if_except_type_o;
+    wire [31:0] if_mmu_virt_addr;
+    wire if_mmu_en;
+    wire [31:0] if_mmu_phys_addr;
+    wire if_mmu_uncached;
+    wire if_mmu_except_miss;
+    wire if_mmu_except_invalid;
+    wire if_mmu_except_user;
 
     wire[`AluOpBus] id_aluop_o;
     wire[`AluSelBus] id_alusel_o;
@@ -66,8 +74,9 @@ module mips #(
     wire next_inst_in_delayslot;
     wire[`RegBus] id_link_addr;
     wire id_is_in_delayslot_i;
-    logic [31:0] id_except_type_i;
-    logic [31:0] id_except_type_o;
+    wire [31:0] id_except_type_i;
+    wire [31:0] id_except_type_o;
+    wire id_tlb_wi_o;
 
     wire[`AluOpBus] ex_aluop_i;
     wire[`AluSelBus] ex_alusel_i;
@@ -79,8 +88,8 @@ module mips #(
     wire[`RegBus] ex_lo_i;
     wire[`RegBus] ex_link_address;
     wire ex_is_in_delayslot;
-    logic [31:0]ex_except_type_i;
-    logic [31:0]ex_except_type_o;
+    wire [31:0]ex_except_type_i;
+    wire [31:0]ex_except_type_o;
 
     wire ex_wreg_o;
     wire[`RegAddrBus] ex_wd_o;
@@ -92,6 +101,7 @@ module mips #(
     wire[`RegBus] ex_cp0_reg_data;
     wire[4:0] ex_cp0_reg_write_addr;
     wire ex_cp0_reg_we;
+    wire ex_tlb_wi_o;
 
     wire mem_wreg_i;
     wire[`RegAddrBus] mem_wd_i;
@@ -113,9 +123,10 @@ module mips #(
     wire[`RegBus] mem_cp0_reg_data_o;
     wire[4:0] mem_cp0_reg_write_addr_o;
     wire mem_cp0_reg_we_o;
-    logic [31:0]mem_except_type_i;
-    logic [31:0]mem_except_type_o;
-    logic mem_is_in_delayslot;
+    wire [31:0]mem_except_type_i;
+    wire [31:0]mem_except_type_o;
+    wire mem_is_in_delayslot;
+    wire mem_tlb_wi_o;
 
     wire wb_wreg_i;
     wire[`RegAddrBus] wb_wd_i;
@@ -127,13 +138,18 @@ module mips #(
     wire[`RegBus] wb_cp0_reg_data;
     wire[4:0] wb_cp0_reg_write_addr;
     wire wb_cp0_reg_we;
-    logic [31:0]wb_except_type;
-    logic wb_is_in_delayslot;
+    wire [31:0]wb_except_type;
+    wire wb_is_in_delayslot;
+    wire wb_tlb_wi;
 
-    logic [31:0] cp0_status_o;
-    logic [31:0] cp0_cause_o;
-    logic [31:0] cp0_epc_o;
-    logic [31:0] cp0_exception_vector_o;
+    wire [31:0] cp0_status_o;
+    wire [31:0] cp0_cause_o;
+    wire [31:0] cp0_epc_o;
+    wire [31:0] cp0_exception_vector_o;
+    wire [85+`TLB_WIDTH:0] cp0_tlb_config_o;
+    wire [31:0] cp0_entryhi_o;
+    wire cp0_user_mode_o;
+    wire [7:0] asid = cp0_entryhi_o[7:0];
 
     assign debug_wb_pc = wb_pc;
     assign debug_wb_rf_wen = {4{wb_wreg_i}};
@@ -225,13 +241,18 @@ module mips #(
         .except_type_i(wb_except_type), .pc_i(wb_pc), .is_in_delayslot_i(wb_is_in_delayslot),
         .data_i(wb_cp0_reg_data), .raddr_i(cp0_raddr_i), .waddr_i(wb_cp0_reg_write_addr), .we_i(wb_cp0_reg_we),
         .data_o(cp0_data_o), .timer_int_o(timer_int_o), .mem_addr_i(wb_mem_addr),
-        .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o), .exception_vector_o(cp0_exception_vector_o));
+        .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o), .exception_vector_o(cp0_exception_vector_o),
+        .entryhi_o(cp0_entryhi_o),
+        .tlb_config_o(cp0_tlb_config_o), .user_mode(cp0_user_mode_o));
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
         .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o), .except_type_o(if_except_type_o),
         .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
         .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok),
-        .inst_uncached(inst_uncached));
+        .inst_uncached(inst_uncached),
+        // MMU
+        .mmu_virt_addr(if_mmu_virt_addr), .mmu_en(if_mmu_en), .mmu_phys_addr(if_mmu_phys_addr)
+        ,.mmu_uncached(if_mmu_uncached), .mmu_except_miss(if_mmu_except_miss), .mmu_except_invalid(if_mmu_except_invalid), .mmu_except_user(if_mmu_except_user));
 
     if_id if_id0(.clk(clk), .rst(rst), .flush(flush), .en(en_if_id),
                 .if_pc(if_pc_o), .if_inst(rom_data), .if_except_type(if_except_type_o),
@@ -251,7 +272,8 @@ module mips #(
             .is_in_delayslot_i(id_is_in_delayslot_i), .is_in_delayslot_o(id_is_in_delayslot_o),
             .next_inst_in_delayslot_o(next_inst_in_delayslot), .branch_flag_o(branch_flag),
             .branch_target_address_o(branch_target_address), .link_addr_o(id_link_addr),
-            .except_type_i(id_except_type_i), .except_type_o(id_except_type_o));
+            .except_type_i(id_except_type_i), .except_type_o(id_except_type_o),
+            .tlb_wi(id_tlb_wi_o));
 
     regfile regfile0(.clk(clk), .rst(rst),
                     .we(wb_wreg_i), .waddr(wb_wd_i),
@@ -266,7 +288,8 @@ module mips #(
                 .id_is_in_delayslot(id_is_in_delayslot_o), .id_link_address(id_link_addr),
                 .next_inst_in_delayslot_i(next_inst_in_delayslot), .ex_link_address(ex_link_address),
                 .ex_is_in_delayslot(ex_is_in_delayslot), .is_in_delayslot_o(id_is_in_delayslot_i),
-                .id_except_type(id_except_type_o), .ex_except_type(ex_except_type_i)
+                .id_except_type(id_except_type_o), .ex_except_type(ex_except_type_i),
+                .id_tlb_wi(id_tlb_wi_o), .ex_tlb_wi(ex_tlb_wi_o)
     );
 
     ex ex0(.rst(rst), .aluop_i(ex_aluop_i), .alusel_i(ex_alusel_i), .reg1_i(ex_reg1_i), .reg2_i(ex_reg2_i), .wd_i(ex_wd_i), .wreg_i(ex_wreg_i),
@@ -287,17 +310,19 @@ module mips #(
            .stallreq(ex_stall));
 
     ex_mem ex_mem0(.clk(clk), .rst(rst | (!en_ex_mm & en_mm_wb)), .en(en_ex_mm), .flush(flush),
-                    .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),
-                    .mem_wd(mem_wd_i), .mem_wreg(mem_wreg_i), .mem_wdata(mem_wdata_i), .mem_pc(mem_pc_i),
-                    .ex_whilo(ex_whilo_o), .ex_hi(ex_hi_o), .ex_lo(ex_lo_o),
-                    .mem_whilo(mem_whilo_i), .mem_hi(mem_hi_i), .mem_lo(mem_lo_i),
-                    .ex_cp0_reg_data(ex_cp0_reg_data), .ex_cp0_reg_write_addr(ex_cp0_reg_write_addr), .ex_cp0_reg_we(ex_cp0_reg_we),
-                    .ex_except_type(ex_except_type_o), .ex_is_in_delayslot(ex_is_in_delayslot),
-                    .mem_cp0_reg_data(mem_cp0_reg_data_i), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_i), .mem_cp0_reg_we(mem_cp0_reg_we_i),
-                    .mem_except_type(mem_except_type_i), .mem_is_in_delayslot(mem_is_in_delayslot),
-                    .ex_alusel(ex_alusel_i), .ex_aluop(ex_mem_aluop_i), .ex_mem_addr(ex_mem_mem_addr_i), .ex_reg2(ex_mem_reg2_i),
-                    .mem_alusel(mem_alusel_i), .mem_aluop(mem_aluop_i), .mem_mem_addr(mem_mem_addr_i), .mem_reg2(mem_reg2_i),
-                    .hilo_i(hilo_temp_o), .cnt_i(cnt_o), .hilo_o(hilo_temp_i), .cnt_o(cnt_i));
+        .ex_wd(ex_wd_o), .ex_wreg(ex_wreg_o), .ex_wdata(ex_wdata_o), .ex_pc(ex_pc),
+        .mem_wd(mem_wd_i), .mem_wreg(mem_wreg_i), .mem_wdata(mem_wdata_i), .mem_pc(mem_pc_i),
+        .ex_whilo(ex_whilo_o), .ex_hi(ex_hi_o), .ex_lo(ex_lo_o),
+        .mem_whilo(mem_whilo_i), .mem_hi(mem_hi_i), .mem_lo(mem_lo_i),
+        .ex_cp0_reg_data(ex_cp0_reg_data), .ex_cp0_reg_write_addr(ex_cp0_reg_write_addr), .ex_cp0_reg_we(ex_cp0_reg_we),
+        .ex_except_type(ex_except_type_o), .ex_is_in_delayslot(ex_is_in_delayslot),
+        .mem_cp0_reg_data(mem_cp0_reg_data_i), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_i), .mem_cp0_reg_we(mem_cp0_reg_we_i),
+        .mem_except_type(mem_except_type_i), .mem_is_in_delayslot(mem_is_in_delayslot),
+        .ex_alusel(ex_alusel_i), .ex_aluop(ex_mem_aluop_i), .ex_mem_addr(ex_mem_mem_addr_i), .ex_reg2(ex_mem_reg2_i),
+        .mem_alusel(mem_alusel_i), .mem_aluop(mem_aluop_i), .mem_mem_addr(mem_mem_addr_i), .mem_reg2(mem_reg2_i),
+        .hilo_i(hilo_temp_o), .cnt_i(cnt_o), .hilo_o(hilo_temp_i), .cnt_o(cnt_i),
+        .ex_tlb_wi(ex_tlb_wi_o), .mem_tlb_wi(mem_tlb_wi_o)
+    );
 
     mem mem0(.rst(rst), .clk(clk),
              .wd_i(mem_wd_i), .wreg_i(mem_wreg_i), .wdata_i(mem_wdata_i),
@@ -318,15 +343,17 @@ module mips #(
              .data_addr_ok(data_addr_ok), .data_data_ok(data_data_ok));
             
     mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb), .flush(flush),
-                   .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc_o),
-                   .wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc),
-                   .mem_whilo(mem_whilo_o), .mem_hi(mem_hi_o), .mem_lo(mem_lo_o),
-                   .wb_whilo(wb_whilo_i), .wb_hi(wb_hi_i), .wb_lo(wb_lo_i),
-                   .mem_cp0_reg_data(mem_cp0_reg_data_o), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_o), .mem_cp0_reg_we(mem_cp0_reg_we_o),
-                   .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we),
-                   .mem_except_type(mem_except_type_o), .wb_except_type(wb_except_type),
-                   .mem_mem_addr(mem_mem_addr_i), .wb_mem_addr(wb_mem_addr),
-                   .mem_is_in_delayslot(mem_is_in_delayslot), .wb_is_in_delayslot(wb_is_in_delayslot));
+        .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc_o),
+        .wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc),
+        .mem_whilo(mem_whilo_o), .mem_hi(mem_hi_o), .mem_lo(mem_lo_o),
+        .wb_whilo(wb_whilo_i), .wb_hi(wb_hi_i), .wb_lo(wb_lo_i),
+        .mem_cp0_reg_data(mem_cp0_reg_data_o), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_o), .mem_cp0_reg_we(mem_cp0_reg_we_o),
+        .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we),
+        .mem_except_type(mem_except_type_o), .wb_except_type(wb_except_type),
+        .mem_mem_addr(mem_mem_addr_i), .wb_mem_addr(wb_mem_addr),
+        .mem_is_in_delayslot(mem_is_in_delayslot), .wb_is_in_delayslot(wb_is_in_delayslot),
+        .mem_tlb_wi(mem_tlb_wi_o), .wb_tlb_wi(wb_tlb_wi)
+    );
 
     hilo_reg hilo_reg0(.clk(clk), .rst(rst),
                         .we(wb_whilo_i), .hi_i(wb_hi_i), .lo_i(wb_lo_i),
@@ -334,6 +361,16 @@ module mips #(
 
 	div div0(.clk(clk), .rst(rst),
 		.signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .annul_i(1'b0),
-		.result_o(div_result), .ready_o(div_ready));
+        .result_o(div_result), .ready_o(div_ready));
+        
+    mmu #(
+        .ENABLE_TLB(ENABLE_TLB)
+    ) mmu0 (.clk(clk), .rst(rst)
+        ,.user_mode(cp0_user_mode_o), .kseg0_uncached(0), .asid(asid)
+        // TODO: translate data
+        ,.inst_addr_i(if_mmu_virt_addr), .inst_en(if_mmu_en), .inst_addr_o(if_mmu_phys_addr), .inst_uncached(if_mmu_uncached), .inst_except_miss(if_mmu_except_miss), .inst_except_invalid(if_mmu_except_invalid), .inst_except_user(if_mmu_except_user)
+        ,.tlb_config(cp0_tlb_config_o), .tlb_wi(wb_tlb_wi)
+        ,.tlb_p(id_tlb_p), .tlb_p_res_o(id_tlb_p_res)
+    );
 
 endmodule // mips

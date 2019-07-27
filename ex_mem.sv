@@ -28,6 +28,7 @@ module ex_mem(
     input wire[`AluSelBus] ex_alusel,
     input wire[`RegBus] ex_mem_addr,
     input wire[`RegBus] ex_reg2,
+    input wire ex_tlb_wi,
 
     output reg[`RegAddrBus] mem_wd,
     output reg mem_wreg,
@@ -49,9 +50,10 @@ module ex_mem(
     output reg[`AluSelBus] mem_alusel,
     output reg[`RegBus] mem_mem_addr,
     output reg[`RegBus] mem_reg2,
+    output reg mem_tlb_wi,
 	
 	output reg[`DoubleRegBus] hilo_o,
-	output reg[1:0] cnt_o	
+    output reg[1:0] cnt_o
 );
 
     always_ff @(posedge clk) begin
@@ -80,9 +82,8 @@ module ex_mem(
             mem_alusel <= `EXE_RES_NOP;
             mem_mem_addr <= `ZeroWord;
             mem_reg2 <= `ZeroWord;
-            
-	    	//hilo_o <= {`ZeroWord, `ZeroWord};
-			//cnt_o <= 2'b00;	
+
+            mem_tlb_wi <= 0;
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -105,12 +106,8 @@ module ex_mem(
             mem_alusel <= ex_alusel;
             mem_mem_addr <= ex_mem_addr;
             mem_reg2 <= ex_reg2;
-            
-	    	/*hilo_o <= hilo_i;
-			cnt_o <= cnt_i;	
-        end else begin
-	    	hilo_o <= hilo_i;
-			cnt_o <= cnt_i;	*/
+
+            mem_tlb_wi <= ex_tlb_wi;
 		end
     end
 

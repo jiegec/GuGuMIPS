@@ -39,7 +39,9 @@ module id # (
     output logic[`InstAddrBus] pc_o,
 
     input logic [31:0] except_type_i,
-    output logic [31:0] except_type_o
+    output logic [31:0] except_type_o,
+
+    output logic tlb_wi
 );
     wire[5:0] op = inst_i[31:26]; // op type
     wire[4:0] op2 = inst_i[10:6];
@@ -90,6 +92,8 @@ module id # (
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
         except_type_is_break = 0;
+
+        tlb_wi = 0;
       end else begin
         aluop_o = `EXE_NOP_OP;
         alusel_o = `EXE_RES_NOP;
@@ -108,6 +112,7 @@ module id # (
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
         except_type_is_break = 0;
+        tlb_wi = 0;
 
         case (op)
           `EXE_SPECIAL_INST: begin
@@ -941,6 +946,7 @@ module id # (
                       instvalid = 1'b1;
                     end
                     `EXE_TLBWI: begin
+                      tlb_wi = 1'b1;
                       instvalid = 1'b1;
                     end
                     `EXE_TLBWR: begin

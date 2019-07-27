@@ -3,7 +3,7 @@ CFLAGS ?= --std=c++14
 VERILATOR ?= verilator
 VERILATOR_FLAGS ?= -Wall -Wno-fatal -trace -CFLAGS $(CFLAGS)
 INSTS ?= inst_ori.mem inst_andi.mem inst_j.mem inst_syscall.mem
-TESTS ?= test_bit.mem test_jump.mem test_shift.mem test_move.mem test_arith.mem test_cp0.mem test_trap.mem test_store.mem test_load.mem test_mul.mem test_div.mem test_madd.mem test_except.mem test_sign_extend.mem
+TESTS ?= test_bit.mem test_jump.mem test_shift.mem test_move.mem test_arith.mem test_cp0.mem test_trap.mem test_store.mem test_load.mem test_mul.mem test_div.mem test_madd.mem test_except.mem test_sign_extend.mem test_tlb1.mem
 
 # disable builtin rules
 .SUFFIEXES:
