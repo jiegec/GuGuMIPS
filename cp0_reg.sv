@@ -3,48 +3,48 @@
 module cp0_reg #(
     ENABLE_TLB = 0
 )(
-    input clk,
-    input rst,
-    input [5:0] int_i,
+    input wire clk,
+    input wire rst,
+    input wire [5:0] int_i,
 
-    input we_i,
-    input [4:0] waddr_i,
-    input [4:0] raddr_i,
-    input [`RegBus] data_i,
+    input wire we_i,
+    input wire [4:0] waddr_i,
+    input wire [4:0] raddr_i,
+    input wire [`RegBus] data_i,
 
-    input [31:0] except_type_i,
-    input [`RegBus] pc_i,
-    input is_in_delayslot_i,
-    input [31:0] mem_addr_i, // for misaligned access error
+    input wire [31:0] except_type_i,
+    input wire [`RegBus] pc_i,
+    input wire is_in_delayslot_i,
+    input wire [31:0] mem_addr_i, // for misaligned access error
 
-    output logic [`RegBus] data_o,
-    output logic [`RegBus] count_o,
-    output logic [`RegBus] compare_o,
-    output logic [`RegBus] status_o,
-    output logic [`RegBus] cause_o,
-    output logic [`RegBus] epc_o,
-    output logic [`RegBus] config_o,
-    output logic [`RegBus] prid_o,
-    output logic [`RegBus] badvaddr_o,
+    output reg [`RegBus] data_o,
+    output reg [`RegBus] count_o,
+    output reg [`RegBus] compare_o,
+    output reg [`RegBus] status_o,
+    output reg [`RegBus] cause_o,
+    output reg [`RegBus] epc_o,
+    output reg [`RegBus] config_o,
+    output reg [`RegBus] prid_o,
+    output reg [`RegBus] badvaddr_o,
     // Reset PC
-    output logic [`RegBus] exception_vector_o,
+    output reg [`RegBus] exception_vector_o,
     // TLB
-    output logic [`RegBus] index_o,
-    output logic [`RegBus] entryhi_o,
-    output logic [`RegBus] pagemask_o,
-    output logic [`RegBus] entrylo0_o,
-    output logic [`RegBus] entrylo1_o,
-    output logic [85+`TLB_WIDTH:0] tlb_config_o,
+    output reg [`RegBus] index_o,
+    output reg [`RegBus] entryhi_o,
+    output reg [`RegBus] pagemask_o,
+    output reg [`RegBus] entrylo0_o,
+    output reg [`RegBus] entrylo1_o,
+    output reg [85+`TLB_WIDTH:0] tlb_config_o,
 
-    output logic user_mode,
+    output reg user_mode,
 
-    output logic timer_int_o
+    output reg timer_int_o
 );
-    logic status_bev;
-    logic [1:0] status_ksu;
-    logic status_erl;
-    logic status_exl;
-    logic cause_iv;
+    wire status_bev;
+    wire [1:0] status_ksu;
+    wire status_erl;
+    wire status_exl;
+    wire cause_iv;
 
     assign status_bev = status_o[22];
     assign status_ksu = status_o[4:3];

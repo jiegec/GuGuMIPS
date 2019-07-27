@@ -342,26 +342,28 @@ module mips #(
              .data_addr(data_addr), .data_wdata(data_wdata), .data_rdata(data_rdata),
              .data_addr_ok(data_addr_ok), .data_data_ok(data_data_ok));
             
-    mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb), .flush(flush),
-        .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc_o),
-        .wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc),
-        .mem_whilo(mem_whilo_o), .mem_hi(mem_hi_o), .mem_lo(mem_lo_o),
-        .wb_whilo(wb_whilo_i), .wb_hi(wb_hi_i), .wb_lo(wb_lo_i),
-        .mem_cp0_reg_data(mem_cp0_reg_data_o), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_o), .mem_cp0_reg_we(mem_cp0_reg_we_o),
-        .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we),
-        .mem_except_type(mem_except_type_o), .wb_except_type(wb_except_type),
-        .mem_mem_addr(mem_mem_addr_i), .wb_mem_addr(wb_mem_addr),
-        .mem_is_in_delayslot(mem_is_in_delayslot), .wb_is_in_delayslot(wb_is_in_delayslot),
-        .mem_tlb_wi(mem_tlb_wi_o), .wb_tlb_wi(wb_tlb_wi)
+    mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb), .flush(flush)
+        ,.mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc_o)
+        ,wb_wd(wb_wd_i), .wb_wreg(wb_wreg_i), .wb_wdata(wb_wdata_i), .wb_pc(wb_pc)
+        ,.mem_whilo(mem_whilo_o), .mem_hi(mem_hi_o), .mem_lo(mem_lo_o)
+        ,.wb_whilo(wb_whilo_i), .wb_hi(wb_hi_i), .wb_lo(wb_lo_i)
+        ,.mem_cp0_reg_data(mem_cp0_reg_data_o), .mem_cp0_reg_write_addr(mem_cp0_reg_write_addr_o), .mem_cp0_reg_we(mem_cp0_reg_we_o)
+        ,.wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr), .wb_cp0_reg_we(wb_cp0_reg_we)
+        ,.mem_except_type(mem_except_type_o), .wb_except_type(wb_except_type)
+        ,.mem_mem_addr(mem_mem_addr_i), .wb_mem_addr(wb_mem_addr)
+        ,.mem_is_in_delayslot(mem_is_in_delayslot), .wb_is_in_delayslot(wb_is_in_delayslot)
+        ,.mem_tlb_wi(mem_tlb_wi_o), .wb_tlb_wi(wb_tlb_wi)
     );
 
-    hilo_reg hilo_reg0(.clk(clk), .rst(rst),
-                        .we(wb_whilo_i), .hi_i(wb_hi_i), .lo_i(wb_lo_i),
-                        .hi_o(ex_hi_i), .lo_o(ex_lo_i));
+    hilo_reg hilo_reg0(.clk(clk), .rst(rst)
+        ,.we(wb_whilo_i), .hi_i(wb_hi_i), .lo_i(wb_lo_i)
+        ,.hi_o(ex_hi_i), .lo_o(ex_lo_i)
+    );
 
-	div div0(.clk(clk), .rst(rst),
-		.signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .annul_i(1'b0),
-        .result_o(div_result), .ready_o(div_ready));
+	div div0(.clk(clk), .rst(rst)
+		,.signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .annul_i(1'b0)
+        ,.result_o(div_result), .ready_o(div_ready)
+    );
         
     mmu #(
         .ENABLE_TLB(ENABLE_TLB)

@@ -234,8 +234,6 @@
 `define EXE_SB_OP  8'b01000001
 `define EXE_SH_OP  8'b01000010
 `define EXE_SW_OP  8'b01000011
-`define EXE_SH_OP  8'b01000100
-`define EXE_SW_OP  8'b01000101
 
 `define EXE_PREF_OP  8'b01000110
 

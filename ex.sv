@@ -11,8 +11,8 @@ module ex(
     input wire[`RegBus] link_address_i,
     input wire is_in_delayslot_i,
     input wire[`InstBus] inst_i,
-    input [31:0] except_type_i,
-    input [31:0] pc_i,
+    input wire[31:0] except_type_i,
+    input wire[31:0] pc_i,
 
     input wire[`RegBus] hi_i,
     input wire[`RegBus] lo_i,
@@ -42,29 +42,29 @@ module ex(
     output logic[4:0] cp0_reg_write_addr_o,
     output logic[`RegBus] cp0_reg_data_o,
 
-    output reg[`RegAddrBus] wd_o,
-    output reg wreg_o,
-    output reg[`RegBus] wdata_o,
+    output logic[`RegAddrBus] wd_o,
+    output logic wreg_o,
+    output logic[`RegBus] wdata_o,
 
-    output reg whilo_o,
-    output reg[`RegBus] hi_o,
-    output reg[`RegBus] lo_o,
+    output logic whilo_o,
+    output logic[`RegBus] hi_o,
+    output logic[`RegBus] lo_o,
 
     output logic[31:0] except_type_o,
 
-    output wire[`AluOpBus] aluop_o,
-    output wire[`RegBus] mem_addr_o,
-    output wire[`RegBus] reg2_o,
+    output logic[`AluOpBus] aluop_o,
+    output logic[`RegBus] mem_addr_o,
+    output logic[`RegBus] reg2_o,
 
-    output reg[`RegBus] div_opdata1_o,
-    output reg[`RegBus] div_opdata2_o,
-    output reg div_start_o,
-    output reg signed_div_o,
+    output logic[`RegBus] div_opdata1_o,
+    output logic[`RegBus] div_opdata2_o,
+    output logic div_start_o,
+    output logic signed_div_o,
 
-	output reg[`DoubleRegBus] hilo_temp_o,
-	output reg[1:0] cnt_o,
+	output logic[`DoubleRegBus] hilo_temp_o,
+	output logic[1:0] cnt_o,
 
-    output reg stallreq
+    output logic stallreq
 );
     logic[`RegBus] logic_res;
     logic[`RegBus] shift_res;
