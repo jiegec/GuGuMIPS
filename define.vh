@@ -265,8 +265,13 @@
 `define RegNumLog2 5
 `define NOPRegAddr 5'b0000
 
+`define CP0_REG_INDEX 5'd0
+`define CP0_REG_ENTRYLO0 5'd2
+`define CP0_REG_ENTRYLO1 5'd3
+`define CP0_REG_PAGEMASK 5'd5
 `define CP0_REG_BADVADDR 5'd8
 `define CP0_REG_COUNT 5'd9
+`define CP0_REG_ENTRYHI 5'd10
 `define CP0_REG_COMPARE 5'd11
 `define CP0_REG_STATUS 5'd12
 `define CP0_REG_CAUSE 5'd13

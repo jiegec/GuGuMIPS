@@ -24,10 +24,19 @@ module cp0_reg(
     output logic [`RegBus] config_o,
     output logic [`RegBus] prid_o,
     output logic [`RegBus] badvaddr_o,
+    // Reset PC
     output logic [`RegBus] exception_vector_o,
+    // TLB
+    output logic [`RegBus] index_o,
+    output logic [`RegBus] entryhi_o,
+    output logic [`RegBus] pagemask_o,
+    output logic [`RegBus] entrylo0_o,
+    output logic [`RegBus] entrylo1_o,
 
     output logic timer_int_o
 );
+    localparam TLB_WIDTH = 5;
+
     logic status_bev;
     logic status_exl;
     logic cause_iv;
@@ -35,7 +44,6 @@ module cp0_reg(
     assign status_bev = status_o[22];
     assign status_exl = status_o[1];
     assign cause_iv = cause_o[23];
-
 
     always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin
@@ -49,6 +57,11 @@ module cp0_reg(
             prid_o <= 32'b00000000_00000000_0000000000_000000;
             timer_int_o <= 0;
             badvaddr_o <= 0;
+            index_o <= 0;
+            entryhi_o <= 0;
+            pagemask_o <= 0;
+            entrylo0_o <= 0;
+            entrylo1_o <= 0;
         end else begin
             count_o <= count_o + 1;
             // IP[7:2] = I[5:0]
@@ -61,8 +74,30 @@ module cp0_reg(
 
             if (we_i) begin
                 case(waddr_i)
+                    `CP0_REG_INDEX: begin
+                        // only low TLB_WIDTH bits are writable
+                        index_o[TLB_WIDTH-1:0] <= data_i[TLB_WIDTH-1:0];
+                    end
+                    `CP0_REG_ENTRYLO0: begin
+                        // only low 26bits writable
+                        entrylo0_o[25:0] <= data_i[25:0];
+                    end
+                    `CP0_REG_ENTRYLO1: begin
+                        // only low 26bits writable
+                        entrylo1_o[25:0] <= data_i[25:0];
+                    end
+                    `CP0_REG_PAGEMASK: begin
+                        // only mask bits writable
+                        pagemask_o[24:13] <= data_i[24:13];
+                    end
                     `CP0_REG_COUNT: begin
                         count_o <= data_i;
+                    end
+                    `CP0_REG_ENTRYHI: begin
+                        // vpn2
+                        entryhi_o[31:13] <= data_i[31:13];
+                        // asid
+                        entryhi_o[7:0] <= data_i[7:0];
                     end
                     `CP0_REG_COMPARE: begin
                         compare_o <= data_i;
@@ -78,9 +113,6 @@ module cp0_reg(
                         // IE
                         status_o[0] <= data_i[0];
                     end
-                    `CP0_REG_EPC: begin
-                        epc_o <= data_i;
-                    end
                     `CP0_REG_CAUSE: begin
                         // IP[1:2]
                         cause_o[9:8] <= data_i[9:8];
@@ -88,6 +120,9 @@ module cp0_reg(
                         cause_o[23] <= data_i[23];
                         // WP
                         cause_o[22] <= data_i[22];
+                    end
+                    `CP0_REG_EPC: begin
+                        epc_o <= data_i;
                     end
                 endcase
             end
@@ -266,11 +301,26 @@ module cp0_reg(
             data_o = 0;
         end else begin
             case(raddr_i)
+                `CP0_REG_INDEX: begin
+                    data_o = index_o;
+                end
+                `CP0_REG_ENTRYLO0: begin
+                    data_o = entrylo0_o;
+                end
+                `CP0_REG_ENTRYLO1: begin
+                    data_o = entrylo1_o;
+                end
+                `CP0_REG_PAGEMASK: begin
+                    data_o = pagemask_o;
+                end
                 `CP0_REG_BADVADDR: begin
                     data_o = badvaddr_o;
                 end
                 `CP0_REG_COUNT: begin
                     data_o = count_o;
+                end
+                `CP0_REG_ENTRYHI: begin
+                    data_o = entryhi_o;
                 end
                 `CP0_REG_COMPARE: begin
                     data_o = compare_o;
