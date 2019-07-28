@@ -1,3 +1,4 @@
+`include "define.vh"
 module tlb(
     input clk,
     input rst,

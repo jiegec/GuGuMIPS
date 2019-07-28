@@ -126,6 +126,20 @@ module mmu #(
 
                 .asid(asid)
             );
+        end else begin
+            assign inst_addr_tlb = 0;
+            assign inst_uncached_tlb = 0;
+            assign inst_miss_tlb = 0;
+            assign inst_valid_tlb = 0;
+
+            assign data_addr_tlb = 0;
+            assign data_uncached_tlb = 0;
+            assign data_miss_tlb = 0;
+            assign data_valid_tlb = 0;
+            assign data_dirty_tlb = 0;
+
+            assign tlb_read_config_o = 0;
+            assign tlb_p_res_o = 0;
         end
     endgenerate
 
