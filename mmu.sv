@@ -27,8 +27,9 @@ module mmu #(
     output logic data_except_user,
     output logic data_except_dirty,
 
-    input logic [85+`TLB_WIDTH:0] tlb_config,
-    input tlb_wi,
+    input logic [85:0] tlb_config,
+    input logic [`TLB_WIDTH-1:0] tlb_we_index,
+    input tlb_we,
     input tlb_p,
     output logic [31:0] tlb_p_res_o
 );
@@ -107,7 +108,8 @@ module mmu #(
                 .data_dirty(data_dirty_tlb),
 
                 .tlb_config(tlb_config),
-                .tlb_wi(tlb_wi),
+                .tlb_config_index(tlb_we_index),
+                .tlb_we(tlb_we),
 
                 .tlb_p(tlb_p),
                 .tlb_p_res_o(tlb_p_res_o),

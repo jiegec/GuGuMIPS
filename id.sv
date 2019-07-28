@@ -41,7 +41,9 @@ module id # (
     input logic [31:0] except_type_i,
     output logic [31:0] except_type_o,
 
-    output logic tlb_wi
+    output logic tlb_we,
+    output logic tlb_wr,
+    output logic tlb_p
 );
     wire[5:0] op = inst_i[31:26]; // op type
     wire[4:0] op2 = inst_i[10:6];
@@ -93,7 +95,9 @@ module id # (
         except_type_is_syscall = 0;
         except_type_is_break = 0;
 
-        tlb_wi = 0;
+        tlb_we = 0;
+        tlb_wr = 0;
+        tlb_p = 0;
       end else begin
         aluop_o = `EXE_NOP_OP;
         alusel_o = `EXE_RES_NOP;
@@ -112,7 +116,9 @@ module id # (
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
         except_type_is_break = 0;
-        tlb_wi = 0;
+        tlb_we = 0;
+        tlb_wr = 0;
+        tlb_p = 0;
 
         case (op)
           `EXE_SPECIAL_INST: begin
@@ -946,13 +952,16 @@ module id # (
                       instvalid = 1'b1;
                     end
                     `EXE_TLBWI: begin
-                      tlb_wi = 1'b1;
+                      tlb_we = 1'b1;
                       instvalid = 1'b1;
                     end
                     `EXE_TLBWR: begin
+                      tlb_we = 1'b1;
+                      tlb_wr = 1'b1;
                       instvalid = 1'b1;
                     end
                     `EXE_TLBP: begin
+                      tlb_p = 1'b1;
                       instvalid = 1'b1;
                     end
                   endcase // op3 case

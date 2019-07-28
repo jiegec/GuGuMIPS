@@ -21,14 +21,16 @@ module ex_mem(
     input logic [31:0] ex_except_type,
     input logic ex_is_in_delayslot,
 
-	input logic[`DoubleRegBus] hilo_i,	
-	input logic[1:0] cnt_i,	
+    input logic[`DoubleRegBus] hilo_i,
+    input logic[1:0] cnt_i,
 
     input logic[`AluOpBus] ex_aluop,
     input logic[`AluSelBus] ex_alusel,
     input logic[`RegBus] ex_mem_addr,
     input logic[`RegBus] ex_reg2,
-    input logic ex_tlb_wi,
+    input logic ex_tlb_we,
+    input logic ex_tlb_wr,
+    input logic ex_tlb_p,
 
     output reg[`RegAddrBus] mem_wd,
     output reg mem_wreg,
@@ -50,16 +52,18 @@ module ex_mem(
     output reg[`AluSelBus] mem_alusel,
     output reg[`RegBus] mem_mem_addr,
     output reg[`RegBus] mem_reg2,
-    output reg mem_tlb_wi,
-	
-	output reg[`DoubleRegBus] hilo_o,
+    output reg mem_tlb_we,
+    output reg mem_tlb_wr,
+    output reg mem_tlb_p,
+
+    output reg[`DoubleRegBus] hilo_o,
     output reg[1:0] cnt_o
 );
 
     always_ff @(posedge clk) begin
-	    hilo_o <= hilo_i;
-		cnt_o <= cnt_i;	
-		//$display("hilo_o = %h cnt_o = %h", hilo_o, cnt_o);
+        hilo_o <= hilo_i;
+        cnt_o <= cnt_i;
+        //$display("hilo_o = %h cnt_o = %h", hilo_o, cnt_o);
         if (rst == `RstEnable || flush) begin
             mem_wd <= `NOPRegAddr;
             mem_wreg <= `WriteDisable;
@@ -83,7 +87,9 @@ module ex_mem(
             mem_mem_addr <= `ZeroWord;
             mem_reg2 <= `ZeroWord;
 
-            mem_tlb_wi <= 0;
+            mem_tlb_we <= 0;
+            mem_tlb_wr <= 0;
+            mem_tlb_p <= 0;
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -107,8 +113,10 @@ module ex_mem(
             mem_mem_addr <= ex_mem_addr;
             mem_reg2 <= ex_reg2;
 
-            mem_tlb_wi <= ex_tlb_wi;
-		end
+            mem_tlb_we <= ex_tlb_we;
+            mem_tlb_wr <= ex_tlb_wr;
+            mem_tlb_p <= ex_tlb_p;
+        end
     end
 
 endmodule // ex_mem

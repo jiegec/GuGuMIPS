@@ -16,8 +16,9 @@ module tlb(
     output logic data_valid,
     output logic data_dirty,
 
-    input [85+`TLB_WIDTH:0] tlb_config,
-    input tlb_wi,
+    input [85:0] tlb_config,
+    input [`TLB_WIDTH-1:0] tlb_config_index,
+    input tlb_we,
 
     input tlb_p,
     output [31:0] tlb_p_res_o
@@ -51,7 +52,7 @@ module tlb(
 
     tlb_lookup tlb_lookup_probe(
         .tlb_entries(tlb_entries),
-        .virt_addr({tlb_config[74:56], {13{1'b0}}}),
+        .virt_addr({tlb_config[70:52], {13{1'b0}}}),
         .asid(asid),
         .phys_addr(), // ignore
         .miss(tlb_p_res_o[31]),
@@ -67,8 +68,8 @@ module tlb(
                 tlb_entries[i] <= 80'd0;
             end
         end else begin
-            if (tlb_wi) begin
-                tlb_entries[tlb_config[`TLB_WIDTH-1:0]][85:0] <= tlb_config[85 + `TLB_WIDTH:`TLB_WIDTH];
+            if (tlb_we) begin
+                tlb_entries[tlb_config_index][85:0] <= tlb_config[85:0];
             end
         end
     end

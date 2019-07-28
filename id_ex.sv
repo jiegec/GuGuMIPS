@@ -18,7 +18,9 @@ module id_ex(
     input wire[`RegBus] id_link_address,
     input wire next_inst_in_delayslot_i,
     input wire[31:0] id_except_type,
-    input wire id_tlb_wi,
+    input wire id_tlb_we,
+    input wire id_tlb_wr,
+    input wire id_tlb_p,
 
     output reg[`AluOpBus] ex_aluop,
     output reg[`AluSelBus] ex_alusel,
@@ -32,7 +34,9 @@ module id_ex(
     output reg ex_is_in_delayslot,
     output reg is_in_delayslot_o,
     output reg [31:0] ex_except_type,
-    output reg ex_tlb_wi
+    output reg ex_tlb_we,
+    output reg ex_tlb_wr,
+    output reg ex_tlb_p
 );
     logic saved_next_inst_in_delayslot_i;
 
@@ -51,7 +55,9 @@ module id_ex(
             ex_is_in_delayslot <= 0;
 
             ex_except_type <= 0;
-            ex_tlb_wi <= 0;
+            ex_tlb_we <= 0;
+            ex_tlb_wr <= 0;
+            ex_tlb_p <= 0;
         end else if (en) begin
             ex_aluop <= id_aluop;
             ex_alusel <= id_alusel;
@@ -66,7 +72,9 @@ module id_ex(
             ex_is_in_delayslot <= id_is_in_delayslot;
 
             ex_except_type <= id_except_type;
-            ex_tlb_wi <= id_tlb_wi;
+            ex_tlb_we <= id_tlb_we;
+            ex_tlb_wr <= id_tlb_wr;
+            ex_tlb_p <= id_tlb_p;
         end
     end
     

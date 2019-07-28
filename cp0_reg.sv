@@ -30,11 +30,17 @@ module cp0_reg #(
     output reg [`RegBus] exception_vector_o,
     // TLB
     output reg [`RegBus] index_o,
+    output reg [`RegBus] random_o,
     output reg [`RegBus] entryhi_o,
     output reg [`RegBus] pagemask_o,
     output reg [`RegBus] entrylo0_o,
     output reg [`RegBus] entrylo1_o,
-    output reg [85+`TLB_WIDTH:0] tlb_config_o,
+    output logic [85:0] tlb_config_o,
+    output logic [`TLB_WIDTH-1:0] tlb_config_index_o,
+
+    input wire tlb_wr,
+    input wire tlb_p,
+    input wire [31:0] tlb_p_res,
 
     output reg user_mode,
 
@@ -61,9 +67,10 @@ module cp0_reg #(
         entrylo1_o[29:6], // PFN1 51:28
         entrylo1_o[2:1], // D1 V1 27:26
         entrylo0_o[29:6], // PFN0 25:2
-        entrylo0_o[2:1], // D0 V0 1:0
-        index_o[`TLB_WIDTH-1:0]
+        entrylo0_o[2:1] // D0 V0 1:0
     };
+
+    assign tlb_config_index_o = tlb_wr ? random_o : index_o;
 
     // MIPS Vol3 3.4
     assign user_mode = (status_ksu == 2'b10 && ~status_exl && ~status_erl);
@@ -85,6 +92,7 @@ module cp0_reg #(
             pagemask_o <= 0;
             entrylo0_o <= 0;
             entrylo1_o <= 0;
+            random_o <= {`TLB_WIDTH{1}};
         end else begin
             count_o <= count_o + 1;
             // IP[7:2] = I[5:0]
@@ -93,6 +101,14 @@ module cp0_reg #(
 
             if (compare_o != 0 && count_o == compare_o) begin
                 timer_int_o <= 1;
+            end
+
+            if (tlb_p & ENABLE_TLB) begin
+                index_o <= tlb_p_res;
+            end
+
+            if (ENABLE_TLB) begin
+                random_o[`TLB_WIDTH-1:0] <= random_o[`TLB_WIDTH-1:0] - 1;
             end
 
             if (we_i) begin
