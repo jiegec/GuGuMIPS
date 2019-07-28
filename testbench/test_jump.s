@@ -4,18 +4,18 @@
     .set noreorder
 _start:
     ori $1, $0, 0x0001
-    j 0x20
+    j 0xbfc00020
     ori $1, $0, 0x0002
     ori $1, $0, 0x1111
     ori $1, $0, 0x1100
 
     .org 0x20
     ori $1, $0, 0x0003
-    jal 0x40
+    jal 0xbfc00040
     ori $1, $0, 0x0004
     ori $1, $0, 0x0005
     ori $1, $0, 0x0006
-    j 0x60
+    j 0xbfc00060
     nop
 
     .org 0x40
@@ -24,7 +24,7 @@ _start:
 
     ori $1, $0, 0x0009
     ori $1, $0, 0x000a
-    j 0x80
+    j 0xbfc00080
     nop
 
     .org 0x60
@@ -39,3 +39,4 @@ _start:
 _loop:
     j _loop
     nop
+ 

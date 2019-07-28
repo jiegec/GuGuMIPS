@@ -126,7 +126,6 @@ task test(string name);
         $finish;
     end
 
-    mips_0.pc_reg0.reset_pc = 0;
     begin
         rst = 1'b1;
         #50 rst = 1'b0;
