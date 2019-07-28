@@ -220,6 +220,7 @@ initial begin
 
     // tlb
     test("test_tlb1");
+    test("test_tlb2");
 
     $finish;
 end

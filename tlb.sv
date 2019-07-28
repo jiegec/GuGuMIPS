@@ -62,6 +62,8 @@ module tlb(
         .uncached() // ignore
     );
 
+    assign tlb_p_res_o[30:`TLB_WIDTH] = 0;
+
     always_ff @ (posedge clk) begin
         if (rst) begin
             for (int i = 0;i < `TLB_ENTRIES;i = i + 1) begin
