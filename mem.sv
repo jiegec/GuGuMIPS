@@ -11,7 +11,7 @@ module mem(
     input wire[`RegBus] lo_i,
 
     input wire cp0_reg_we_i,
-    input wire[4:0] cp0_reg_write_addr_i,
+    input wire[`CP0RegAddrBus] cp0_reg_write_addr_i,
     input wire[`RegBus] cp0_reg_data_i,
 
     input [31:0] except_type_i,
@@ -24,7 +24,7 @@ module mem(
     input [`RegBus] cp0_epc_i,
 
     input wb_cp0_reg_we,
-    input [4:0] wb_cp0_reg_write_addr,
+    input [`CP0RegAddrBus] wb_cp0_reg_write_addr,
     input [`RegBus] wb_cp0_reg_data,
 
     input wire [`AluOpBus] aluop_i,
@@ -40,7 +40,7 @@ module mem(
     output reg[`RegBus] lo_o,
 
     output logic cp0_reg_we_o,
-    output logic[4:0] cp0_reg_write_addr_o,
+    output logic[`CP0RegAddrBus] cp0_reg_write_addr_o,
     output logic[`RegBus] cp0_reg_data_o,
 
     output logic[31:0] except_type_o,

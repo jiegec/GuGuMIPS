@@ -15,7 +15,7 @@ module ex_mem(
     input logic[`RegBus] ex_lo,
 
     input logic ex_cp0_reg_we,
-    input logic[4:0] ex_cp0_reg_write_addr,
+    input logic[`CP0RegAddrBus] ex_cp0_reg_write_addr,
     input logic[`RegBus] ex_cp0_reg_data,
 
     input logic [31:0] ex_except_type,
@@ -40,7 +40,7 @@ module ex_mem(
     output reg[`RegBus] mem_lo,
 
     output logic mem_cp0_reg_we,
-    output logic[4:0] mem_cp0_reg_write_addr,
+    output logic[`CP0RegAddrBus] mem_cp0_reg_write_addr,
     output logic[`RegBus] mem_cp0_reg_data,
 
     output logic [31:0] mem_except_type,

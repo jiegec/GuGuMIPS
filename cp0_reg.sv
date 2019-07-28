@@ -26,6 +26,7 @@ module cp0_reg #(
     output reg [`RegBus] config_o,
     output reg [`RegBus] prid_o,
     output reg [`RegBus] badvaddr_o,
+    output reg [`RegBus] ebase_o,
     // Reset PC
     output reg [`RegBus] exception_vector_o,
     // TLB
@@ -102,6 +103,7 @@ module cp0_reg #(
             entrylo1_o <= 0;
             random_o <= {`TLB_WIDTH{1'b1}};
             wired_o <= 0;
+            ebase_o <= 32'b10_000000000000000000_00_0000000001;
         end else begin
             count_o <= count_o + 1;
             // IP[7:2] = I[5:0]
@@ -193,6 +195,10 @@ module cp0_reg #(
                     end
                     `CP0_REG_EPC: begin
                         epc_o <= data_i;
+                    end
+                    `CP0_REG_EBASe: begin
+                        // exception base
+                        ebase_o[29:12] <= data_i[29:12];
                     end
                 endcase
             end
@@ -486,32 +492,25 @@ module cp0_reg #(
         end
     end
 
+    logic [31:0] exception_vector_base;
+    logic [31:0] exception_vector_offset;
+
     // MIPS32 Volume 3 R0.95 Table 5-4 Exception Vectors
     always_comb begin
-        exception_vector_o = status_bev ? 32'hbfc00380 : 32'h80000180;
+        exception_vector_base = status_bev ? 32'hbfc00200 : {ebase_o[31:12], 12'b0};
+        exception_vector_o = exception_vector_base + exception_vector_offset;
+        exception_vector_offset = 32'h00000180;
         case (except_type_i)
             32'h00000001: begin
-                // interrupt
-                if (status_bev && cause_iv) begin
-                    exception_vector_o = 32'hbfc00400;
-                end else if (status_bev && !cause_iv) begin
-                    exception_vector_o = 32'hbfc00380;
-                end else if (!status_bev && cause_iv) begin
-                    exception_vector_o = 32'h80000200;
-                end else if (!status_bev && !cause_iv) begin
-                    exception_vector_o = 32'h80000180;
+                // TODO: IntCtl
+                if (cause_iv) begin
+                    exception_vector_offset = 32'h00000200;
                 end
             end
             32'h00000002, 32'h00000010, 32'h00000012: begin
                 // TLB Refill
-                if (status_bev && status_exl) begin
-                    exception_vector_o = 32'hbfc00380;
-                end else if (status_bev && !status_exl) begin
-                    exception_vector_o = 32'hbfc00200;
-                end else if (!status_bev && status_exl) begin
-                    exception_vector_o = 32'h80000180;
-                end else if (!status_bev && !status_exl) begin
-                    exception_vector_o = 32'h80000000;
+                if (~status_exl) begin
+                    exception_vector_offset = 32'h00000000;
                 end
             end
             32'h00000000e: begin

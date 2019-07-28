@@ -254,20 +254,22 @@
 `define EXE_RES_MUL 3'b110
 `define EXE_RES_LOAD_STORE 3'b111	
 
-`define CP0_REG_INDEX 5'd0
-`define CP0_REG_ENTRYLO0 5'd2
-`define CP0_REG_ENTRYLO1 5'd3
-`define CP0_REG_PAGEMASK 5'd5
-`define CP0_REG_WIRED 5'd6
-`define CP0_REG_BADVADDR 5'd8
-`define CP0_REG_COUNT 5'd9
-`define CP0_REG_ENTRYHI 5'd10
-`define CP0_REG_COMPARE 5'd11
-`define CP0_REG_STATUS 5'd12
-`define CP0_REG_CAUSE 5'd13
-`define CP0_REG_EPC 5'd14
-`define CP0_REG_PRId 5'd15
-`define CP0_REG_CONFIG 5'd16
+`define CP0RegAddrBus 7:0
+`define CP0_REG_INDEX {5'd0,3'd0}
+`define CP0_REG_ENTRYLO0 {5'd2,3'd0}
+`define CP0_REG_ENTRYLO1 {5'd3,3'd0}
+`define CP0_REG_PAGEMASK {5'd5,3'd0}
+`define CP0_REG_WIRED {5'd6,3'd0}
+`define CP0_REG_BADVADDR {5'd8,3'd0}
+`define CP0_REG_COUNT {5'd9,3'd0}
+`define CP0_REG_ENTRYHI {5'd10,3'd0}
+`define CP0_REG_COMPARE {5'd11,3'd0}
+`define CP0_REG_STATUS {5'd12,3'd0}
+`define CP0_REG_CAUSE {5'd13,3'd0}
+`define CP0_REG_EPC {5'd14,3'd0}
+`define CP0_REG_PRId {5'd15,3'd0}
+`define CP0_REG_EBASE {5'd15,3'd1}
+`define CP0_REG_CONFIG {5'd16,3'd0}
 
 
 `define InstAddrBus 31:0
@@ -287,7 +289,6 @@
 `define NOPRegAddr 5'b0000
 
 `define ExceptTypeBus 31:0
-`define CP0RegAddrBus 4:0
 `define TLBConfigBus 85:0
 
 `define TlbOpBus 2:0

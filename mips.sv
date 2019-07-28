@@ -40,7 +40,7 @@ module mips #(
     wire branch_flag;
     wire[`RegBus] branch_target_address;
 
-    wire[4:0] cp0_raddr_i;
+    wire[`CP0RegAddrBus] cp0_raddr_i;
     wire[`RegBus] cp0_data_o;
 
     wire[`InstAddrBus] rom_data;
@@ -101,7 +101,7 @@ module mips #(
     wire[`RegBus] ex_lo_o;
 
     wire[`RegBus] ex_cp0_reg_data;
-    wire[4:0] ex_cp0_reg_write_addr;
+    wire[`CP0RegAddrBus] ex_cp0_reg_write_addr;
     wire ex_cp0_reg_we;
     wire [`TlbOpBus] ex_tlb_op_o;
 
@@ -129,11 +129,11 @@ module mips #(
     wire[`RegBus] mem_hi_o;
     wire[`RegBus] mem_lo_o;
 
-    wire[`RegBus] mem_cp0_reg_data_i;
-    wire[4:0] mem_cp0_reg_write_addr_i;
+    wire [`RegBus] mem_cp0_reg_data_i;
+    wire [`CP0RegAddrBus] mem_cp0_reg_write_addr_i;
     wire mem_cp0_reg_we_i;
-    wire[`RegBus] mem_cp0_reg_data_o;
-    wire[4:0] mem_cp0_reg_write_addr_o;
+    wire [`RegBus] mem_cp0_reg_data_o;
+    wire [`CP0RegAddrBus] mem_cp0_reg_write_addr_o;
     wire mem_cp0_reg_we_o;
     wire [31:0]mem_except_type_i;
     wire [31:0]mem_except_type_o;
@@ -148,7 +148,7 @@ module mips #(
     wire[`RegBus] wb_lo_i;
 
     wire[`RegBus] wb_cp0_reg_data;
-    wire[4:0] wb_cp0_reg_write_addr;
+    wire[`CP0RegAddrBus] wb_cp0_reg_write_addr;
     wire wb_cp0_reg_we;
     wire [31:0]wb_except_type;
     wire wb_is_in_delayslot;

@@ -24,10 +24,10 @@ module ex(
     input wire[`RegBus] mem_lo_i,
 
     input wire mem_cp0_reg_we,
-    input wire[4:0] mem_cp0_reg_write_addr,
+    input wire[`CP0RegAddrBus] mem_cp0_reg_write_addr,
     input wire[`RegBus] mem_cp0_reg_data,
     input wire wb_cp0_reg_we,
-    input wire[4:0] wb_cp0_reg_write_addr,
+    input wire[`CP0RegAddrBus] wb_cp0_reg_write_addr,
     input wire[`RegBus] wb_cp0_reg_data,
     input wire[`RegBus] cp0_reg_data_i,
 
@@ -38,8 +38,8 @@ module ex(
     input wire[1:0] cnt_i,
 
     output logic cp0_reg_we_o,
-    output logic[4:0] cp0_reg_read_addr_o,
-    output logic[4:0] cp0_reg_write_addr_o,
+    output logic[`CP0RegAddrBus] cp0_reg_read_addr_o,
+    output logic[`CP0RegAddrBus] cp0_reg_write_addr_o,
     output logic[`RegBus] cp0_reg_data_o,
 
     output logic[`RegAddrBus] wd_o,
@@ -253,7 +253,7 @@ module ex(
             cp0_reg_we_o = 0;
             cp0_reg_data_o = 0;
         end else if (aluop_i == `EXE_MTC0_OP) begin
-            cp0_reg_write_addr_o = inst_i[15:11];
+            cp0_reg_write_addr_o = {inst_i[15:11], inst_i[2:0]};
             cp0_reg_we_o = 1;
             cp0_reg_data_o = reg1_i;
         end else begin
@@ -283,12 +283,12 @@ module ex(
                     move_res = reg1_i;
                 end
                 `EXE_MFC0_OP: begin
-                    cp0_reg_read_addr_o = inst_i[15:11];
+                    cp0_reg_read_addr_o = {inst_i[15:11], inst_i[2:0]};
 
                     // data dependency
-                    if (mem_cp0_reg_we == 1 && mem_cp0_reg_write_addr == inst_i[15:11]) begin
+                    if (mem_cp0_reg_we == 1 && mem_cp0_reg_write_addr == {inst_i[15:11], inst_i[2:0]}) begin
                         move_res = mem_cp0_reg_data;
-                    end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == inst_i[15:11]) begin
+                    end else if (wb_cp0_reg_we == 1 && wb_cp0_reg_write_addr == {inst_i[15:11], inst_i[2:0]}) begin
                         move_res = wb_cp0_reg_data;
                     end else begin
                         move_res = cp0_reg_data_i;

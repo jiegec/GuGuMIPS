@@ -15,7 +15,7 @@ module mem_wb(
     input wire[`RegBus] mem_lo,
 
     input wire mem_cp0_reg_we,
-    input wire[4:0] mem_cp0_reg_write_addr,
+    input wire[`CP0RegAddrBus] mem_cp0_reg_write_addr,
     input wire[`RegBus] mem_cp0_reg_data,
     input wire mem_is_in_delayslot,
     input wire[31:0] mem_except_type,
@@ -32,7 +32,7 @@ module mem_wb(
     output reg[`RegBus] wb_lo,
 
     output logic wb_cp0_reg_we,
-    output logic[4:0] wb_cp0_reg_write_addr,
+    output logic[`CP0RegAddrBus] wb_cp0_reg_write_addr,
     output logic[`RegBus] wb_cp0_reg_data,
 
     output logic[31:0] wb_except_type,
