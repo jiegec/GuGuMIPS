@@ -222,7 +222,7 @@ module cp0_reg #(
                     // EPC
                     epc_o <= pc_i;
                     // EntryHi VPN2
-                    entryhi_o[31:13] <= mem_addr_i[31:13];
+                    entryhi_o[31:13] <= pc_i[31:13];
                 end
                 32'h00000004: begin
                     // memory address error load
