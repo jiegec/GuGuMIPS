@@ -103,7 +103,8 @@ module cp0_reg #(
             entrylo1_o <= 0;
             random_o <= {`TLB_WIDTH{1'b1}};
             wired_o <= 0;
-            ebase_o <= 32'b10_000000000000000000_00_0000000001;
+            // CPUNum = 0
+            ebase_o <= 32'b10_000000000000000000_00_0000000000;
         end else begin
             count_o <= count_o + 1;
             // IP[7:2] = I[5:0]
@@ -196,7 +197,7 @@ module cp0_reg #(
                     `CP0_REG_EPC: begin
                         epc_o <= data_i;
                     end
-                    `CP0_REG_EBASe: begin
+                    `CP0_REG_EBASE: begin
                         // exception base
                         ebase_o[29:12] <= data_i[29:12];
                     end
@@ -481,6 +482,9 @@ module cp0_reg #(
                 end
                 `CP0_REG_PRId: begin
                     data_o = prid_o;
+                end
+                `CP0_REG_EBASE: begin
+                    data_o = ebase_o;
                 end
                 `CP0_REG_CONFIG: begin
                     data_o = config_o;
