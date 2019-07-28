@@ -49,6 +49,16 @@ module mem(
     output mem_stall,
     output mem_load,
 
+    // mmu
+    output logic [`RegBus] mmu_virt_addr,
+    output logic mmu_en,
+    input [`RegBus] mmu_phys_addr,
+    input mmu_uncached,
+    input mmu_except_miss,
+    input mmu_except_invalid,
+    input mmu_except_user,
+    input mmu_except_dirty,
+
     // sram interface
     output data_req,
     output data_wr,
@@ -134,30 +144,38 @@ module mem(
         if (rst == `RstEnable) begin
             except_type_o = 0;
         end else begin
+            // MIP32 Vol 3 R6.02 Table6.6
             if (((cp0_cause[15:8] & (cp0_status[15:8])) != 8'h00) &&
                 (cp0_status[1] == 1'b0) && cp0_status[0] == 1'b1) begin
-                // interrupt, pri=7
+                // Interrupt
                 except_type_o = 32'h00000001;
             end else if (except_type_i[14] == 1'b1) begin
-                // instruction fetch error, pri=11
+                // Address Error - Instruction fetch
                 except_type_o = 32'h0000000f;
+            end else if (except_type_i[15] == 1'b1) begin
+                // TLB Refill - Instruction fetch
+                except_type_o = 32'h00000002;
+            end else if (except_type_i[16] == 1'b1) begin
+                // TLB Invalid - Instruction fetch
+                except_type_o = 32'h00000003;
+            end else if (except_type_i[9] == 1'b1) begin
+                // Instruction Validity Exceptions
+                // TODO: Coprocessor Unusable
+                except_type_o = 32'h0000000a;
             end else if (except_type_i[8] == 1'b1) begin
-                // syscall, pri=16.1
+                // System Call
                 except_type_o = 32'h00000008;
             end else if (except_type_i[13] == 1'b1) begin
-                // break, pri=16.2
+                // Breakpoint
                 except_type_o = 32'h00000009;
-            end else if (except_type_i[9] == 1'b1) begin
-                // inst_valid, pri=16.4
-                except_type_o = 32'h0000000a;
             end else if (except_type_i[11] == 1'b1) begin
-                // overflow, pri=16.5
+                // Integer Overflow
                 except_type_o = 32'h0000000c;
             end else if (except_type_i[10] == 1'b1) begin
-                // trap, pri=16.6
+                // Trap
                 except_type_o = 32'h0000000d;
-            end else if (misaligned_access) begin
-                // address error
+            end else if (misaligned_access | mmu_except_user) begin
+                // Address error - Data access
                 if (inst_store) begin
                     // AdES
                     except_type_o = 32'h00000005;
@@ -165,6 +183,21 @@ module mem(
                     // AdEL
                     except_type_o = 32'h00000004;
                 end
+            end else if (mmu_except_miss & ~inst_store) begin
+                // TLB Refill - Data access (load)
+                except_type_o = 32'h00000010;
+            end else if (mmu_except_invalid & ~inst_store) begin
+                // TLB Invalid - Data access (load)
+                except_type_o = 32'h00000011;
+            end else if (mmu_except_miss & inst_store) begin
+                // TLB Refill - Data access (store)
+                except_type_o = 32'h00000012;
+            end else if (mmu_except_invalid & inst_store) begin
+                // TLB Invalid - Data access (store)
+                except_type_o = 32'h00000013;
+            end else if (mmu_except_dirty & inst_store) begin
+                // TLB Modified - Data access (store)
+                except_type_o = 32'h00000014;
             end else if (except_type_i[12] == 1'b1) begin
                 // eret
                 except_type_o = 32'h0000000e;
@@ -190,8 +223,10 @@ module mem(
     logic [1:0] saved_data_size;
     logic [1:0] data_size_o;
     logic data_uncached_o;
+    logic exception_occurred;
+    assign exception_occurred = |except_type_o;
 
-    assign data_req = state == 2 ? 0 : (state == 1 ? 1 : mem_ce_o);
+    assign data_req = state == 2 ? 0 : (state == 1 ? 1 : mem_ce_o & ~exception_occurred);
     assign data_addr = state == 1 ? saved_mem_addr_i : mem_addr_o;
     assign mem_data_i = data_rdata;
     assign data_wdata = state == 0 ? mem_data_o : saved_mem_data_o;
@@ -202,12 +237,12 @@ module mem(
     assign pc_o = data_data_ok ? saved_pc_i : pc_i;
     assign mem_load = state != 0 && !saved_data_wr;
 
-    // TODO: MMU
+    // MMU
     logic [31:0] mem_phy_addr;
-    assign mem_phy_addr = mem_addr_i[28:0];
-    // 0xA000_0000 - 0xBFFF_FFFF uncached
-    // 0x8000_0000 - 0x9FFF_FFFF cached
-    assign data_uncached_o = mem_addr_i[29];
+    assign mem_phy_addr = mmu_phys_addr;
+    assign mmu_en = mem_ce_o;
+    assign mmu_virt_addr = mem_addr_i;
+    assign data_uncached_o = mmu_uncached;
 
     always_ff @ (posedge clk) begin
         if (rst) begin
@@ -220,7 +255,7 @@ module mem(
             saved_data_wr <= 0;
             saved_data_size <= 0;
             saved_data_uncached <= 0;
-        end else if (data_req && state == 0 && !misaligned_access) begin
+        end else if (data_req && state == 0 && !exception_occurred) begin
             state <= data_addr_ok ? 2 : 1;
             saved_wd <= wd_i;
             saved_aluop <= aluop_i;
@@ -264,7 +299,7 @@ module mem(
             mem_we = `WriteDisable;
             mem_data_o = `ZeroWord;
             mem_ce_o = `ChipDisable;
-            wreg_o = (data_req | state) ? (data_data_ok & !saved_data_wr) : (wreg_i && !misaligned_access);
+            wreg_o = (data_req | state) ? (data_data_ok & !saved_data_wr) : (wreg_i && !exception_occurred);
             wd_o = data_data_ok ? saved_wd : wd_i;
             misaligned_access = 0;
             inst_store = 0;
@@ -290,11 +325,9 @@ module mem(
                     mem_we = `WriteDisable;
                     if (mem_addr_o[0] != 0) begin
                         // misaligned
-                        mem_ce_o = `ChipDisable;
                         misaligned_access = 1;
-                    end else begin
-                        mem_ce_o = `ChipEnable;
                     end
+                    mem_ce_o = `ChipEnable;
                     data_size_o = 2'b01; // 2
                 end
                 `EXE_LHU_OP:		begin
@@ -302,11 +335,9 @@ module mem(
                     mem_we = `WriteDisable;
                     if (mem_addr_o[0] != 0) begin
                         // misaligned
-                        mem_ce_o = `ChipDisable;
                         misaligned_access = 1;
-                    end else begin
-                        mem_ce_o = `ChipEnable;
                     end
+                    mem_ce_o = `ChipEnable;
                     data_size_o = 2'b01; // 2
                 end
                 `EXE_LW_OP:		begin
@@ -314,10 +345,7 @@ module mem(
                     mem_we = `WriteDisable;
                     if (mem_addr_o[1:0] != 0) begin
                         // misaligned
-                        mem_ce_o = `ChipDisable;
                         misaligned_access = 1;
-                    end else begin
-                        mem_ce_o = `ChipEnable;
                     end
                     mem_ce_o = `ChipEnable;
                     data_size_o = 2'b10; // 4
@@ -338,12 +366,11 @@ module mem(
                     if (mem_addr_o[0] != 0) begin
                         // misaligned
                         mem_we = `WriteDisable;
-                        mem_ce_o = `ChipDisable;
                         misaligned_access = 1;
                     end else begin
                         mem_we = `WriteEnable;
-                        mem_ce_o = `ChipEnable;
                     end
+                    mem_ce_o = `ChipEnable;
                     data_size_o = 2'b01; // 2
                     inst_store = 1;
                 end
@@ -353,12 +380,11 @@ module mem(
                     if (mem_addr_o[1:0] != 0) begin
                         // misaligned
                         mem_we = `WriteDisable;
-                        mem_ce_o = `ChipDisable;
                         misaligned_access = 1;
                     end else begin
                         mem_we = `WriteEnable;
-                        mem_ce_o = `ChipEnable;
                     end
+                    mem_ce_o = `ChipEnable;
                     data_size_o = 2'b10; // 4
                     inst_store = 1;
                 end

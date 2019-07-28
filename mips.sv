@@ -64,6 +64,7 @@ module mips #(
     wire if_mmu_except_invalid;
     wire if_mmu_except_user;
 
+    // id
     wire[`AluOpBus] id_aluop_o;
     wire[`AluSelBus] id_alusel_o;
     wire[`RegBus] id_reg1_o;
@@ -78,6 +79,7 @@ module mips #(
     wire [31:0] id_except_type_o;
     wire [`TlbOpBus] id_tlb_op_o;
 
+    // ex
     wire[`AluOpBus] ex_aluop_i;
     wire[`AluSelBus] ex_alusel_i;
     wire[`RegBus] ex_reg1_i;
@@ -102,6 +104,16 @@ module mips #(
     wire[4:0] ex_cp0_reg_write_addr;
     wire ex_cp0_reg_we;
     wire [`TlbOpBus] ex_tlb_op_o;
+
+    // mem
+    wire [31:0] mem_mmu_virt_addr;
+    wire mem_mmu_en;
+    wire [31:0] mem_mmu_phys_addr;
+    wire mem_mmu_uncached;
+    wire mem_mmu_except_miss;
+    wire mem_mmu_except_invalid;
+    wire mem_mmu_except_user;
+    wire mem_mmu_except_dirty;
 
     wire mem_wreg_i;
     wire[`RegAddrBus] mem_wd_i;
@@ -347,7 +359,9 @@ module mips #(
              .mem_stall(mem_stall), .mem_load(mem_load),
              .data_req(data_req), .data_wr(data_wr), .data_size(data_size),
              .data_addr(data_addr), .data_wdata(data_wdata), .data_rdata(data_rdata),
-             .data_addr_ok(data_addr_ok), .data_data_ok(data_data_ok));
+             .data_addr_ok(data_addr_ok), .data_data_ok(data_data_ok),
+             .mmu_virt_addr(mem_mmu_virt_addr), .mmu_en(mem_mmu_en), .mmu_phys_addr(mem_mmu_phys_addr), .mmu_uncached(mem_mmu_uncached),
+             .mmu_except_miss(mem_mmu_except_miss), .mmu_except_invalid(mem_mmu_except_invalid), .mmu_except_user(mem_mmu_except_user), .mmu_except_dirty(mem_mmu_except_dirty));
             
     mem_wb mem_wb0(.clk(clk), .rst(rst), .en(en_mm_wb), .flush(flush),
         .mem_wd(mem_wd_o), .mem_wreg(mem_wreg_o), .mem_wdata(mem_wdata_o), .mem_pc(mem_pc_o),
@@ -376,8 +390,10 @@ module mips #(
         .ENABLE_TLB(ENABLE_TLB)
     ) mmu0 (.clk(clk), .rst(rst),
         .user_mode(cp0_user_mode_o), .kseg0_uncached(0), .asid(asid),
-        // TODO: translate data
-        .inst_addr_i(if_mmu_virt_addr), .inst_en(if_mmu_en), .inst_addr_o(if_mmu_phys_addr), .inst_uncached(if_mmu_uncached), .inst_except_miss(if_mmu_except_miss), .inst_except_invalid(if_mmu_except_invalid), .inst_except_user(if_mmu_except_user),
+        .inst_addr_i(if_mmu_virt_addr), .inst_en(if_mmu_en), .inst_addr_o(if_mmu_phys_addr), .inst_uncached(if_mmu_uncached),
+        .inst_except_miss(if_mmu_except_miss), .inst_except_invalid(if_mmu_except_invalid), .inst_except_user(if_mmu_except_user),
+        .data_addr_i(mem_mmu_virt_addr), .data_en(mem_mmu_en), .data_addr_o(mem_mmu_phys_addr), .data_uncached(mem_mmu_uncached),
+        .data_except_miss(mem_mmu_except_miss), .data_except_invalid(mem_mmu_except_invalid), .data_except_user(mem_mmu_except_user), .data_except_dirty(mem_mmu_except_dirty),
         .tlb_config(cp0_tlb_config_o), .tlb_we(wb_tlb_op == `TLB_OP_TLBWR || wb_tlb_op == `TLB_OP_TLBWI), .tlb_we_index(cp0_tlb_config_index_o),
         .tlb_p(wb_tlb_op == `TLB_OP_TLBP), .tlb_p_res_o(wb_tlb_p_res),
         .tlb_read_index(cp0_index_o), .tlb_read_config_o(cp0_tlb_config_i)

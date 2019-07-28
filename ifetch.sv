@@ -36,7 +36,10 @@ module ifetch(
     // cp0_badvaddr = cp0_epc = branch_target_address_o
     logic misaligned_access;
     assign misaligned_access = addr[1:0] != 0;
-    assign except_type_o = {17'b0, misaligned_access, 14'b0};
+
+    logic exception_occurred;
+    assign exception_occurred = misaligned_access | mmu_except_miss | mmu_except_invalid | mmu_except_user;
+    assign except_type_o = {15'b0, mmu_except_invalid, mmu_except_miss, misaligned_access | mmu_except_user, 14'b0};
 
     assign inst_size = 2'b10; // 4
     assign inst_wr = 0;
@@ -58,7 +61,7 @@ module ifetch(
     assign inst_addr = mmu_phys_addr;
     assign inst_uncached = mmu_uncached;
     assign inst = (inst_data_ok && (saved_inst_addr == inst_addr)) ? inst_rdata : 0;
-    assign inst_req = !rst && (state == 1 || (state == 0)) && !misaligned_access;
+    assign inst_req = !rst && (state == 1 || (state == 0)) && !exception_occurred;
     assign pc_o = addr;
 
     always @ (posedge clk) begin

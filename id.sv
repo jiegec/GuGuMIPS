@@ -38,8 +38,8 @@ module id # (
     output logic is_in_delayslot_o,
     output logic[`InstAddrBus] pc_o,
 
-    input logic [31:0] except_type_i,
-    output logic [31:0] except_type_o,
+    input logic [`ExceptTypeBus] except_type_i,
+    output logic [`ExceptTypeBus] except_type_o,
 
     output logic[`TlbOpBus] tlb_op
 );

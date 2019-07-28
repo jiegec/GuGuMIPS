@@ -8,14 +8,14 @@ module cp0_reg #(
     input wire [5:0] int_i,
 
     input wire we_i,
-    input wire [4:0] waddr_i,
-    input wire [4:0] raddr_i,
+    input wire [`CP0RegAddrBus] waddr_i,
+    input wire [`CP0RegAddrBus] raddr_i,
     input wire [`RegBus] data_i,
 
-    input wire [31:0] except_type_i,
+    input wire [`ExceptTypeBus] except_type_i,
     input wire [`RegBus] pc_i,
     input wire is_in_delayslot_i,
-    input wire [31:0] mem_addr_i, // for misaligned access error
+    input wire [`InstAddrBus] mem_addr_i, // for misaligned access error
 
     output reg [`RegBus] data_o,
     output reg [`RegBus] count_o,
@@ -40,15 +40,15 @@ module cp0_reg #(
     // TLBWR/TLBWI
     input wire tlb_wr,
     output logic [`TLB_WIDTH-1:0] tlb_config_index_o,
-    output logic [85:0] tlb_config_o,
+    output logic [`TLBConfigBus] tlb_config_o,
 
     // TLBP
     input wire tlb_p,
-    input wire [31:0] tlb_p_res,
+    input wire [`RegBus] tlb_p_res,
 
     // TLBR
     input wire tlb_r,
-    input wire [85:0] tlb_config_i,
+    input wire [`TLBConfigBus] tlb_config_i,
 
     output reg user_mode,
 
@@ -211,6 +211,19 @@ module cp0_reg #(
                     // ExcCode = 0
                     cause_o[6:2] <= 5'b00000;
                 end
+                32'h00000002, 32'h00000003: begin
+                    // tlb refill(2)/invalid(3) on instruction fetch
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 2
+                    cause_o[6:2] <= 5'b00010;
+                    // BadVAddr
+                    badvaddr_o <= pc_i;
+                    // EPC
+                    epc_o <= pc_i;
+                    // EntryHi VPN2
+                    entryhi_o[31:13] <= mem_addr_i[31:13];
+                end
                 32'h00000004: begin
                     // memory address error load
                     // EXL = 0
@@ -229,27 +242,6 @@ module cp0_reg #(
                     cause_o[6:2] <= 5'h04;
                     // BadVAddr
                     badvaddr_o <= mem_addr_i;
-                end
-                32'h0000000f: begin
-                    // instruction address error load
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
-                    // EXL = 1
-                    status_o[1] <= 1'b1;
-                    // ExcCode = 4
-                    cause_o[6:2] <= 5'h04;
-                    // BadVAddr
-                    badvaddr_o <= pc_i;
-                    // EPC
-                    epc_o <= pc_i;
                 end
                 32'h00000005: begin
                     // memory address error store
@@ -360,6 +352,80 @@ module cp0_reg #(
                     // EXL = 0
                     status_o[1] <= 1'b0;
                 end
+                32'h0000000f: begin
+                    // instruction address error load
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 4
+                    cause_o[6:2] <= 5'h04;
+                    // BadVAddr
+                    badvaddr_o <= pc_i;
+                    // EPC
+                    epc_o <= pc_i;
+                end
+                32'h00000010, 32'h00000011: begin
+                    // tlb refill(0x10)/invalid(0x11) on data load
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 2
+                    cause_o[6:2] <= 5'b00010;
+                    // BadVAddr
+                    badvaddr_o <= mem_addr_i;
+                    // EntryHi VPN2
+                    entryhi_o[31:13] <= mem_addr_i[31:13];
+                end
+                32'h00000012, 32'h00000013: begin
+                    // tlb refill(0x12)/invalid(0x13) on data store
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 3
+                    cause_o[6:2] <= 5'b00011;
+                    // BadVAddr
+                    badvaddr_o <= mem_addr_i;
+                    // EntryHi VPN2
+                    entryhi_o[31:13] <= mem_addr_i[31:13];
+                end
+                32'h00000014: begin
+                    // tlb modified on data store
+                    // EXL = 0
+                    if (status_o[1] == 1'b0) begin
+                        if (is_in_delayslot_i) begin
+                            epc_o <= pc_i - 4;
+                            cause_o[31] <= 1'b1;
+                        end else begin
+                            epc_o <= pc_i;
+                            cause_o[31] <= 1'b0;
+                        end
+                    end
+                    // EXL = 1
+                    status_o[1] <= 1'b1;
+                    // ExcCode = 1
+                    cause_o[6:2] <= 5'b00001;
+                    // BadVAddr
+                    badvaddr_o <= mem_addr_i;
+                    // EntryHi VPN2
+                    entryhi_o[31:13] <= mem_addr_i[31:13];
+                end
                 default: begin
                 end
             endcase
@@ -420,7 +486,7 @@ module cp0_reg #(
         end
     end
 
-    // MIPS32 Volume 3 Table 5-4 Exception Vectors
+    // MIPS32 Volume 3 R0.95 Table 5-4 Exception Vectors
     always_comb begin
         exception_vector_o = status_bev ? 32'hbfc00380 : 32'h80000180;
         case (except_type_i)
@@ -434,6 +500,18 @@ module cp0_reg #(
                     exception_vector_o = 32'h80000200;
                 end else if (!status_bev && !cause_iv) begin
                     exception_vector_o = 32'h80000180;
+                end
+            end
+            32'h00000002, 32'h00000010, 32'h00000012: begin
+                // TLB Refill
+                if (status_bev && status_exl) begin
+                    exception_vector_o = 32'hbfc00380;
+                end else if (status_bev && !status_exl) begin
+                    exception_vector_o = 32'hbfc00200;
+                end else if (!status_bev && status_exl) begin
+                    exception_vector_o = 32'h80000180;
+                end else if (!status_bev && !status_exl) begin
+                    exception_vector_o = 32'h80000000;
                 end
             end
             32'h00000000e: begin

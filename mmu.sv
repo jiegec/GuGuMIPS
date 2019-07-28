@@ -49,8 +49,8 @@ module mmu #(
     logic inst_valid_tlb;
     logic inst_use_tlb;
 
-    assign inst_except_miss = inst_use_tlb & inst_miss_tlb;
-    assign inst_except_invalid = inst_use_tlb & ~inst_valid_tlb;
+    assign inst_except_miss = inst_en & inst_use_tlb & inst_miss_tlb;
+    assign inst_except_invalid = inst_en & inst_use_tlb & ~inst_valid_tlb;
     assign inst_uncached = inst_use_tlb ? inst_uncached_tlb : inst_uncached_mmap;
     assign inst_addr_o = inst_use_tlb ? inst_addr_tlb : inst_addr_mmap;
 
@@ -76,9 +76,9 @@ module mmu #(
     logic data_dirty_tlb;
     logic data_use_tlb;
 
-    assign data_except_miss = data_use_tlb & data_miss_tlb;
-    assign data_except_invalid = data_use_tlb & ~data_valid_tlb;
-    assign data_except_dirty = data_use_tlb & data_dirty_tlb;
+    assign data_except_miss = data_en & data_use_tlb & data_miss_tlb;
+    assign data_except_invalid = data_en & data_use_tlb & ~data_valid_tlb;
+    assign data_except_dirty = data_en & data_use_tlb & ~data_dirty_tlb;
     assign data_uncached = data_use_tlb ? data_uncached_tlb : data_uncached_mmap;
     assign data_addr_o = data_use_tlb ? data_addr_tlb : data_addr_mmap;
 
