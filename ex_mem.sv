@@ -28,9 +28,7 @@ module ex_mem(
     input logic[`AluSelBus] ex_alusel,
     input logic[`RegBus] ex_mem_addr,
     input logic[`RegBus] ex_reg2,
-    input logic ex_tlb_we,
-    input logic ex_tlb_wr,
-    input logic ex_tlb_p,
+    input logic[`TlbOpWidth-1:0] ex_tlb_op,
 
     output reg[`RegAddrBus] mem_wd,
     output reg mem_wreg,
@@ -52,9 +50,7 @@ module ex_mem(
     output reg[`AluSelBus] mem_alusel,
     output reg[`RegBus] mem_mem_addr,
     output reg[`RegBus] mem_reg2,
-    output reg mem_tlb_we,
-    output reg mem_tlb_wr,
-    output reg mem_tlb_p,
+    output reg[`TlbOpWidth-1:0] mem_tlb_op,
 
     output reg[`DoubleRegBus] hilo_o,
     output reg[1:0] cnt_o
@@ -87,9 +83,7 @@ module ex_mem(
             mem_mem_addr <= `ZeroWord;
             mem_reg2 <= `ZeroWord;
 
-            mem_tlb_we <= 0;
-            mem_tlb_wr <= 0;
-            mem_tlb_p <= 0;
+            mem_tlb_op <= 0;
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -113,9 +107,7 @@ module ex_mem(
             mem_mem_addr <= ex_mem_addr;
             mem_reg2 <= ex_reg2;
 
-            mem_tlb_we <= ex_tlb_we;
-            mem_tlb_wr <= ex_tlb_wr;
-            mem_tlb_p <= ex_tlb_p;
+            mem_tlb_op <= ex_tlb_op;
         end
     end
 

@@ -274,6 +274,7 @@
 `define CP0_REG_ENTRYLO0 5'd2
 `define CP0_REG_ENTRYLO1 5'd3
 `define CP0_REG_PAGEMASK 5'd5
+`define CP0_REG_WIRED 5'd6
 `define CP0_REG_BADVADDR 5'd8
 `define CP0_REG_COUNT 5'd9
 `define CP0_REG_ENTRYHI 5'd10
@@ -283,6 +284,14 @@
 `define CP0_REG_EPC 5'd14
 `define CP0_REG_PRId 5'd15
 `define CP0_REG_CONFIG 5'd16
+
+`define TlbOpBus 2:0
+`define TlbOpWidth 3
+`define TLB_OP_NOP 3'b000
+`define TLB_OP_TLBR 3'b001
+`define TLB_OP_TLBWI 3'b010
+`define TLB_OP_TLBWR 3'b011
+`define TLB_OP_TLBP 3'b100
 
 `define DivFree 2'b00
 `define DivByZero 2'b01

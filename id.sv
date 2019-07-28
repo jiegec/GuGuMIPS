@@ -41,9 +41,7 @@ module id # (
     input logic [31:0] except_type_i,
     output logic [31:0] except_type_o,
 
-    output logic tlb_we,
-    output logic tlb_wr,
-    output logic tlb_p
+    output logic[`TlbOpBus] tlb_op
 );
     wire[5:0] op = inst_i[31:26]; // op type
     wire[4:0] op2 = inst_i[10:6];
@@ -95,9 +93,7 @@ module id # (
         except_type_is_syscall = 0;
         except_type_is_break = 0;
 
-        tlb_we = 0;
-        tlb_wr = 0;
-        tlb_p = 0;
+        tlb_op = `TLB_OP_NOP;
       end else begin
         aluop_o = `EXE_NOP_OP;
         alusel_o = `EXE_RES_NOP;
@@ -116,9 +112,7 @@ module id # (
         except_type_is_eret = 0;
         except_type_is_syscall = 0;
         except_type_is_break = 0;
-        tlb_we = 0;
-        tlb_wr = 0;
-        tlb_p = 0;
+        tlb_op = `TLB_OP_NOP;
 
         case (op)
           `EXE_SPECIAL_INST: begin
@@ -949,19 +943,19 @@ module id # (
                   // TLB
                   case(op3)
                     `EXE_TLBR: begin
+                      tlb_op = `TLB_OP_TLBR;
                       instvalid = 1'b1;
                     end
                     `EXE_TLBWI: begin
-                      tlb_we = 1'b1;
+                      tlb_op = `TLB_OP_TLBWI;
                       instvalid = 1'b1;
                     end
                     `EXE_TLBWR: begin
-                      tlb_we = 1'b1;
-                      tlb_wr = 1'b1;
+                      tlb_op = `TLB_OP_TLBWR;
                       instvalid = 1'b1;
                     end
                     `EXE_TLBP: begin
-                      tlb_p = 1'b1;
+                      tlb_op = `TLB_OP_TLBP;
                       instvalid = 1'b1;
                     end
                   endcase // op3 case

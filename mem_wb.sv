@@ -20,9 +20,7 @@ module mem_wb(
     input wire mem_is_in_delayslot,
     input wire[31:0] mem_except_type,
     input wire[`RegBus] mem_mem_addr,
-    input wire mem_tlb_we,
-    input wire mem_tlb_wr,
-    input wire mem_tlb_p,
+    input wire[`TlbOpBus] mem_tlb_op,
 
     output reg[`RegAddrBus] wb_wd,
     output reg wb_wreg,
@@ -40,9 +38,7 @@ module mem_wb(
     output logic[31:0] wb_except_type,
     output logic[31:0] wb_mem_addr,
     output logic wb_is_in_delayslot,
-    output reg wb_tlb_we,
-    output reg wb_tlb_wr,
-    output reg wb_tlb_p
+    output reg[`TlbOpBus] wb_tlb_op
 );
 
     always_ff @(posedge clk) begin
@@ -65,9 +61,7 @@ module mem_wb(
             wb_except_type <= 0;
             wb_mem_addr <= 0;
 
-            wb_tlb_we <= 0;
-            wb_tlb_wr <= 0;
-            wb_tlb_p <= 0;
+            wb_tlb_op <= 0;
         end else if (en) begin
             wb_wd <= mem_wd;
             wb_wreg <= mem_wreg;
@@ -87,9 +81,7 @@ module mem_wb(
             wb_except_type <= mem_except_type;
             wb_mem_addr <= mem_mem_addr;
 
-            wb_tlb_we <= mem_tlb_we;
-            wb_tlb_wr <= mem_tlb_wr;
-            wb_tlb_p <= mem_tlb_p;
+            wb_tlb_op <= mem_tlb_op;
         end
     end
 

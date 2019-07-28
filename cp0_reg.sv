@@ -35,12 +35,20 @@ module cp0_reg #(
     output reg [`RegBus] pagemask_o,
     output reg [`RegBus] entrylo0_o,
     output reg [`RegBus] entrylo1_o,
-    output logic [85:0] tlb_config_o,
-    output logic [`TLB_WIDTH-1:0] tlb_config_index_o,
+    output reg [`RegBus] wired_o,
 
+    // TLBWR/TLBWI
     input wire tlb_wr,
+    output logic [`TLB_WIDTH-1:0] tlb_config_index_o,
+    output logic [85:0] tlb_config_o,
+
+    // TLBP
     input wire tlb_p,
     input wire [31:0] tlb_p_res,
+
+    // TLBR
+    input wire tlb_r,
+    input wire [85:0] tlb_config_i,
 
     output reg user_mode,
 
@@ -92,7 +100,8 @@ module cp0_reg #(
             pagemask_o <= 0;
             entrylo0_o <= 0;
             entrylo1_o <= 0;
-            random_o <= {`TLB_WIDTH{1}};
+            random_o <= {`TLB_WIDTH{1'b1}};
+            wired_o <= 0;
         end else begin
             count_o <= count_o + 1;
             // IP[7:2] = I[5:0]
@@ -103,12 +112,20 @@ module cp0_reg #(
                 timer_int_o <= 1;
             end
 
-            if (tlb_p & ENABLE_TLB) begin
-                index_o <= tlb_p_res;
-            end
-
             if (ENABLE_TLB) begin
-                random_o[`TLB_WIDTH-1:0] <= random_o[`TLB_WIDTH-1:0] - 1;
+                if (random_o != wired_o) begin
+                    random_o[`TLB_WIDTH-1:0] <= random_o[`TLB_WIDTH-1:0] - 1;
+                end else begin
+                    random_o <= {`TLB_WIDTH{1'b1}};
+                end
+
+                if (tlb_p) begin
+                    index_o <= tlb_p_res;
+                end else if (tlb_r) begin
+                    entryhi_o <= {tlb_config_i[70:52], 5'b0, tlb_config_i[79:72]};
+                    entrylo0_o <= {2'b0, tlb_config_i[25:2], tlb_config_i[85:83], tlb_config_i[1:0], tlb_config_i[71]};
+                    entrylo1_o <= {2'b0, tlb_config_i[51:28], tlb_config_i[82:80], tlb_config_i[27:26], tlb_config_i[71]};
+                end
             end
 
             if (we_i) begin
@@ -135,6 +152,12 @@ module cp0_reg #(
                         if (ENABLE_TLB) begin
                             // only support 4k pages now
                             //pagemask_o[24:13] <= data_i[24:13];
+                        end
+                    end
+                    `CP0_REG_WIRED: begin
+                        if (ENABLE_TLB) begin
+                            random_o <= {`TLB_WIDTH{1'b1}};
+                            wired_o[`TLB_WIDTH-1:0] <= data_i[`TLB_WIDTH-1:0];
                         end
                     end
                     `CP0_REG_COUNT: begin
@@ -359,6 +382,9 @@ module cp0_reg #(
                 end
                 `CP0_REG_PAGEMASK: begin
                     data_o = pagemask_o;
+                end
+                `CP0_REG_WIRED: begin
+                    data_o = wired_o;
                 end
                 `CP0_REG_BADVADDR: begin
                     data_o = badvaddr_o;

@@ -27,11 +27,18 @@ module mmu #(
     output logic data_except_user,
     output logic data_except_dirty,
 
+    // TLBWR/TLBWI
     input logic [85:0] tlb_config,
     input logic [`TLB_WIDTH-1:0] tlb_we_index,
     input tlb_we,
+
+    // TLBP
     input tlb_p,
-    output logic [31:0] tlb_p_res_o
+    output logic [31:0] tlb_p_res_o,
+
+    // TLBR
+    input [`TLB_WIDTH-1:0] tlb_read_index,
+    output [85:0] tlb_read_config_o
 );
 
     logic [31:0] inst_addr_mmap;
@@ -113,6 +120,9 @@ module mmu #(
 
                 .tlb_p(tlb_p),
                 .tlb_p_res_o(tlb_p_res_o),
+
+                .tlb_read_index(tlb_read_index),
+                .tlb_read_config_o(tlb_read_config_o),
 
                 .asid(asid)
             );

@@ -21,10 +21,15 @@ module tlb(
     input tlb_we,
 
     input tlb_p,
-    output [31:0] tlb_p_res_o
+    output [31:0] tlb_p_res_o,
+
+    input [`TLB_WIDTH-1:0] tlb_read_index,
+    output [85:0] tlb_read_config_o
 );
 
     logic [85:0] tlb_entries [0:`TLB_ENTRIES-1];
+
+    assign tlb_read_config_o = tlb_entries[tlb_read_index];
 
     tlb_lookup tlb_lookup_inst(
         .tlb_entries(tlb_entries),
