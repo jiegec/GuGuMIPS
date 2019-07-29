@@ -161,7 +161,7 @@ assign arlen   = 4'd0;
 assign arsize  = do_size_r;
 assign arburst = 2'b01;
 assign arlock  = 1'd0;
-assign arcache = do_uncached_r ? 4'b0000 : 4'b1110;
+assign arcache = do_uncached_r ? 4'b0000 : 4'b1111;
 assign arprot  = 3'd0;
 assign arvalid = do_req&&!do_wr_r&&!addr_rcv;
 //r
@@ -174,7 +174,7 @@ assign awlen   = 4'd0;
 assign awsize  = do_size_r;
 assign awburst = 2'b01;
 assign awlock  = 1'd0;
-assign awcache = do_uncached_r ? 4'b0000 : 4'b1110;
+assign awcache = do_uncached_r ? 4'b0000 : 4'b1111;
 assign awprot  = 3'd0;
 assign awvalid = do_req&&do_wr_r&&!addr_rcv;
 //w
