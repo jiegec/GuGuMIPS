@@ -20,6 +20,7 @@ module ex_mem(
 
     input logic [31:0] ex_except_type,
     input logic ex_is_in_delayslot,
+    input logic ex_pc_valid,
 
     input logic[`DoubleRegBus] hilo_i,
     input logic[1:0] cnt_i,
@@ -51,6 +52,7 @@ module ex_mem(
     output reg[`RegBus] mem_mem_addr,
     output reg[`RegBus] mem_reg2,
     output reg[`TlbOpWidth-1:0] mem_tlb_op,
+    output reg mem_pc_valid,
 
     output reg[`DoubleRegBus] hilo_o,
     output reg[1:0] cnt_o
@@ -84,6 +86,7 @@ module ex_mem(
             mem_reg2 <= `ZeroWord;
 
             mem_tlb_op <= 0;
+            mem_pc_valid <= 0;
         end else if (en) begin
             mem_wd <= ex_wd;
             mem_wreg <= ex_wreg;
@@ -108,6 +111,7 @@ module ex_mem(
             mem_reg2 <= ex_reg2;
 
             mem_tlb_op <= ex_tlb_op;
+            mem_pc_valid <= ex_pc_valid;
         end
     end
 

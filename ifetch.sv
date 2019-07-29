@@ -28,6 +28,7 @@ module ifetch(
     input [`RegBus]addr,
     output logic [`RegBus]inst,
     output logic [`RegBus]pc_o,
+    output logic pc_valid_o,
     output logic [31:0] except_type_o,
     output logic stall
 );
@@ -54,8 +55,9 @@ module ifetch(
     logic [`InstAddrBus] saved_inst_addr;
 
     assign stall = !inst_data_ok || (saved_inst_addr != inst_addr);
+    assign pc_valid_o = exception_occurred | ~stall;
+
     // MMU
-    // TODO: MMU Exception Handling
     assign mmu_en = 1'b1;
     assign mmu_virt_addr = addr;
     assign inst_addr = mmu_phys_addr;

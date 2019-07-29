@@ -17,6 +17,7 @@ module mem(
     input [31:0] except_type_i,
     input is_in_delayslot_i,
     input [`RegBus] pc_i,
+    input pc_valid_i,
     output logic[`RegBus] pc_o,
 
     input [`RegBus] cp0_status_i,
@@ -141,7 +142,8 @@ module mem(
     end
 
     always_comb begin
-        if (rst == `RstEnable) begin
+        // Do not check exception on bubbles
+        if (rst == `RstEnable || ~pc_valid_i) begin
             except_type_o = 0;
         end else begin
             // MIP32 Vol 3 R6.02 Table6.6

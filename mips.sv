@@ -63,6 +63,7 @@ module mips #(
     wire if_mmu_except_miss;
     wire if_mmu_except_invalid;
     wire if_mmu_except_user;
+    wire if_pc_valid;
 
     // id
     wire[`AluOpBus] id_aluop_o;
@@ -78,6 +79,7 @@ module mips #(
     wire [31:0] id_except_type_i;
     wire [31:0] id_except_type_o;
     wire [`TlbOpBus] id_tlb_op_o;
+    wire id_pc_valid;
 
     // ex
     wire[`AluOpBus] ex_aluop_i;
@@ -92,6 +94,7 @@ module mips #(
     wire ex_is_in_delayslot;
     wire [31:0]ex_except_type_i;
     wire [31:0]ex_except_type_o;
+    wire ex_pc_valid;
 
     wire ex_wreg_o;
     wire[`RegAddrBus] ex_wd_o;
@@ -114,7 +117,9 @@ module mips #(
     wire mem_mmu_except_invalid;
     wire mem_mmu_except_user;
     wire mem_mmu_except_dirty;
+    wire mem_pc_valid;
 
+    // wb
     wire mem_wreg_i;
     wire[`RegAddrBus] mem_wd_i;
     wire[`RegBus] mem_wdata_i;
@@ -265,7 +270,7 @@ module mips #(
     );
 
     ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
-        .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o), .except_type_o(if_except_type_o),
+        .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o), .except_type_o(if_except_type_o), .pc_valid_o(if_pc_valid),
         .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
         .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok),
         .inst_uncached(inst_uncached),
@@ -274,8 +279,8 @@ module mips #(
         .mmu_uncached(if_mmu_uncached), .mmu_except_miss(if_mmu_except_miss), .mmu_except_invalid(if_mmu_except_invalid), .mmu_except_user(if_mmu_except_user));
 
     if_id if_id0(.clk(clk), .rst(rst), .flush(flush), .en(en_if_id),
-                .if_pc(if_pc_o), .if_inst(rom_data), .if_except_type(if_except_type_o),
-                .id_pc(id_pc_i), .id_inst(id_inst_i), .id_except_type(id_except_type_i));
+                .if_pc(if_pc_o), .if_inst(rom_data), .if_except_type(if_except_type_o), .if_pc_valid(if_pc_valid),
+                .id_pc(id_pc_i), .id_inst(id_inst_i), .id_except_type(id_except_type_i), .id_pc_valid(id_pc_valid));
 
     id #(
         .ENABLE_TLB(ENABLE_TLB)
@@ -308,7 +313,8 @@ module mips #(
                 .next_inst_in_delayslot_i(next_inst_in_delayslot), .ex_link_address(ex_link_address),
                 .ex_is_in_delayslot(ex_is_in_delayslot), .is_in_delayslot_o(id_is_in_delayslot_i),
                 .id_except_type(id_except_type_o), .ex_except_type(ex_except_type_i),
-                .id_tlb_op(id_tlb_op_o), .ex_tlb_op(ex_tlb_op_o)
+                .id_tlb_op(id_tlb_op_o), .ex_tlb_op(ex_tlb_op_o),
+                .id_pc_valid(id_pc_valid), .ex_pc_valid(ex_pc_valid)
     );
 
     ex ex0(.rst(rst), .aluop_i(ex_aluop_i), .alusel_i(ex_alusel_i), .reg1_i(ex_reg1_i), .reg2_i(ex_reg2_i), .wd_i(ex_wd_i), .wreg_i(ex_wreg_i),
@@ -340,7 +346,8 @@ module mips #(
         .ex_alusel(ex_alusel_i), .ex_aluop(ex_mem_aluop_i), .ex_mem_addr(ex_mem_mem_addr_i), .ex_reg2(ex_mem_reg2_i),
         .mem_alusel(mem_alusel_i), .mem_aluop(mem_aluop_i), .mem_mem_addr(mem_mem_addr_i), .mem_reg2(mem_reg2_i),
         .hilo_i(hilo_temp_o), .cnt_i(cnt_o), .hilo_o(hilo_temp_i), .cnt_o(cnt_i),
-        .ex_tlb_op(ex_tlb_op_o), .mem_tlb_op(mem_tlb_op_o)
+        .ex_tlb_op(ex_tlb_op_o), .mem_tlb_op(mem_tlb_op_o),
+        .ex_pc_valid(ex_pc_valid), .mem_pc_valid(mem_pc_valid)
     );
 
     mem mem0(.rst(rst), .clk(clk),
@@ -351,7 +358,7 @@ module mips #(
              .cp0_reg_data_i(mem_cp0_reg_data_i), .cp0_reg_data_o(mem_cp0_reg_data_o),
              .cp0_reg_write_addr_i(mem_cp0_reg_write_addr_i), .cp0_reg_write_addr_o(mem_cp0_reg_write_addr_o),
              .cp0_reg_we_i(mem_cp0_reg_we_i), .cp0_reg_we_o(mem_cp0_reg_we_o),
-             .except_type_i(mem_except_type_i), .is_in_delayslot_i(mem_is_in_delayslot), .pc_i(mem_pc_i), .pc_o(mem_pc_o),
+             .except_type_i(mem_except_type_i), .is_in_delayslot_i(mem_is_in_delayslot), .pc_i(mem_pc_i), .pc_o(mem_pc_o), .pc_valid_i(mem_pc_valid),
              .cp0_status_i(cp0_status_o), .cp0_cause_i(cp0_cause_o), .cp0_epc_i(cp0_epc_o),
              .wb_cp0_reg_we(wb_cp0_reg_we), .wb_cp0_reg_data(wb_cp0_reg_data), .wb_cp0_reg_write_addr(wb_cp0_reg_write_addr),
              .except_type_o(mem_except_type_o), .data_uncached(data_uncached),

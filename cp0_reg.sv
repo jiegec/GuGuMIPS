@@ -141,14 +141,14 @@ module cp0_reg #(
                     end
                     `CP0_REG_ENTRYLO0: begin
                         if (ENABLE_TLB) begin
-                            // only low 26bits writable
-                            entrylo0_o[25:0] <= data_i[25:0];
+                            // only low 30bits writable
+                            entrylo0_o[29:0] <= data_i[29:0];
                         end
                     end
                     `CP0_REG_ENTRYLO1: begin
                         if (ENABLE_TLB) begin
-                            // only low 26bits writable
-                            entrylo1_o[25:0] <= data_i[25:0];
+                            // only low 30bits writable
+                            entrylo1_o[29:0] <= data_i[29:0];
                         end
                     end
                     `CP0_REG_PAGEMASK: begin
@@ -181,6 +181,10 @@ module cp0_reg #(
                         status_o[22] <= data_i[22];
                         // IM7..IM0
                         status_o[15:8] <= data_i[15:8];
+                        // UM
+                        status_o[4] <= data_i[4];
+                        // ERL
+                        status_o[2] <= data_i[2];
                         // EXL
                         status_o[1] <= data_i[1];
                         // IE
@@ -203,9 +207,11 @@ module cp0_reg #(
                     end
                 endcase
             end
-            case (except_type_i)
-                32'h00000001: begin
-                    // interrupt
+
+            if (|except_type_i & except_type_i != 32'h0000000e) begin
+                // exception occurred
+                // EXL = 0
+                if (~status_exl) begin
                     if (is_in_delayslot_i) begin
                         epc_o <= pc_i - 4;
                         cause_o[31] <= 1'b1;
@@ -213,36 +219,30 @@ module cp0_reg #(
                         epc_o <= pc_i;
                         cause_o[31] <= 1'b0;
                     end
+                end
+            end
+
+            case (except_type_i)
+                32'h00000001: begin
+                    // interrupt
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 0
-                    cause_o[6:2] <= 5'b00000;
+                    cause_o[6:2] <= 5'h00;
                 end
                 32'h00000002, 32'h00000003: begin
                     // tlb refill(2)/invalid(3) on instruction fetch
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 2
-                    cause_o[6:2] <= 5'b00010;
+                    cause_o[6:2] <= 5'h02;
                     // BadVAddr
                     badvaddr_o <= pc_i;
-                    // EPC
-                    epc_o <= pc_i;
                     // EntryHi VPN2
                     entryhi_o[31:13] <= pc_i[31:13];
                 end
                 32'h00000004: begin
                     // memory address error load
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 4
@@ -252,16 +252,6 @@ module cp0_reg #(
                 end
                 32'h00000005: begin
                     // memory address error store
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 5
@@ -271,16 +261,6 @@ module cp0_reg #(
                 end
                 32'h00000008: begin
                     // syscall
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 8
@@ -288,16 +268,6 @@ module cp0_reg #(
                 end
                 32'h00000009: begin
                     // break
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 9
@@ -305,54 +275,24 @@ module cp0_reg #(
                 end
                 32'h0000000a: begin
                     // inst invalid
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 10
-                    cause_o[6:2] <= 5'b01010;
+                    cause_o[6:2] <= 5'h0a;
                 end
                 32'h0000000d: begin
                     // trap
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
-                    // ExcCode = 11
-                    cause_o[6:2] <= 5'b01011;
+                    // ExcCode = 13
+                    cause_o[6:2] <= 5'h0d;
                 end
                 32'h0000000c: begin
                     // overflow
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
-                    // ExcCode = 11
-                    cause_o[6:2] <= 5'b01100;
+                    // ExcCode = 12
+                    cause_o[6:2] <= 5'h0c;
                 end
                 32'h0000000e: begin
                     // eret
@@ -367,25 +307,13 @@ module cp0_reg #(
                     cause_o[6:2] <= 5'h04;
                     // BadVAddr
                     badvaddr_o <= pc_i;
-                    // EPC
-                    epc_o <= pc_i;
                 end
                 32'h00000010, 32'h00000011: begin
                     // tlb refill(0x10)/invalid(0x11) on data load
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 2
-                    cause_o[6:2] <= 5'b00010;
+                    cause_o[6:2] <= 5'h02;
                     // BadVAddr
                     badvaddr_o <= mem_addr_i;
                     // EntryHi VPN2
@@ -393,20 +321,10 @@ module cp0_reg #(
                 end
                 32'h00000012, 32'h00000013: begin
                     // tlb refill(0x12)/invalid(0x13) on data store
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 3
-                    cause_o[6:2] <= 5'b00011;
+                    cause_o[6:2] <= 5'h03;
                     // BadVAddr
                     badvaddr_o <= mem_addr_i;
                     // EntryHi VPN2
@@ -414,20 +332,10 @@ module cp0_reg #(
                 end
                 32'h00000014: begin
                     // tlb modified on data store
-                    // EXL = 0
-                    if (status_o[1] == 1'b0) begin
-                        if (is_in_delayslot_i) begin
-                            epc_o <= pc_i - 4;
-                            cause_o[31] <= 1'b1;
-                        end else begin
-                            epc_o <= pc_i;
-                            cause_o[31] <= 1'b0;
-                        end
-                    end
                     // EXL = 1
                     status_o[1] <= 1'b1;
                     // ExcCode = 1
-                    cause_o[6:2] <= 5'b00001;
+                    cause_o[6:2] <= 5'h01;
                     // BadVAddr
                     badvaddr_o <= mem_addr_i;
                     // EntryHi VPN2
@@ -517,7 +425,7 @@ module cp0_reg #(
                     exception_vector_offset = 32'h00000000;
                 end
             end
-            32'h00000000e: begin
+            32'h0000000e: begin
                 // eret
                 exception_vector_o = epc_o;
             end
