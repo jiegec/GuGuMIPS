@@ -165,6 +165,7 @@ module mips #(
     wire [31:0] cp0_epc_o;
     wire [31:0] cp0_exception_vector_o;
     wire [31:0] cp0_index_o;
+    wire [31:0] cp0_config_o;
     wire [85:0] cp0_tlb_config_o;
     wire [85:0] cp0_tlb_config_i;
     wire [`TLB_WIDTH-1:0] cp0_tlb_config_index_o; // write
@@ -263,7 +264,7 @@ module mips #(
         .data_i(wb_cp0_reg_data), .raddr_i(cp0_raddr_i), .waddr_i(wb_cp0_reg_write_addr), .we_i(wb_cp0_reg_we),
         .data_o(cp0_data_o), .timer_int_o(timer_int_o), .mem_addr_i(wb_mem_addr),
         .status_o(cp0_status_o), .cause_o(cp0_cause_o), .epc_o(cp0_epc_o), .exception_vector_o(cp0_exception_vector_o),
-        .entryhi_o(cp0_entryhi_o), .index_o(cp0_index_o),
+        .entryhi_o(cp0_entryhi_o), .index_o(cp0_index_o), .config_o(cp0_config_o),
         .tlb_p(wb_tlb_op == `TLB_OP_TLBP), .tlb_p_res(wb_tlb_p_res), .tlb_wr(wb_tlb_op == `TLB_OP_TLBWR), .tlb_config_index_o(cp0_tlb_config_index_o),
         .tlb_config_o(cp0_tlb_config_o), .user_mode(cp0_user_mode_o),
         .tlb_r(wb_tlb_op == `TLB_OP_TLBR), .tlb_config_i(cp0_tlb_config_i)
@@ -396,7 +397,7 @@ module mips #(
     mmu #(
         .ENABLE_TLB(ENABLE_TLB)
     ) mmu0 (.clk(clk), .rst(rst),
-        .user_mode(cp0_user_mode_o), .kseg0_uncached(1'b0), .asid(asid),
+        .user_mode(cp0_user_mode_o), .kseg0_uncached(cp0_config_o[2:0] == 3'd2), .asid(asid),
         .inst_addr_i(if_mmu_virt_addr), .inst_en(if_mmu_en), .inst_addr_o(if_mmu_phys_addr), .inst_uncached(if_mmu_uncached),
         .inst_except_miss(if_mmu_except_miss), .inst_except_invalid(if_mmu_except_invalid), .inst_except_user(if_mmu_except_user),
         .data_addr_i(mem_mmu_virt_addr), .data_en(mem_mmu_en), .data_addr_o(mem_mmu_phys_addr), .data_uncached(mem_mmu_uncached),

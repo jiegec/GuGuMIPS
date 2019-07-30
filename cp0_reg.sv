@@ -24,6 +24,7 @@ module cp0_reg #(
     output reg [`RegBus] cause_o,
     output reg [`RegBus] epc_o,
     output reg [`RegBus] config_o,
+    output reg [`RegBus] config1_o,
     output reg [`RegBus] prid_o,
     output reg [`RegBus] badvaddr_o,
     output reg [`RegBus] ebase_o,
@@ -84,6 +85,9 @@ module cp0_reg #(
     // MIPS Vol3 3.4
     assign user_mode = (status_ksu == 2'b10 && ~status_exl && ~status_erl);
 
+    logic [5:0] mmu_size;
+    assign mmu_size = `TLB_ENTRIES - 1;
+
     always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin
             count_o <= 0;
@@ -92,8 +96,15 @@ module cp0_reg #(
             status_o <= 32'b0000_0_0_0_00_1_0_0_0_000_00000000_000_0_0_0_0_0;
             cause_o <= 0;
             epc_o <= 0;
-            config_o <= 32'b0_000000000000000_0_00_000_000_000_0_000;
-            prid_o <= 32'b00000000_00000000_0000000000_000000;
+            // Has Config1
+            // TLB based MMU
+            // kseg0 cached
+            config_o <= 32'b1_000_000_000000000_0_00_000_001_000_0_011;
+            // No Config2
+            // 4way 16bytes 64K cache for both I/D cache
+            config1_o <= {1'b0, mmu_size, 3'd4, 3'd3, 3'd3, 3'd4, 3'd3, 3'd3, 7'b0};
+            // MIPS32 4Kc
+            prid_o <= 32'b00000000_00000001_10000000_00000000;
             timer_int_o <= 0;
             badvaddr_o <= 0;
             index_o <= 0;
@@ -204,6 +215,10 @@ module cp0_reg #(
                     `CP0_REG_EBASE: begin
                         // exception base
                         ebase_o[29:12] <= data_i[29:12];
+                    end
+                    `CP0_REG_CONFIG: begin
+                        // kseg0 cache attribute
+                        config_o[2:0] <= data_i[2:0];
                     end
                 endcase
             end
@@ -396,6 +411,9 @@ module cp0_reg #(
                 end
                 `CP0_REG_CONFIG: begin
                     data_o = config_o;
+                end
+                `CP0_REG_CONFIG1: begin
+                    data_o = config1_o;
                 end
                 default: begin
                     data_o = 0;

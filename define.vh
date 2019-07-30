@@ -275,6 +275,7 @@
 `define CP0_REG_PRId {5'd15,3'd0}
 `define CP0_REG_EBASE {5'd15,3'd1}
 `define CP0_REG_CONFIG {5'd16,3'd0}
+`define CP0_REG_CONFIG1 {5'd16,3'd1}
 
 
 `define InstAddrBus 31:0
