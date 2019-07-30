@@ -158,7 +158,7 @@ end
 assign arid    = 1'd0;
 assign araddr  = do_addr_r;
 assign arlen   = 4'd0;
-assign arsize  = do_size_r;
+assign arsize  = do_size_r==2'd3 ? 2'd2 : do_size_r;
 assign arburst = 2'b01;
 assign arlock  = 1'd0;
 assign arcache = do_uncached_r ? 4'b0000 : 4'b1111;
@@ -171,8 +171,8 @@ assign rready  = 1'b1;
 assign awid    = 4'd0;
 assign awaddr  = do_addr_r;
 assign awlen   = 4'd0;
-// 0: size=1, 1: size=2, 2: size=4
-assign awsize  = do_size_r;
+// 0: size=1, 1: size=2, 2: size=3, 3: size=4
+assign awsize  = do_size_r==2'd3 ? 2'd2 : do_size_r;
 assign awburst = 2'b01;
 assign awlock  = 1'd0;
 assign awcache = do_uncached_r ? 4'b0000 : 4'b1111;
