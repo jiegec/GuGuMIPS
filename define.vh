@@ -245,6 +245,9 @@
 `define EXE_SEB_OP 8'b01001010
 `define EXE_SEH_OP 8'b01001011
 
+`define EXE_LWL_OP  8'b01001100
+`define EXE_LWR_OP  8'b01001101
+
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001
 `define EXE_RES_SHIFT 3'b010

@@ -201,13 +201,14 @@ initial begin
     // arith
     test("test_arith");
     test("test_mul");
-	test("test_madd");
+    test("test_madd");
     test("test_div");
     test("test_sign_extend");
     
     // mem
     test("test_store");
     test("test_load");
+    test("test_mem_unaligned");
 
     // cp0
     test("test_cp0");

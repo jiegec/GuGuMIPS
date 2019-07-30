@@ -220,6 +220,7 @@ module mem(
     logic [`RegBus] saved_mem_addr_i;
     logic [`RegBus] saved_mem_data_o;
     logic [`RegBus] saved_pc_i;
+    logic [`RegBus] saved_reg2_i;
     logic saved_data_uncached;
     logic saved_data_wr;
     logic [1:0] saved_data_size;
@@ -243,7 +244,6 @@ module mem(
     logic [31:0] mem_phy_addr;
     assign mem_phy_addr = mmu_phys_addr;
     assign mmu_en = mem_ce_o;
-    assign mmu_virt_addr = mem_addr_i;
     assign data_uncached_o = mmu_uncached;
 
     always_ff @ (posedge clk) begin
@@ -257,16 +257,18 @@ module mem(
             saved_data_wr <= 0;
             saved_data_size <= 0;
             saved_data_uncached <= 0;
+            saved_reg2_i <= 0;
         end else if (data_req && state == 0 && !exception_occurred) begin
             state <= data_addr_ok ? 2 : 1;
             saved_wd <= wd_i;
             saved_aluop <= aluop_i;
-            saved_mem_addr_i <= mem_addr_o;
+            saved_mem_addr_i <= mem_addr_i;
             saved_mem_data_o <= mem_data_o;
             saved_pc_i <= pc_i;
             saved_data_wr <= data_wr;
             saved_data_size <= data_size_o;
             saved_data_uncached <= data_uncached_o;
+            saved_reg2_i <= reg2_i;
         end else if (state == 1 && data_addr_ok) begin
             state <= 2;
         end else if (data_data_ok) begin
@@ -279,6 +281,7 @@ module mem(
             saved_data_wr <= 0;
             saved_data_size <= 0;
             saved_data_uncached <= 0;
+            saved_reg2_i <= 0;
         end
     end
 
@@ -296,6 +299,7 @@ module mem(
             misaligned_access = 0;
             inst_store = 0;
             data_size_o = 2'b00;
+            mmu_virt_addr = 32'b0;
         end else begin
             mem_addr_o = `ZeroWord;
             mem_we = `WriteDisable;
@@ -307,6 +311,7 @@ module mem(
             inst_store = 0;
             data_size_o = 2'b00;
 
+            mmu_virt_addr = mem_addr_i;
             wdata_o = wdata_i;
             case (aluop_i)
                 // load
@@ -349,6 +354,13 @@ module mem(
                         // misaligned
                         misaligned_access = 1;
                     end
+                    mem_ce_o = `ChipEnable;
+                    data_size_o = 2'b10; // 4
+                end
+                `EXE_LWL_OP, `EXE_LWR_OP: begin
+                    mmu_virt_addr = {mem_addr_i[31:2], 2'b0};
+                    mem_addr_o = mem_phy_addr;
+                    mem_we = `WriteDisable;
                     mem_ce_o = `ChipEnable;
                     data_size_o = 2'b10; // 4
                 end
@@ -460,6 +472,44 @@ module mem(
                 end
                 `EXE_LW_OP:	begin
                     wdata_o = mem_data_i;
+                end
+                `EXE_LWL_OP: begin
+                    case (saved_mem_addr_i[1:0])
+                        2'b00:	begin
+                            wdata_o = {mem_data_i[7:0], saved_reg2_i[23:0]};
+                        end
+                        2'b01:	begin
+                            wdata_o = {mem_data_i[15:0], saved_reg2_i[15:0]};
+                        end
+                        2'b10:	begin
+                            wdata_o = {mem_data_i[23:0], saved_reg2_i[7:0]};
+                        end
+                        2'b11:	begin
+                            wdata_o = mem_data_i;
+                        end
+                        default:	begin
+                            wdata_o = `ZeroWord;
+                        end
+                    endcase
+                end
+                `EXE_LWR_OP: begin
+                    case (saved_mem_addr_i[1:0])
+                        2'b00:	begin
+                            wdata_o = mem_data_i;
+                        end
+                        2'b01:	begin
+                            wdata_o = {saved_reg2_i[31:24], mem_data_i[31:8]};
+                        end
+                        2'b10:	begin
+                            wdata_o = {saved_reg2_i[31:16], mem_data_i[31:16]};
+                        end
+                        2'b11:	begin
+                            wdata_o = {saved_reg2_i[31:8], mem_data_i[31:24]};
+                        end
+                        default:	begin
+                            wdata_o = `ZeroWord;
+                        end
+                    endcase
                 end
                 default: begin
                 end

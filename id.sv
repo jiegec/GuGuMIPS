@@ -646,18 +646,36 @@ module id # (
             wd_o = inst_i[20:16];
             instvalid = `InstValid;
           end
-          `EXE_LBU: begin
+          `EXE_LH: begin
             wreg_o = `WriteEnable;
-            aluop_o = `EXE_LBU_OP;
+            aluop_o = `EXE_LH_OP;
             alusel_o = `EXE_RES_LOAD_STORE;
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b0;
             wd_o = inst_i[20:16];
             instvalid = `InstValid;
           end
-          `EXE_LH: begin
+          `EXE_LWL: begin
             wreg_o = `WriteEnable;
-            aluop_o = `EXE_LH_OP;
+            aluop_o = `EXE_LWL_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+          `EXE_LW: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LW_OP;
+            alusel_o = `EXE_RES_LOAD_STORE;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b0;
+            wd_o = inst_i[20:16];
+            instvalid = `InstValid;
+          end
+          `EXE_LBU: begin
+            wreg_o = `WriteEnable;
+            aluop_o = `EXE_LBU_OP;
             alusel_o = `EXE_RES_LOAD_STORE;
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b0;
@@ -673,12 +691,12 @@ module id # (
             wd_o = inst_i[20:16];
             instvalid = `InstValid;
           end
-          `EXE_LW: begin
+          `EXE_LWR: begin
             wreg_o = `WriteEnable;
-            aluop_o = `EXE_LW_OP;
+            aluop_o = `EXE_LWR_OP;
             alusel_o = `EXE_RES_LOAD_STORE;
             reg1_read_o = 1'b1;
-            reg2_read_o = 1'b0;
+            reg2_read_o = 1'b1;
             wd_o = inst_i[20:16];
             instvalid = `InstValid;
           end
