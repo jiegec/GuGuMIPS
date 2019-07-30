@@ -546,6 +546,14 @@ module id # (
           end
 
           // nop
+          `EXE_CACHE: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_NOR_OP;
+            alusel_o = `EXE_RES_NOP;
+            reg1_read_o = 1'b0;
+            reg2_read_o = 1'b0;
+            instvalid = `InstValid;
+          end
           `EXE_PREF: begin
             wreg_o = `WriteDisable;
             aluop_o = `EXE_NOR_OP;
