@@ -171,6 +171,7 @@ assign rready  = 1'b1;
 assign awid    = 4'd0;
 assign awaddr  = do_addr_r;
 assign awlen   = 4'd0;
+// 0: size=1, 1: size=2, 2: size=4
 assign awsize  = do_size_r;
 assign awburst = 2'b01;
 assign awlock  = 1'd0;
@@ -180,8 +181,10 @@ assign awvalid = do_req&&do_wr_r&&!addr_rcv;
 //w
 assign wid    = 4'd0;
 assign wdata  = do_wdata_r;
+// 0: size=1, 1: size=2, 2: size=3, 3: size=4
 assign wstrb  = do_size_r==2'd0 ? 4'b0001<<do_addr_r[1:0] :
-                do_size_r==2'd1 ? 4'b0011<<do_addr_r[1:0] : 4'b1111;
+                do_size_r==2'd1 ? 4'b0011<<do_addr_r[1:0] :
+                do_size_r==2'd2 ? 4'b0111<<do_addr_r[1:0] : 4'b1111;
 assign wlast  = 1'd1;
 assign wvalid = do_req&&do_wr_r&&!wdata_rcv;
 //b

@@ -718,9 +718,25 @@ module id # (
             instvalid = `InstValid;
             alusel_o = `EXE_RES_LOAD_STORE;
           end
+          `EXE_SWL: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_SWL_OP;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = `InstValid;
+            alusel_o = `EXE_RES_LOAD_STORE;
+          end
           `EXE_SW: begin
             wreg_o = `WriteDisable;
             aluop_o = `EXE_SW_OP;
+            reg1_read_o = 1'b1;
+            reg2_read_o = 1'b1;
+            instvalid = `InstValid;
+            alusel_o = `EXE_RES_LOAD_STORE;
+          end
+          `EXE_SWR: begin
+            wreg_o = `WriteDisable;
+            aluop_o = `EXE_SWR_OP;
             reg1_read_o = 1'b1;
             reg2_read_o = 1'b1;
             instvalid = `InstValid;

@@ -247,6 +247,8 @@
 
 `define EXE_LWL_OP  8'b01001100
 `define EXE_LWR_OP  8'b01001101
+`define EXE_SWL_OP  8'b01001110
+`define EXE_SWR_OP  8'b01001111
 
 `define EXE_RES_NOP 3'b000
 `define EXE_RES_LOGIC 3'b001

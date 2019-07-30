@@ -399,7 +399,51 @@ module mem(
                         mem_we = `WriteEnable;
                     end
                     mem_ce_o = `ChipEnable;
-                    data_size_o = 2'b10; // 4
+                    data_size_o = 2'b11; // 4
+                    inst_store = 1;
+                end
+                `EXE_SWL_OP: begin
+                    mmu_virt_addr = {mem_addr_i[31:2], 2'b0};
+                    mem_addr_o = mem_phy_addr;
+                    case(mem_addr_i[1:0])
+                        2'b00: begin
+                            mem_data_o = {24'b0, reg2_i[31:24]};
+                        end
+                        2'b01: begin
+                            mem_data_o = {16'b0, reg2_i[31:16]};
+                        end
+                        2'b10: begin
+                            mem_data_o = {8'b0, reg2_i[31:8]};
+                        end
+                        2'b11: begin
+                            mem_data_o = reg2_i;
+                        end
+                    endcase
+                    mem_we = `WriteEnable;
+                    mem_ce_o = `ChipEnable;
+                    data_size_o = mem_addr_i[1:0];
+                    inst_store = 1;
+                end
+                `EXE_SWR_OP: begin
+                    mmu_virt_addr = mem_addr_i;
+                    mem_addr_o = mem_phy_addr;
+                    case(mem_addr_i[1:0])
+                        2'b00: begin
+                            mem_data_o = reg2_i;
+                        end
+                        2'b01: begin
+                            mem_data_o = {reg2_i[23:0], 8'b0};
+                        end
+                        2'b10: begin
+                            mem_data_o = {reg2_i[15:0], 16'b0};
+                        end
+                        2'b11: begin
+                            mem_data_o = {reg2_i[7:0], 24'b0};
+                        end
+                    endcase
+                    mem_we = `WriteEnable;
+                    mem_ce_o = `ChipEnable;
+                    data_size_o = ~mem_addr_i[1:0];
                     inst_store = 1;
                 end
             endcase

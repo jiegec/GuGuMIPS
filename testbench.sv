@@ -149,7 +149,7 @@ task test(string name);
             match = 1;
         end
         if (test_ram0.data_req && test_ram0.data_wr && test_ram0.data_addr_ok) begin
-            $sformat(out, "[0x%0x,%0d]=0x%x", test_ram0.data_addr, 1 << test_ram0.data_size, test_ram0.data_write);
+            $sformat(out, "[0x%0x,%0d]=0x%x", test_ram0.data_addr, 1 + test_ram0.data_size, test_ram0.data_write);
             $fscanf(fans, "%s\n", ans);
             match = 1;
         end

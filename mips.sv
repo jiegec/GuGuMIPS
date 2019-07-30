@@ -396,14 +396,14 @@ module mips #(
     mmu #(
         .ENABLE_TLB(ENABLE_TLB)
     ) mmu0 (.clk(clk), .rst(rst),
-        .user_mode(cp0_user_mode_o), .kseg0_uncached(0), .asid(asid),
+        .user_mode(cp0_user_mode_o), .kseg0_uncached(1'b0), .asid(asid),
         .inst_addr_i(if_mmu_virt_addr), .inst_en(if_mmu_en), .inst_addr_o(if_mmu_phys_addr), .inst_uncached(if_mmu_uncached),
         .inst_except_miss(if_mmu_except_miss), .inst_except_invalid(if_mmu_except_invalid), .inst_except_user(if_mmu_except_user),
         .data_addr_i(mem_mmu_virt_addr), .data_en(mem_mmu_en), .data_addr_o(mem_mmu_phys_addr), .data_uncached(mem_mmu_uncached),
         .data_except_miss(mem_mmu_except_miss), .data_except_invalid(mem_mmu_except_invalid), .data_except_user(mem_mmu_except_user), .data_except_dirty(mem_mmu_except_dirty),
         .tlb_config(cp0_tlb_config_o), .tlb_we(wb_tlb_op == `TLB_OP_TLBWR || wb_tlb_op == `TLB_OP_TLBWI), .tlb_we_index(cp0_tlb_config_index_o),
         .tlb_p(wb_tlb_op == `TLB_OP_TLBP), .tlb_p_res_o(wb_tlb_p_res),
-        .tlb_read_index(cp0_index_o), .tlb_read_config_o(cp0_tlb_config_i)
+        .tlb_read_index(cp0_index_o[`TLB_WIDTH-1:0]), .tlb_read_config_o(cp0_tlb_config_i)
     );
 
 endmodule // mips
