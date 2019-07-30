@@ -218,6 +218,7 @@ module mem(
     logic [`RegAddrBus] saved_wd;
     logic [`AluOpBus] saved_aluop;
     logic [`RegBus] saved_mem_addr_i;
+    logic [`RegBus] saved_mem_addr_o;
     logic [`RegBus] saved_mem_data_o;
     logic [`RegBus] saved_pc_i;
     logic [`RegBus] saved_reg2_i;
@@ -230,7 +231,7 @@ module mem(
     assign exception_occurred = |except_type_o;
 
     assign data_req = state == 2 ? 0 : (state == 1 ? 1 : mem_ce_o & ~exception_occurred);
-    assign data_addr = state == 1 ? saved_mem_addr_i : mem_addr_o;
+    assign data_addr = state == 1 ? saved_mem_addr_o : mem_addr_o;
     assign mem_data_i = data_rdata;
     assign data_wdata = state == 0 ? mem_data_o : saved_mem_data_o;
     assign data_wr = state == 0 ? mem_we : (data_req & saved_data_wr);
@@ -252,6 +253,7 @@ module mem(
             saved_wd <= 0;
             saved_aluop <= 0;
             saved_mem_addr_i <= 0;
+            saved_mem_addr_o <= 0;
             saved_mem_data_o <= 0;
             saved_pc_i <= 0;
             saved_data_wr <= 0;
@@ -263,6 +265,7 @@ module mem(
             saved_wd <= wd_i;
             saved_aluop <= aluop_i;
             saved_mem_addr_i <= mem_addr_i;
+            saved_mem_addr_o <= mem_addr_o;
             saved_mem_data_o <= mem_data_o;
             saved_pc_i <= pc_i;
             saved_data_wr <= data_wr;
@@ -276,6 +279,7 @@ module mem(
             saved_wd <= 0;
             saved_aluop <= 0;
             saved_mem_addr_i <= 0;
+            saved_mem_addr_o <= 0;
             saved_mem_data_o <= 0;
             saved_pc_i <= 0;
             saved_data_wr <= 0;
