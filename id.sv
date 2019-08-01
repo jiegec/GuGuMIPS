@@ -981,27 +981,37 @@ module id # (
                 reg2_read_o = 1'b0;
               end
               `EXE_CO: begin
-                if (ENABLE_TLB) begin
-                  // TLB
-                  case(op3)
-                    `EXE_TLBR: begin
+                // TLB
+                case(op3)
+                  `EXE_TLBR: begin
+                    if (ENABLE_TLB) begin
                       tlb_op = `TLB_OP_TLBR;
                       instvalid = 1'b1;
                     end
-                    `EXE_TLBWI: begin
+                  end
+                  `EXE_TLBWI: begin
+                    if (ENABLE_TLB) begin
                       tlb_op = `TLB_OP_TLBWI;
                       instvalid = 1'b1;
                     end
-                    `EXE_TLBWR: begin
+                  end
+                  `EXE_TLBWR: begin
+                    if (ENABLE_TLB) begin
                       tlb_op = `TLB_OP_TLBWR;
                       instvalid = 1'b1;
                     end
-                    `EXE_TLBP: begin
+                  end
+                  `EXE_TLBP: begin
+                    if (ENABLE_TLB) begin
                       tlb_op = `TLB_OP_TLBP;
                       instvalid = 1'b1;
                     end
-                  endcase // op3 case
-                end
+                  end
+                  `EXE_WAIT: begin
+                    // nop
+                    instvalid = 1;
+                  end
+                endcase // op3 case
               end
               default: begin
               end

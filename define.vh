@@ -92,6 +92,7 @@
 `define EXE_TLBWI 6'b000010
 `define EXE_TLBWR 6'b000110
 `define EXE_TLBP 6'b001000
+`define EXE_WAIT 6'b100000
 
 // op = COP1
 `define EXE_COP1_INST 6'b010001
