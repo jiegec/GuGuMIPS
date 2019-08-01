@@ -217,6 +217,7 @@ initial begin
     test("inst_syscall");
     test("test_trap");
     test("test_except");
+    test("test_timer_int");
 
     // tlb
     test("test_tlb1");

@@ -2,7 +2,7 @@
 
 module mycpu_top #(
     ENABLE_TLB = 1,
-    ENABLE_CHECKER = 0
+    ENABLE_CHECKER = 1
 ) (
     input aclk,
     input aresetn,

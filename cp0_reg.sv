@@ -92,8 +92,8 @@ module cp0_reg #(
         if (rst == `RstEnable) begin
             count_o <= 0;
             compare_o <= 0;
-            // CU = 4'b0000, BEV = 1
-            status_o <= 32'b0000_0_0_0_00_1_0_0_0_000_00000000_000_0_0_0_0_0;
+            // CU = 4'b0001, BEV = 1, ERL = 1
+            status_o <= 32'b0001_0_0_0_00_1_0_0_0_000_00000000_000_0_0_1_0_0;
             cause_o <= 0;
             epc_o <= 0;
             // Has Config1
@@ -188,6 +188,8 @@ module cp0_reg #(
                         timer_int_o <= 0;
                     end
                     `CP0_REG_STATUS: begin
+                        // CU0
+                        status_o[28] <= data_i[28];
                         // BEV
                         status_o[22] <= data_i[22];
                         // IM7..IM0

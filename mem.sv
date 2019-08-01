@@ -148,7 +148,7 @@ module mem(
         end else begin
             // MIP32 Vol 3 R6.02 Table6.6
             if (((cp0_cause[15:8] & (cp0_status[15:8])) != 8'h00) &&
-                (cp0_status[1] == 1'b0) && cp0_status[0] == 1'b1) begin
+                cp0_status[2] == 1'b0 && cp0_status[1] == 1'b0 && cp0_status[0] == 1'b1) begin
                 // Interrupt
                 except_type_o = 32'h00000001;
             end else if (except_type_i[14] == 1'b1) begin
