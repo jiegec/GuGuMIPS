@@ -54,7 +54,7 @@ module cp0_reg #(
 
     output reg user_mode,
 
-    output reg timer_int_o
+    output wire timer_int_o
 );
     wire status_bev;
     wire [1:0] status_ksu;
@@ -66,7 +66,10 @@ module cp0_reg #(
     assign status_ksu = status_o[4:3];
     assign status_erl = status_o[2];
     assign status_exl = status_o[1];
+    assign cause_ti = cause_o[30];
     assign cause_iv = cause_o[23];
+
+    assign timer_int_o = cause_ti;
 
     assign tlb_config_o = {
         entrylo0_o[5:3], // C0 85:83
@@ -105,7 +108,6 @@ module cp0_reg #(
             config1_o <= {1'b0, mmu_size, 3'd4, 3'd3, 3'd3, 3'd4, 3'd3, 3'd3, 7'b0};
             // MIPS32 4Kc
             prid_o <= 32'b00000000_00000001_10000000_00000000;
-            timer_int_o <= 0;
             badvaddr_o <= 0;
             index_o <= 0;
             entryhi_o <= 0;
@@ -123,7 +125,7 @@ module cp0_reg #(
             cause_o[15:10] <= int_i;
 
             if (compare_o != 0 && count_o == compare_o) begin
-                timer_int_o <= 1;
+                cause_o[30] <= 1;
             end
 
             if (ENABLE_TLB) begin
@@ -185,7 +187,7 @@ module cp0_reg #(
                     end
                     `CP0_REG_COMPARE: begin
                         compare_o <= data_i;
-                        timer_int_o <= 0;
+                        cause_o[30] <= 0;
                     end
                     `CP0_REG_STATUS: begin
                         // CU0
@@ -430,7 +432,6 @@ module cp0_reg #(
     // MIPS32 Volume 3 R0.95 Table 5-4 Exception Vectors
     always_comb begin
         exception_vector_base = status_bev ? 32'hbfc00200 : {ebase_o[31:12], 12'b0};
-        exception_vector_o = exception_vector_base + exception_vector_offset;
         exception_vector_offset = 32'h00000180;
         case (except_type_i)
             32'h00000001: begin
@@ -445,10 +446,11 @@ module cp0_reg #(
                     exception_vector_offset = 32'h00000000;
                 end
             end
-            32'h0000000e: begin
-                // eret
-                exception_vector_o = epc_o;
-            end
         endcase
+        exception_vector_o = exception_vector_base + exception_vector_offset;
+        if (except_type_i == 32'h0000000e) begin
+            // eret
+            exception_vector_o = epc_o;
+        end
     end
 endmodule

@@ -223,6 +223,9 @@ initial begin
     test("test_tlb1");
     test("test_tlb2");
 
+    // user mode
+    test("test_user");
+
     $finish;
 end
 
