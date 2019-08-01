@@ -344,58 +344,60 @@ system_cache_0 system_cache_inst(
 );
 
 generate
-    axi_protocol_checker_0 axi_protocol_checker_inst (
-        .aclk(aclk),
-        .aresetn(aresetn),
+    if (ENABLE_CHECKER) begin
+        axi_protocol_checker_0 axi_protocol_checker_inst (
+            .aclk(aclk),
+            .aresetn(aresetn),
 
-        // slave
-        // ar
-        .pc_axi_arid    (cache_arid),
-        .pc_axi_araddr  (cache_araddr),
-        .pc_axi_arlen   (cache_arlen),
-        .pc_axi_arsize  (cache_arsize),
-        .pc_axi_arburst (cache_arburst),
-        .pc_axi_arlock  (cache_arlock),
-        .pc_axi_arcache  (cache_arcache),
-        .pc_axi_arprot  (cache_arprot),
-        .pc_axi_arqos   (4'b0),
-        .pc_axi_arvalid (cache_arvalid),
-        .pc_axi_arready (cache_arready),
+            // slave
+            // ar
+            .pc_axi_arid    (cache_arid),
+            .pc_axi_araddr  (cache_araddr),
+            .pc_axi_arlen   (cache_arlen),
+            .pc_axi_arsize  (cache_arsize),
+            .pc_axi_arburst (cache_arburst),
+            .pc_axi_arlock  (cache_arlock),
+            .pc_axi_arcache  (cache_arcache),
+            .pc_axi_arprot  (cache_arprot),
+            .pc_axi_arqos   (4'b0),
+            .pc_axi_arvalid (cache_arvalid),
+            .pc_axi_arready (cache_arready),
 
-        // r
-        .pc_axi_rid       (cache_rid       ),
-        .pc_axi_rdata     (cache_rdata     ),
-        .pc_axi_rresp     (cache_rresp     ),
-        .pc_axi_rlast     (cache_rlast     ),
-        .pc_axi_rvalid    (cache_rvalid    ),
-        .pc_axi_rready    (cache_rready    ),
+            // r
+            .pc_axi_rid       (cache_rid       ),
+            .pc_axi_rdata     (cache_rdata     ),
+            .pc_axi_rresp     (cache_rresp     ),
+            .pc_axi_rlast     (cache_rlast     ),
+            .pc_axi_rvalid    (cache_rvalid    ),
+            .pc_axi_rready    (cache_rready    ),
 
-        // aw
-        .pc_axi_awid      (cache_awid      ),
-        .pc_axi_awaddr    (cache_awaddr    ),
-        .pc_axi_awlen     (cache_awlen),
-        .pc_axi_awsize    (cache_awsize    ),
-        .pc_axi_awburst   (cache_awburst   ),
-        .pc_axi_awlock    (cache_awlock    ),
-        .pc_axi_awcache   (cache_awcache   ),
-        .pc_axi_awprot    (cache_awprot    ),
-        .pc_axi_awqos     (4'b0            ),
-        .pc_axi_awvalid   (cache_awvalid   ),
-        .pc_axi_awready   (cache_awready   ),
+            // aw
+            .pc_axi_awid      (cache_awid      ),
+            .pc_axi_awaddr    (cache_awaddr    ),
+            .pc_axi_awlen     (cache_awlen),
+            .pc_axi_awsize    (cache_awsize    ),
+            .pc_axi_awburst   (cache_awburst   ),
+            .pc_axi_awlock    (cache_awlock    ),
+            .pc_axi_awcache   (cache_awcache   ),
+            .pc_axi_awprot    (cache_awprot    ),
+            .pc_axi_awqos     (4'b0            ),
+            .pc_axi_awvalid   (cache_awvalid   ),
+            .pc_axi_awready   (cache_awready   ),
 
-        // w
-        .pc_axi_wdata     (cache_wdata     ),
-        .pc_axi_wstrb     (cache_wstrb     ),
-        .pc_axi_wlast     (cache_wlast     ),
-        .pc_axi_wvalid    (cache_wvalid    ),
-        .pc_axi_wready    (cache_wready    ),
+            // w
+            .pc_axi_wdata     (cache_wdata     ),
+            .pc_axi_wstrb     (cache_wstrb     ),
+            .pc_axi_wlast     (cache_wlast     ),
+            .pc_axi_wvalid    (cache_wvalid    ),
+            .pc_axi_wready    (cache_wready    ),
 
-        // b
-        .pc_axi_bresp     (cache_bresp     ),
-        .pc_axi_bid       (cache_bid       ),
-        .pc_axi_bvalid    (cache_bvalid    ),
-        .pc_axi_bready    (cache_bready    )
-    );
+            // b
+            .pc_axi_bresp     (cache_bresp     ),
+            .pc_axi_bid       (cache_bid       ),
+            .pc_axi_bvalid    (cache_bvalid    ),
+            .pc_axi_bready    (cache_bready    )
+        );
+    end
 endgenerate
 
 endmodule
