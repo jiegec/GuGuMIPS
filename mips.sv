@@ -33,7 +33,11 @@ module mips #(
     output [31:0] debug_wb_pc,
     output [3:0] debug_wb_rf_wen,
     output [4:0] debug_wb_rf_wnum,
-    output [31:0] debug_wb_rf_wdata
+    output [31:0] debug_wb_rf_wdata,
+
+    output [31:0] cp0_status_o,
+    output [31:0] cp0_cause_o,
+    output [31:0] cp0_epc_o
 );
 
     wire[`InstAddrBus] pc;
@@ -160,9 +164,6 @@ module mips #(
     wire [`TlbOpBus] wb_tlb_op;
     wire [31:0] wb_tlb_p_res;
 
-    wire [31:0] cp0_status_o;
-    wire [31:0] cp0_cause_o;
-    wire [31:0] cp0_epc_o;
     wire [31:0] cp0_exception_vector_o;
     wire [31:0] cp0_index_o;
     wire [31:0] cp0_config_o;
@@ -390,7 +391,7 @@ module mips #(
     );
 
     div div0(.clk(clk), .rst(rst),
-        .signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .annul_i(1'b0),
+        .signed_div_i(signed_div), .opdata1_i(div_opdata1), .opdata2_i(div_opdata2), .start_i(div_start), .flush_i(flush),
         .result_o(div_result), .ready_o(div_ready)
     );
         

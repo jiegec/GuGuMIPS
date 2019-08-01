@@ -309,7 +309,7 @@ module mem(
             mem_we = `WriteDisable;
             mem_data_o = `ZeroWord;
             mem_ce_o = `ChipDisable;
-            wreg_o = (data_req | state) ? (data_data_ok & !saved_data_wr) : (wreg_i && !exception_occurred);
+            wreg_o = ((data_req | state) ? (data_data_ok & !saved_data_wr) : wreg_i) & !exception_occurred;
             wd_o = data_data_ok ? saved_wd : wd_i;
             misaligned_access = 0;
             inst_store = 0;

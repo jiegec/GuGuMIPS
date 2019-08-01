@@ -1,7 +1,8 @@
 //`define USE_DEBUG
 
 module mycpu_top #(
-    ENABLE_TLB = 1
+    ENABLE_TLB = 1,
+    ENABLE_CHECKER = 1
 ) (
     input aclk,
     input aresetn,
@@ -55,7 +56,12 @@ module mycpu_top #(
     output [4 :0] debug_wb_rf_wnum,
 `ifdef USE_DEBUG
     output [31:0] debug_wb_rf_wdata,
+`else
+    output [31:0] debug_wb_rf_data,
 `endif
+    output [31:0] cp0_status_o,
+    output [31:0] cp0_cause_o,
+    output [31:0] cp0_epc_o,
 
     input [5:0] int
 );
@@ -84,16 +90,17 @@ wire rst;
 assign rst = ~aresetn;
 
 // ar
-wire [0 :0] cache_arid   ;
 wire [31:0] cache_araddr ;
-wire [3 :0] cache_arlen  ;
-wire [2 :0] cache_arsize ;
 wire [1 :0] cache_arburst;
-wire [0 :0] cache_arlock ;
 wire [3 :0] cache_arcache;
+wire [0 :0] cache_arid   ;
+wire [7 :0] cache_arlen  ;
+wire [0 :0] cache_arlock ;
 wire [2 :0] cache_arprot ;
-wire        cache_arvalid;
+wire [3 :0] cache_arqos ;
 wire        cache_arready;
+wire [2 :0] cache_arsize ;
+wire        cache_arvalid;
 // r
 wire [0 :0] cache_rid    ;
 wire [31:0] cache_rdata  ;
@@ -102,28 +109,28 @@ wire        cache_rlast  ;
 wire        cache_rvalid ;
 wire        cache_rready ;
 // aw
-wire [3 :0] cache_awid   ;
 wire [31:0] cache_awaddr ;
-wire [3 :0] cache_awlen  ;
-wire [2 :0] cache_awsize ;
 wire [1 :0] cache_awburst;
-wire [0 :0] cache_awlock ;
 wire [3 :0] cache_awcache;
+wire [0 :0] cache_awid   ;
+wire [7 :0] cache_awlen  ;
+wire [0 :0] cache_awlock ;
 wire [2 :0] cache_awprot ;
-wire        cache_awvalid;
+wire [3 :0] cache_awqos  ;
 wire        cache_awready;
+wire [2 :0] cache_awsize ;
+wire        cache_awvalid;
 // w
-wire [3 :0] cache_wid    ;
 wire [31:0] cache_wdata  ;
-wire [3 :0] cache_wstrb  ;
 wire        cache_wlast  ;
-wire        cache_wvalid ;
 wire        cache_wready ;
+wire [3 :0] cache_wstrb  ;
+wire        cache_wvalid ;
 // b
-wire [3 :0] cache_bid    ;
+wire [0 :0] cache_bid    ;
+wire        cache_bready ;
 wire [1 :0] cache_bresp  ;
 wire        cache_bvalid ;
-wire        cache_bready ;
 
 mips #(
     .ENABLE_TLB(ENABLE_TLB)
@@ -155,7 +162,15 @@ mips #(
     .debug_wb_pc(debug_wb_pc),
     .debug_wb_rf_wen(debug_wb_rf_wen),
     .debug_wb_rf_wnum(debug_wb_rf_wnum),
-    .debug_wb_rf_wdata(debug_wb_rf_wdata)
+`ifdef USE_DEBUG
+    .debug_wb_rf_wdata(debug_wb_rf_wdata),
+`else
+    .debug_wb_rf_wdata(debug_wb_rf_data),
+`endif
+
+    .cp0_status_o(cp0_status_o),
+    .cp0_cause_o(cp0_cause_o),
+    .cp0_epc_o(cp0_epc_o)
 );
 
 cpu_axi_interface cpu_axi_interface_inst(
@@ -211,7 +226,6 @@ cpu_axi_interface cpu_axi_interface_inst(
     .awvalid   (cache_awvalid   ),
     .awready   (cache_awready   ),
 
-    .wid       (cache_wid       ),
     .wdata     (cache_wdata     ),
     .wstrb     (cache_wstrb     ),
     .wlast     (cache_wlast     ),
@@ -236,13 +250,13 @@ system_cache_0 system_cache_inst(
     // ar
     .S0_AXI_ARID    (cache_arid),
     .S0_AXI_ARADDR  (cache_araddr),
-    .S0_AXI_ARLEN   ({4'b0, cache_arlen}),
+    .S0_AXI_ARLEN   (cache_arlen),
     .S0_AXI_ARSIZE  (cache_arsize),
     .S0_AXI_ARBURST (cache_arburst),
     .S0_AXI_ARLOCK  (cache_arlock),
     .S0_AXI_ARCACHE  (cache_arcache),
     .S0_AXI_ARPROT  (cache_arprot),
-    .S0_AXI_ARQOS   (4'b0),
+    .S0_AXI_ARQOS   (cache_arqos),
     .S0_AXI_ARVALID (cache_arvalid),
     .S0_AXI_ARREADY (cache_arready),
 
@@ -257,13 +271,13 @@ system_cache_0 system_cache_inst(
     // aw
     .S0_AXI_AWID      (cache_awid      ),
     .S0_AXI_AWADDR    (cache_awaddr    ),
-    .S0_AXI_AWLEN     ({4'b0, cache_awlen}),
+    .S0_AXI_AWLEN     (cache_awlen     ),
     .S0_AXI_AWSIZE    (cache_awsize    ),
     .S0_AXI_AWBURST   (cache_awburst   ),
     .S0_AXI_AWLOCK    (cache_awlock    ),
     .S0_AXI_AWCACHE   (cache_awcache   ),
     .S0_AXI_AWPROT    (cache_awprot    ),
-    .S0_AXI_AWQOS     (4'b0            ),
+    .S0_AXI_AWQOS     (cache_awqos     ),
     .S0_AXI_AWVALID   (cache_awvalid   ),
     .S0_AXI_AWREADY   (cache_awready   ),
 
@@ -328,5 +342,60 @@ system_cache_0 system_cache_inst(
     .M0_AXI_BVALID    (bvalid    ),
     .M0_AXI_BREADY    (bready    )
 );
+
+generate
+    axi_protocol_checker_0 axi_protocol_checker_inst (
+        .aclk(aclk),
+        .aresetn(aresetn),
+
+        // slave
+        // ar
+        .pc_axi_arid    (cache_arid),
+        .pc_axi_araddr  (cache_araddr),
+        .pc_axi_arlen   (cache_arlen),
+        .pc_axi_arsize  (cache_arsize),
+        .pc_axi_arburst (cache_arburst),
+        .pc_axi_arlock  (cache_arlock),
+        .pc_axi_arcache  (cache_arcache),
+        .pc_axi_arprot  (cache_arprot),
+        .pc_axi_arqos   (4'b0),
+        .pc_axi_arvalid (cache_arvalid),
+        .pc_axi_arready (cache_arready),
+
+        // r
+        .pc_axi_rid       (cache_rid       ),
+        .pc_axi_rdata     (cache_rdata     ),
+        .pc_axi_rresp     (cache_rresp     ),
+        .pc_axi_rlast     (cache_rlast     ),
+        .pc_axi_rvalid    (cache_rvalid    ),
+        .pc_axi_rready    (cache_rready    ),
+
+        // aw
+        .pc_axi_awid      (cache_awid      ),
+        .pc_axi_awaddr    (cache_awaddr    ),
+        .pc_axi_awlen     (cache_awlen),
+        .pc_axi_awsize    (cache_awsize    ),
+        .pc_axi_awburst   (cache_awburst   ),
+        .pc_axi_awlock    (cache_awlock    ),
+        .pc_axi_awcache   (cache_awcache   ),
+        .pc_axi_awprot    (cache_awprot    ),
+        .pc_axi_awqos     (4'b0            ),
+        .pc_axi_awvalid   (cache_awvalid   ),
+        .pc_axi_awready   (cache_awready   ),
+
+        // w
+        .pc_axi_wdata     (cache_wdata     ),
+        .pc_axi_wstrb     (cache_wstrb     ),
+        .pc_axi_wlast     (cache_wlast     ),
+        .pc_axi_wvalid    (cache_wvalid    ),
+        .pc_axi_wready    (cache_wready    ),
+
+        // b
+        .pc_axi_bresp     (cache_bresp     ),
+        .pc_axi_bid       (cache_bid       ),
+        .pc_axi_bvalid    (cache_bvalid    ),
+        .pc_axi_bready    (cache_bready    )
+    );
+endgenerate
 
 endmodule

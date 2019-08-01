@@ -65,7 +65,15 @@ _start:
 
     ori $t3,$zero,0xdead
 
+    # exception occur right after store
+    sw $t0, 8($s0)
+    lw $a2, 1($s0)
+
 _loop:
     b _loop
     nop
+
+    .org 0x380
+    lw $a2, 8($s0)
+
  

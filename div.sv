@@ -8,7 +8,7 @@ module div (
     input wire[31:0] opdata1_i,
     input wire[31:0] opdata2_i,
     input wire start_i,
-    input wire annul_i,
+    input wire flush_i,
 
     output reg[63:0] result_o,
     output reg ready_o
@@ -35,7 +35,7 @@ module div (
         end else begin
             case (state)
                 `DivFree: begin
-                    if(start_i == `DivStart && annul_i == 1'b0) begin
+                    if(start_i == `DivStart && flush_i == 1'b0) begin
                         if (opdata2_i == `ZeroWord) begin
                             state <= `DivByZero;
                         end else begin
@@ -57,7 +57,7 @@ module div (
                 end
 
                 `DivOn: begin
-                    if (annul_i == 1'b1) begin
+                    if (flush_i == 1'b1) begin
                         state <= `DivFree;
                     end else if (cnt == 6'b100000) begin
                         if ((signed_div_i == 1'b1) && ((opdata1_i[31] ^ opdata2_i[31]) == 1'b1)) begin

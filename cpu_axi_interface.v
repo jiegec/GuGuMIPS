@@ -60,16 +60,17 @@ module cpu_axi_interface
 
     //axi
     //ar
-    output [0 :0] arid         ,
     output [31:0] araddr       ,
-    output [3 :0] arlen        ,
-    output [2 :0] arsize       ,
     output [1 :0] arburst      ,
-    output [0 :0] arlock        ,
     output [3 :0] arcache      ,
+    output [0 :0] arid         ,
+    output [7 :0] arlen        ,
+    output [0 :0] arlock        ,
     output [2 :0] arprot       ,
-    output        arvalid      ,
+    output [3 :0] arqos       ,
     input         arready      ,
+    output [2 :0] arsize       ,
+    output        arvalid      ,
     //r           
     input  [0 :0] rid          ,
     input  [31:0] rdata        ,
@@ -78,28 +79,28 @@ module cpu_axi_interface
     input         rvalid       ,
     output        rready       ,
     //aw          
-    output [3 :0] awid         ,
     output [31:0] awaddr       ,
-    output [3 :0] awlen        ,
-    output [2 :0] awsize       ,
     output [1 :0] awburst      ,
-    output [0 :0] awlock       ,
     output [3 :0] awcache      ,
+    output [0 :0] awid         ,
+    output [7 :0] awlen        ,
+    output [0 :0] awlock       ,
     output [2 :0] awprot       ,
-    output        awvalid      ,
+    output [3 :0] awqos       ,
     input         awready      ,
+    output [2 :0] awsize       ,
+    output        awvalid      ,
     //w          
-    output [3 :0] wid          ,
     output [31:0] wdata        ,
-    output [3 :0] wstrb        ,
     output        wlast        ,
-    output        wvalid       ,
     input         wready       ,
+    output [3 :0] wstrb        ,
+    output        wvalid       ,
     //b           
-    input  [3 :0] bid          ,
+    input  [0 :0] bid          ,
+    output        bready       ,
     input  [1 :0] bresp        ,
-    input         bvalid       ,
-    output        bready       
+    input         bvalid 
 );
 //addr
 reg do_req;
@@ -155,37 +156,37 @@ begin
                  data_back      ? 1'b0 : wdata_rcv;
 end
 //ar
-assign arid    = 1'd0;
 assign araddr  = do_addr_r;
-assign arlen   = 4'd0;
-assign arsize  = do_size_r==2'd3 ? 2'd2 : do_size_r;
 assign arburst = 2'b01;
-assign arlock  = 1'd0;
 assign arcache = do_uncached_r ? 4'b0000 : 4'b1111;
+assign arid    = 1'd0;
+assign arlen   = 8'd0;
+assign arlock  = 1'd0;
 assign arprot  = 3'd0;
+assign arqos   = 4'd0;
+assign arsize  = 3'd2;
 assign arvalid = do_req&&!do_wr_r&&!addr_rcv;
 //r
 assign rready  = 1'b1;
 
 //aw
-assign awid    = 4'd0;
 assign awaddr  = do_addr_r;
-assign awlen   = 4'd0;
-// 0: size=1, 1: size=2, 2: size=3, 3: size=4
-assign awsize  = do_size_r==2'd3 ? 2'd2 : do_size_r;
 assign awburst = 2'b01;
-assign awlock  = 1'd0;
 assign awcache = do_uncached_r ? 4'b0000 : 4'b1111;
+assign awid    = 1'd0;
+assign awlen   = 7'd0;
+assign awlock  = 1'd0;
 assign awprot  = 3'd0;
+assign awqos   = 4'd0;
+assign awsize  = 3'd2;
 assign awvalid = do_req&&do_wr_r&&!addr_rcv;
 //w
-assign wid    = 4'd0;
 assign wdata  = do_wdata_r;
+assign wlast  = 1'd1;
 // 0: size=1, 1: size=2, 2: size=3, 3: size=4
 assign wstrb  = do_size_r==2'd0 ? 4'b0001<<do_addr_r[1:0] :
                 do_size_r==2'd1 ? 4'b0011<<do_addr_r[1:0] :
                 do_size_r==2'd2 ? 4'b0111<<do_addr_r[1:0] : 4'b1111;
-assign wlast  = 1'd1;
 assign wvalid = do_req&&do_wr_r&&!wdata_rcv;
 //b
 assign bready  = 1'b1;
