@@ -264,6 +264,7 @@
 `define CP0_REG_INDEX {5'd0,3'd0}
 `define CP0_REG_ENTRYLO0 {5'd2,3'd0}
 `define CP0_REG_ENTRYLO1 {5'd3,3'd0}
+`define CP0_REG_CONTEXT {5'd4,3'd0}
 `define CP0_REG_PAGEMASK {5'd5,3'd0}
 `define CP0_REG_WIRED {5'd6,3'd0}
 `define CP0_REG_BADVADDR {5'd8,3'd0}

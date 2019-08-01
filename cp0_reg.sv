@@ -38,6 +38,7 @@ module cp0_reg #(
     output reg [`RegBus] entrylo0_o,
     output reg [`RegBus] entrylo1_o,
     output reg [`RegBus] wired_o,
+    output reg [`RegBus] context_o,
 
     // TLBWR/TLBWI
     input wire tlb_wr,
@@ -116,6 +117,7 @@ module cp0_reg #(
             entrylo1_o <= 0;
             random_o <= {`TLB_WIDTH{1'b1}};
             wired_o <= 0;
+            context_o <= 0;
             // CPUNum = 0
             ebase_o <= 32'b10_000000000000000000_00_0000000000;
         end else begin
@@ -162,6 +164,12 @@ module cp0_reg #(
                         if (ENABLE_TLB) begin
                             // only low 30bits writable
                             entrylo1_o[29:0] <= data_i[29:0];
+                        end
+                    end
+                    `CP0_REG_CONTEXT: begin
+                        if (ENABLE_TLB) begin
+                            // PTEBase
+                            context_o[31:23] <= context_o[31:23];
                         end
                     end
                     `CP0_REG_PAGEMASK: begin
@@ -259,6 +267,8 @@ module cp0_reg #(
                     badvaddr_o <= pc_i;
                     // EntryHi VPN2
                     entryhi_o[31:13] <= pc_i[31:13];
+                    // Context BadVPN2
+                    context_o[22:4] <= pc_i[31:13];
                 end
                 32'h00000004: begin
                     // memory address error load
@@ -337,6 +347,8 @@ module cp0_reg #(
                     badvaddr_o <= mem_addr_i;
                     // EntryHi VPN2
                     entryhi_o[31:13] <= mem_addr_i[31:13];
+                    // Context BadVPN2
+                    context_o[22:4] <= pc_i[31:13];
                 end
                 32'h00000012, 32'h00000013: begin
                     // tlb refill(0x12)/invalid(0x13) on data store
@@ -348,6 +360,8 @@ module cp0_reg #(
                     badvaddr_o <= mem_addr_i;
                     // EntryHi VPN2
                     entryhi_o[31:13] <= mem_addr_i[31:13];
+                    // Context BadVPN2
+                    context_o[22:4] <= pc_i[31:13];
                 end
                 32'h00000014: begin
                     // tlb modified on data store
@@ -359,6 +373,8 @@ module cp0_reg #(
                     badvaddr_o <= mem_addr_i;
                     // EntryHi VPN2
                     entryhi_o[31:13] <= mem_addr_i[31:13];
+                    // Context BadVPN2
+                    context_o[22:4] <= pc_i[31:13];
                 end
                 default: begin
                 end
@@ -370,21 +386,37 @@ module cp0_reg #(
         if (rst) begin
             data_o = 0;
         end else begin
+            data_o = 0;
             case(raddr_i)
                 `CP0_REG_INDEX: begin
-                    data_o = index_o;
+                    if (ENABLE_TLB) begin
+                        data_o = index_o;
+                    end
                 end
                 `CP0_REG_ENTRYLO0: begin
-                    data_o = entrylo0_o;
+                    if (ENABLE_TLB) begin
+                        data_o = entrylo0_o;
+                    end
                 end
                 `CP0_REG_ENTRYLO1: begin
-                    data_o = entrylo1_o;
+                    if (ENABLE_TLB) begin
+                        data_o = entrylo1_o;
+                    end
+                end
+                `CP0_REG_CONTEXT: begin
+                    if (ENABLE_TLB) begin
+                        data_o = context_o;
+                    end
                 end
                 `CP0_REG_PAGEMASK: begin
-                    data_o = pagemask_o;
+                    if (ENABLE_TLB) begin
+                        data_o = pagemask_o;
+                    end
                 end
                 `CP0_REG_WIRED: begin
-                    data_o = wired_o;
+                    if (ENABLE_TLB) begin
+                        data_o = wired_o;
+                    end
                 end
                 `CP0_REG_BADVADDR: begin
                     data_o = badvaddr_o;
@@ -393,7 +425,9 @@ module cp0_reg #(
                     data_o = count_o;
                 end
                 `CP0_REG_ENTRYHI: begin
-                    data_o = entryhi_o;
+                    if (ENABLE_TLB) begin
+                        data_o = entryhi_o;
+                    end
                 end
                 `CP0_REG_COMPARE: begin
                     data_o = compare_o;
@@ -418,9 +452,6 @@ module cp0_reg #(
                 end
                 `CP0_REG_CONFIG1: begin
                     data_o = config1_o;
-                end
-                default: begin
-                    data_o = 0;
                 end
             endcase
         end
