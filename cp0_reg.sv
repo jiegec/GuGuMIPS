@@ -169,7 +169,7 @@ module cp0_reg #(
                     `CP0_REG_CONTEXT: begin
                         if (ENABLE_TLB) begin
                             // PTEBase
-                            context_o[31:23] <= context_o[31:23];
+                            context_o[31:23] <= data_i[31:23];
                         end
                     end
                     `CP0_REG_PAGEMASK: begin
