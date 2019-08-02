@@ -16,3 +16,11 @@ _start:
     div $zero, $2, $1
     mfhi $3
     mflo $4
+
+    b delayslot
+    div $zero, $1, $2
+    ori $1, $0, 0xffff
+
+delayslot:
+    mfhi $3
+    mflo $4
