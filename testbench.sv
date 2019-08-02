@@ -222,6 +222,11 @@ initial begin
     // tlb
     test("test_tlb1");
     test("test_tlb2");
+    test("test_tlb3");
+    test("test_tlb4");
+    test("test_tlb5");
+    test("test_tlb6");
+    test("test_tlb7");
 
     // user mode
     test("test_user");
