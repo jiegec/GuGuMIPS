@@ -348,7 +348,7 @@ module cp0_reg #(
                     // EntryHi VPN2
                     entryhi_o[31:13] <= mem_addr_i[31:13];
                     // Context BadVPN2
-                    context_o[22:4] <= pc_i[31:13];
+                    context_o[22:4] <= mem_addr_i[31:13];
                 end
                 32'h00000012, 32'h00000013: begin
                     // tlb refill(0x12)/invalid(0x13) on data store
@@ -361,7 +361,7 @@ module cp0_reg #(
                     // EntryHi VPN2
                     entryhi_o[31:13] <= mem_addr_i[31:13];
                     // Context BadVPN2
-                    context_o[22:4] <= pc_i[31:13];
+                    context_o[22:4] <= mem_addr_i[31:13];
                 end
                 32'h00000014: begin
                     // tlb modified on data store
@@ -374,7 +374,7 @@ module cp0_reg #(
                     // EntryHi VPN2
                     entryhi_o[31:13] <= mem_addr_i[31:13];
                     // Context BadVPN2
-                    context_o[22:4] <= pc_i[31:13];
+                    context_o[22:4] <= mem_addr_i[31:13];
                 end
                 default: begin
                 end
