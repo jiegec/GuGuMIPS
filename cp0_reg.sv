@@ -61,6 +61,7 @@ module cp0_reg #(
     wire [1:0] status_ksu;
     wire status_erl;
     wire status_exl;
+    wire cause_ti;
     wire cause_iv;
 
     assign status_bev = status_o[22];
