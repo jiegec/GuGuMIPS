@@ -415,6 +415,7 @@ generate
             .pc_axi_awready   (icache_awready   ),
 
             // w
+            .pc_axi_wid       (icache_wid       ),
             .pc_axi_wdata     (icache_wdata     ),
             .pc_axi_wstrb     (icache_wstrb     ),
             .pc_axi_wlast     (icache_wlast     ),
@@ -468,6 +469,7 @@ generate
             .pc_axi_awready   (dcache_awready   ),
 
             // w
+            .pc_axi_wid       (dcache_wid       ),
             .pc_axi_wdata     (dcache_wdata     ),
             .pc_axi_wstrb     (dcache_wstrb     ),
             .pc_axi_wlast     (dcache_wlast     ),

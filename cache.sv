@@ -63,18 +63,19 @@ module cache #(
     input bvalid,
     output logic bready
 );
-
-    localparam FSM_IDLE = 4'd0;
-    localparam FSM_WRITEBACK_FIRST = 4'd1;
-    localparam FSM_WRITEBACK = 4'd2;
-    localparam FSM_MEMREAD_FIRST = 4'd3;
-    localparam FSM_MEMREAD = 4'd4;
-    localparam FSM_WAIT_WRITE = 4'd5;
-    localparam FSM_UNCACHED_READ_AR = 4'd6;
-    localparam FSM_UNCACHED_READ_R = 4'd7;
-    localparam FSM_UNCACHED_WRITE_AW = 4'd8;
-    localparam FSM_UNCACHED_WRITE_W = 4'd9;
-    localparam FSM_UNCACHED_WRITE_B = 4'd10;
+    enum {
+        IDLE,
+        WRITEBACK_FIRST,
+        WRITEBACK,
+        MEMREAD_FIRST,
+        MEMREAD,
+        WAIT_WRITE,
+        UNCACHED_READ_AR,
+        UNCACHED_READ_R,
+        UNCACHED_WRITE_AW,
+        UNCACHED_WRITE_W,
+        UNCACHED_WRITE_B
+    } state;
 
     logic [`OFFSET_WIDTH-1:0] r_offset;
     logic [31:0] r_data[`NUM_CACHE_LINES-1:0];
@@ -89,6 +90,89 @@ module cache #(
     logic [3:0] w_strb;
     logic w_dirty;
     logic w_valid;
+
+    wire uncached = (cpu_req && cpu_uncached) || (state == UNCACHED_READ_AR) || (state == UNCACHED_READ_R) || (state == UNCACHED_WRITE_AW) || (state == UNCACHED_WRITE_W) || (state == UNCACHED_WRITE_B);
+
+    logic [31:0] cached_cpu_rdata;
+    logic [31:0] uncached_cpu_rdata;
+    assign cpu_rdata = uncached ? uncached_cpu_rdata : cached_cpu_rdata;
+    logic [31:0] cached_cpu_data_ok;
+    logic [31:0] uncached_cpu_data_ok;
+    assign cpu_data_ok = uncached ? uncached_cpu_data_ok : cached_cpu_data_ok;
+    logic [31:0] cached_cpu_addr_ok;
+    logic [31:0] uncached_cpu_addr_ok;
+    assign cpu_addr_ok = uncached ? uncached_cpu_addr_ok : cached_cpu_addr_ok;
+
+    logic [31:0] cached_araddr;
+    logic [31:0] uncached_araddr;
+    assign araddr = uncached ? uncached_araddr : cached_araddr;
+    logic [3:0] cached_arlen;
+    logic [3:0] uncached_arlen;
+    assign arlen = uncached ? uncached_arlen : cached_arlen;
+    logic [2:0] cached_arsize;
+    logic [2:0] uncached_arsize;
+    assign arsize = uncached ? uncached_arsize : cached_arsize;
+    logic [1:0] cached_arburst;
+    logic [1:0] uncached_arburst;
+    assign arburst = uncached ? uncached_arburst : cached_arburst;
+    logic cached_arvalid;
+    logic uncached_arvalid;
+    assign arvalid = uncached ? uncached_arvalid : cached_arvalid;
+
+    logic cached_rready;
+    logic uncached_rready;
+    assign rready = uncached ? uncached_rready : cached_rready;
+
+    logic [31:0] cached_awaddr;
+    logic [31:0] uncached_awaddr;
+    assign awaddr = uncached ? uncached_awaddr : cached_awaddr;
+    logic [3:0] cached_awlen;
+    logic [3:0] uncached_awlen;
+    assign awlen = uncached ? uncached_awlen : cached_awlen;
+    logic [2:0] cached_awsize;
+    logic [2:0] uncached_awsize;
+    assign awsize = uncached ? uncached_awsize : cached_awsize;
+    logic [1:0] cached_awburst;
+    logic [1:0] uncached_awburst;
+    assign awburst = uncached ? uncached_awburst : cached_awburst;
+    logic cached_awvalid;
+    logic uncached_awvalid;
+    assign awvalid = uncached ? uncached_awvalid : cached_awvalid;
+
+    logic [31:0] cached_wdata;
+    logic [31:0] uncached_wdata;
+    assign wdata = uncached ? uncached_wdata : cached_wdata;
+    logic [3:0] cached_wstrb;
+    logic [3:0] uncached_wstrb;
+    assign wstrb = uncached ? uncached_wstrb : cached_wstrb;
+    logic [2:0] cached_wlast;
+    logic [2:0] uncached_wlast;
+    assign wlast = uncached ? uncached_wlast : cached_wlast;
+    logic [1:0] cached_wvalid;
+    logic [1:0] uncached_wvalid;
+    assign wvalid = uncached ? uncached_wvalid : cached_wvalid;
+
+    logic [1:0] cached_bready;
+    logic [1:0] uncached_bready;
+    assign bready = uncached ? uncached_bready : cached_bready;
+
+    assign uncached_araddr = cpu_addr;
+    assign uncached_arlen = 4'd0;
+    assign uncached_arsize = 3'd2;
+    assign uncached_arburst = 2'd1; // INCR
+    assign uncached_arvalid = cpu_req & ~cpu_wr;
+    assign uncached_rready = state == UNCACHED_READ_R;
+
+    assign uncached_awaddr = cpu_addr;
+    assign uncached_awlen = 4'd0;
+    assign uncached_awsize = 3'd2;
+    assign uncached_awburst = 2'd1; // INCR
+    assign uncached_awvalid = cpu_req & cpu_wr & (state == IDLE || state == UNCACHED_WRITE_AW);
+    assign uncached_bready = state == UNCACHED_WRITE_B;
+
+    assign uncached_cpu_data_ok = (uncached_rready & rvalid) | (uncached_bready & bvalid);
+    assign uncached_cpu_rdata = rdata;
+    assign uncached_cpu_addr_ok = (uncached_arvalid & arready) | (uncached_awvalid & awready);
 
     generate
         for (genvar i = 0;i < `NUM_CACHE_LINES;i = i + 1) begin
@@ -106,8 +190,6 @@ module cache #(
         end
     endgenerate
 
-    logic [3:0] state;
-
     assign arid = 4'b0;
     assign arlock = 2'b0;
     assign arcache = 4'b0;
@@ -122,27 +204,87 @@ module cache #(
 
     always_ff @ (posedge clk) begin
         if (rst) begin
-            state <= FSM_IDLE;
+            state <= IDLE;
 
-            araddr <= 32'b0;
-            arlen <= 4'b0;
-            arsize <= 3'b0;
-            arburst <= 2'b0;
-            arvalid <= 1'b0;
-            rready <= 1'b0;
-            awaddr <= 32'b0;
-            awlen <= 4'b0;
-            awsize <= 3'b0;
-            awburst <= 2'b0;
-            awvalid <= 1'b0;
-            wdata <= 32'b0;
-            wstrb <= 4'b0;
-            wlast <= 1'b0;
-            wvalid <= 1'b0;
-            bready <= 1'b0;
+            cached_cpu_rdata <= 32'b0;
+            cached_cpu_data_ok <= 1'b0;
+            cached_cpu_addr_ok <= 1'b0;
+
+            cached_araddr <= 32'b0;
+            cached_arlen <= 4'b0;
+            cached_arsize <= 3'b0;
+            cached_arburst <= 2'b0;
+            cached_arvalid <= 1'b0;
+            cached_rready <= 1'b0;
+            cached_awaddr <= 32'b0;
+            cached_awlen <= 4'b0;
+            cached_awsize <= 3'b0;
+            cached_awburst <= 2'b0;
+            cached_awvalid <= 1'b0;
+            cached_wdata <= 32'b0;
+            uncached_wdata <= 32'b0;
+            cached_wstrb <= 4'b0;
+            uncached_wstrb <= 4'b0;
+            cached_wlast <= 1'b0;
+            uncached_wlast <= 1'b0;
+            cached_wvalid <= 1'b0;
+            uncached_wvalid <= 1'b0;
+            cached_bready <= 1'b0;
         end else begin
             case (state)
-                FSM_IDLE: begin
+                IDLE: begin
+                    if (uncached) begin
+                        if (cpu_wr) begin
+                            // uncached write
+                            if (awready) begin
+                                state <= UNCACHED_WRITE_W;
+                            end else begin
+                                state <= UNCACHED_WRITE_AW;
+                            end
+                        end else begin
+                            // uncached read
+                            if (arready) begin
+                                state <= UNCACHED_READ_R;
+                            end else begin
+                                state <= UNCACHED_READ_AR;
+                            end
+                        end
+                    end
+                end
+                UNCACHED_READ_AR: begin
+                    if (arready) begin
+                        state <= UNCACHED_READ_R;
+                    end
+                end
+                UNCACHED_READ_R: begin
+                    if (rvalid) begin
+                        state <= IDLE;
+                    end
+                end
+                UNCACHED_WRITE_AW: begin
+                    if (awready) begin
+                        state <= UNCACHED_WRITE_W;
+                        uncached_wdata <= cpu_wdata;
+                        uncached_wstrb <= cpu_size == 2'd0 ? 4'b0001 << cpu_addr[1:0] :
+                                          cpu_size == 2'd1 ? 4'b0011 << cpu_addr[1:0] :
+                                          cpu_size == 2'd2 ? 4'b0111 << cpu_addr[1:0] : 4'b1111;
+                        uncached_wlast <= 1'b1;
+                        uncached_wvalid <= 1'b1;
+                    end
+                end
+                UNCACHED_WRITE_W: begin
+                    if (wready) begin
+                        state <= UNCACHED_WRITE_B;
+                        uncached_wdata <= 32'b0;
+                        uncached_wstrb <= 4'b0;
+                        uncached_wlast <= 1'b0;
+                        uncached_wvalid <= 1'b0;
+                    end
+                end
+                UNCACHED_WRITE_B: begin
+                    if (bvalid) begin
+                        state <= IDLE;
+                    end
                 end
             endcase
         end

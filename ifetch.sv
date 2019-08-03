@@ -46,10 +46,11 @@ module ifetch(
     assign inst_wr = 0;
     assign inst_wdata = 0;
 
-    // 0: idle
-    // 1: wait for addr
-    // 2: wait for data
-    logic [1:0] state;
+    enum {
+        IDLE,
+        WAIT_ADDR,
+        WAIT_DATA
+    } state;
 
     // if inst_addr change upon fetching (e.g. long delay with syscall), redo it
     logic [`InstAddrBus] saved_inst_addr;
@@ -68,39 +69,36 @@ module ifetch(
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
-            state <= 0;
+            state <= IDLE;
             saved_inst_addr <= 0;
         end else begin
-            case (state)
-                0: begin
+            unique case (state)
+                IDLE: begin
                     if (inst_req) begin
                         if (inst_addr_ok) begin
                             saved_inst_addr <= inst_addr;
-                            state <= 2;
+                            state <= WAIT_DATA;
                         end else begin
-                            state <= 1;
+                            state <= WAIT_ADDR;
                         end
                     end
                 end
-                1: begin
+                WAIT_ADDR: begin
                     if (inst_data_ok) begin
                         // 1 cycle
-                        state <= 0;
+                        state <= IDLE;
                         saved_inst_addr <= 0;
                     end else if (inst_addr_ok) begin
                         // >= 2 cycle
-                        state <= 2;
+                        state <= WAIT_DATA;
+                        saved_inst_addr <= inst_addr;
                     end
                 end
-                2: begin
+                WAIT_DATA: begin
                     if (inst_data_ok) begin
-                        state <= 0;
+                        state <= IDLE;
                         saved_inst_addr <= 0;
                     end
-                end
-                3: begin
-                    // impossible
-                    state <= 0;
                 end
             endcase
         end
