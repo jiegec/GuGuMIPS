@@ -131,7 +131,7 @@ mips #(
 );
 
 cpu_axi_adapter_system_cache #(
-    .ENABLE_CHEKER(ENABLE_CHECKER)
+    .ENABLE_CHECKER(ENABLE_CHECKER)
 ) adapter (
     .clk(aclk),
     .resetn(aresetn),
