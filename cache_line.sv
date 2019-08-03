@@ -35,7 +35,10 @@ module cache_line #(
         .BYTE_WRITE_WIDTH_A(8),
         .ADDR_WIDTH_A(`OFFSET_WIDTH),
         .ADDR_WIDTH_B(`OFFSET_WIDTH),
-        .READ_LATENCY_B(1)
+        .READ_LATENCY_B(1),
+        .WRITE_MODE_B("read_first"),
+        .MEMORY_INIT_FILE("none"),
+        .MEMORY_INIT_PARAM("")
     ) storage (
         .clka(clk),
         .ena(w_en),

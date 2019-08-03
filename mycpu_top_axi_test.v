@@ -130,7 +130,7 @@ mips #(
     .cp0_epc_o(cp0_epc_o)
 );
 
-cpu_axi_adapter_system_cache #(
+cpu_axi_adapter_split_cache #(
     .ENABLE_CHECKER(ENABLE_CHECKER)
 ) adapter (
     .clk(aclk),
