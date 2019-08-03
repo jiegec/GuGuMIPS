@@ -65,6 +65,7 @@ module cache #(
 );
     enum {
         IDLE,
+        QUERY_CACHE,
         WRITEBACK_FIRST,
         WRITEBACK,
         MEMREAD_FIRST,
@@ -83,7 +84,7 @@ module cache #(
     logic r_valid[`NUM_CACHE_LINES-1:0];
     logic [TAG_WIDTH-1:0] r_tag[`NUM_CACHE_LINES-1:0];
 
-    logic w_en[`OFFSET_WIDTH-1:0];
+    logic w_en[`NUM_CACHE_LINES-1:0];
     logic [TAG_WIDTH-1:0] w_tag;
     logic [`OFFSET_WIDTH-1:0] w_offset;
     logic [31:0] w_data;
@@ -96,11 +97,11 @@ module cache #(
     logic [31:0] cached_cpu_rdata;
     logic [31:0] uncached_cpu_rdata;
     assign cpu_rdata = uncached ? uncached_cpu_rdata : cached_cpu_rdata;
-    logic [31:0] cached_cpu_data_ok;
-    logic [31:0] uncached_cpu_data_ok;
+    logic cached_cpu_data_ok;
+    logic uncached_cpu_data_ok;
     assign cpu_data_ok = uncached ? uncached_cpu_data_ok : cached_cpu_data_ok;
-    logic [31:0] cached_cpu_addr_ok;
-    logic [31:0] uncached_cpu_addr_ok;
+    logic cached_cpu_addr_ok;
+    logic uncached_cpu_addr_ok;
     assign cpu_addr_ok = uncached ? uncached_cpu_addr_ok : cached_cpu_addr_ok;
 
     logic [31:0] cached_araddr;
@@ -190,6 +191,53 @@ module cache #(
         end
     endgenerate
 
+    reg write_cache;
+    reg [`INDEX_WIDTH-1:0] write_index;
+    generate
+        for (genvar i = 0; i < `NUM_CACHE_LINES; i = i + 1) begin
+            assign w_en[i] = write_cache ? i == write_index : 1'b0;
+        end
+    endgenerate
+
+    wire [TAG_WIDTH-1:0] cache_cpu_tag;
+    wire [`INDEX_WIDTH-1:0] cache_cpu_index;
+    wire [`OFFSET_WIDTH-1:0] cache_cpu_offset;
+    wire [1:0] cache_cpu_byte;
+
+    reg [31:0] saved_cpu_addr;
+    wire [31:0] current_cpu_addr = state == IDLE ? cpu_addr : saved_cpu_addr;
+
+    assign {
+        cache_cpu_tag, cache_cpu_index,
+        cache_cpu_offset, cache_cpu_byte
+    } = current_cpu_addr;
+
+    assign r_offset = cache_cpu_offset;
+    // after one cycle
+    wire cache_line_valid = r_valid[cache_cpu_index];
+    wire cache_line_dirty = r_dirty[cache_cpu_index];
+    wire [TAG_WIDTH-1:0] cache_line_tag = r_tag[cache_cpu_index];
+    wire cache_line_hit = cache_line_tag == cache_cpu_tag;
+    wire [31:0] cache_line_data = r_data[cache_cpu_index];
+
+    assign w_data = rdata;
+    assign w_tag = cache_cpu_tag;
+
+    wire need_writeback = cache_line_valid && cache_line_dirty && ~cache_line_hit;
+    wire need_memread = ~cache_line_valid || ~cache_line_hit;
+
+    assign cached_cpu_addr_ok = cpu_req && state == IDLE;
+    assign cached_cpu_data_ok = state == QUERY_CACHE && ~(need_memread || need_writeback);
+    assign cached_cpu_rdata = cache_line_data;
+
+    assign cached_araddr = current_cpu_addr;
+    assign cached_arlen = (2 ** `OFFSET_WIDTH) - 1;
+    assign cached_arsize = 3'b10; // 4
+    assign cached_arburst = 2'b10; // WRAP
+    assign cached_arvalid = state == MEMREAD_FIRST;
+
+    assign cached_rready = state == MEMREAD;
+
     assign arid = 4'b0;
     assign arlock = 2'b0;
     assign arcache = 4'b0;
@@ -206,16 +254,6 @@ module cache #(
         if (rst) begin
             state <= IDLE;
 
-            cached_cpu_rdata <= 32'b0;
-            cached_cpu_data_ok <= 1'b0;
-            cached_cpu_addr_ok <= 1'b0;
-
-            cached_araddr <= 32'b0;
-            cached_arlen <= 4'b0;
-            cached_arsize <= 3'b0;
-            cached_arburst <= 2'b0;
-            cached_arvalid <= 1'b0;
-            cached_rready <= 1'b0;
             cached_awaddr <= 32'b0;
             cached_awlen <= 4'b0;
             cached_awsize <= 3'b0;
@@ -230,10 +268,20 @@ module cache #(
             cached_wvalid <= 1'b0;
             uncached_wvalid <= 1'b0;
             cached_bready <= 1'b0;
+
+            saved_cpu_addr <= 32'b0;
+
+            write_cache <= 1'b0;
+            write_index <= 'b0;
+
+            w_strb <= 4'b0;
+            w_dirty <= 1'b0;
+            w_valid <= 1'b0;
         end else begin
             case (state)
                 IDLE: begin
                     if (uncached) begin
+                        // uncached
                         if (cpu_wr) begin
                             // uncached write
                             if (awready) begin
@@ -249,6 +297,40 @@ module cache #(
                                 state <= UNCACHED_READ_AR;
                             end
                         end
+                    end else begin
+                        // cached
+                        state <= QUERY_CACHE;
+                        saved_cpu_addr <= cpu_addr;
+                    end
+                end
+                QUERY_CACHE: begin
+                    if (cache_line_hit) begin
+                        state <= IDLE;
+                        saved_cpu_addr <= 32'b0;
+                    end else if (need_writeback) begin
+                        state <= WRITEBACK_FIRST;
+                    end else if (need_memread) begin
+                        state <= MEMREAD_FIRST;
+                    end
+                end
+                MEMREAD_FIRST: begin
+                    if (arready) begin
+                        state <= MEMREAD;
+                        write_cache <= 1;
+                        write_index <= cache_cpu_index;
+                        w_offset <= cache_cpu_offset;
+                        w_strb <= 4'b1111;
+                        w_dirty <= 1'b0;
+                        w_valid <= 1'b1;
+                    end
+                end
+                MEMREAD: begin
+                    if (rvalid) begin
+                        w_offset <= w_offset + 1;
+                    end
+                    if (rlast) begin
+                        write_cache <= 0;
+                        state <= WAIT_WRITE;
                     end
                 end
                 UNCACHED_READ_AR: begin
@@ -285,6 +367,9 @@ module cache #(
                     if (bvalid) begin
                         state <= IDLE;
                     end
+                end
+                WAIT_WRITE: begin
+                    state <= IDLE;
                 end
             endcase
         end

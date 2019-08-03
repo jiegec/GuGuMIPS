@@ -214,7 +214,11 @@ module mem(
     logic [31:0]mem_data_i;
     logic [31:0]mem_data_o;
     logic mem_ce_o;
-    logic [1:0] state; // 0: no transfer, 1: waiting for addr ok, 2: waiting for data ok
+    enum {
+        IDLE,
+        WAIT_ADDR,
+        WAIT_DATA
+    } state;
     logic [`RegAddrBus] saved_wd;
     logic [`AluOpBus] saved_aluop;
     logic [`RegBus] saved_mem_addr_i;
@@ -230,16 +234,16 @@ module mem(
     logic exception_occurred;
     assign exception_occurred = |except_type_o;
 
-    assign data_req = state == 2 ? 0 : (state == 1 ? 1 : mem_ce_o & ~exception_occurred);
-    assign data_addr = state == 1 ? saved_mem_addr_o : mem_addr_o;
+    assign data_req = state == WAIT_DATA ? 0 : (state == WAIT_ADDR ? 1 : mem_ce_o & ~exception_occurred);
+    assign data_addr = state == WAIT_ADDR ? saved_mem_addr_o : mem_addr_o;
     assign mem_data_i = data_rdata;
-    assign data_wdata = state == 0 ? mem_data_o : saved_mem_data_o;
-    assign data_wr = state == 0 ? mem_we : (data_req & saved_data_wr);
-    assign data_size = state == 0 ? data_size_o : saved_data_size;
-    assign data_uncached = state == 0 ? data_uncached_o : saved_data_uncached;
+    assign data_wdata = state == IDLE ? mem_data_o : saved_mem_data_o;
+    assign data_wr = state == IDLE ? mem_we : (data_req & saved_data_wr);
+    assign data_size = state == IDLE ? data_size_o : saved_data_size;
+    assign data_uncached = state == IDLE ? data_uncached_o : saved_data_uncached;
     assign mem_stall = data_req || ((state != 0) && !data_data_ok);
     assign pc_o = data_data_ok ? saved_pc_i : pc_i;
-    assign mem_load = state != 0 && !saved_data_wr;
+    assign mem_load = state != IDLE && !saved_data_wr;
 
     // MMU
     logic [31:0] mem_phy_addr;
@@ -249,7 +253,7 @@ module mem(
 
     always_ff @ (posedge clk) begin
         if (rst) begin
-            state <= 0;
+            state <= IDLE;
             saved_wd <= 0;
             saved_aluop <= 0;
             saved_mem_addr_i <= 0;
@@ -260,8 +264,8 @@ module mem(
             saved_data_size <= 0;
             saved_data_uncached <= 0;
             saved_reg2_i <= 0;
-        end else if (data_req && state == 0 && !exception_occurred) begin
-            state <= data_addr_ok ? 2 : 1;
+        end else if (data_req && state == IDLE && !exception_occurred) begin
+            state <= data_addr_ok ? WAIT_DATA : WAIT_ADDR;
             saved_wd <= wd_i;
             saved_aluop <= aluop_i;
             saved_mem_addr_i <= mem_addr_i;
@@ -272,10 +276,10 @@ module mem(
             saved_data_size <= data_size_o;
             saved_data_uncached <= data_uncached_o;
             saved_reg2_i <= reg2_i;
-        end else if (state == 1 && data_addr_ok) begin
-            state <= 2;
+        end else if (state == WAIT_ADDR && data_addr_ok) begin
+            state <= WAIT_DATA;
         end else if (data_data_ok) begin
-            state <= 0;
+            state <= IDLE;
             saved_wd <= 0;
             saved_aluop <= 0;
             saved_mem_addr_i <= 0;
@@ -309,7 +313,7 @@ module mem(
             mem_we = `WriteDisable;
             mem_data_o = `ZeroWord;
             mem_ce_o = `ChipDisable;
-            wreg_o = ((data_req | state) ? (data_data_ok & !saved_data_wr) : wreg_i) & !exception_occurred;
+            wreg_o = ((data_req | (state != IDLE)) ? (data_data_ok & !saved_data_wr) : wreg_i) & !exception_occurred;
             wd_o = data_data_ok ? saved_wd : wd_i;
             misaligned_access = 0;
             inst_store = 0;
