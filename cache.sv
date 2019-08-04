@@ -250,7 +250,7 @@ module cache #(
     // (~current_cpu_wr && state == MEMREAD_FIRST && rvalid && cached_rready);
     assign cached_cpu_rdata = state == MEMREAD_FIRST ? rdata : cache_line_data;
 
-    assign cached_araddr = current_cpu_addr;
+    assign cached_araddr = {current_cpu_addr[31:2], 2'b0};
     assign cached_arlen = (2 ** OFFSET_WIDTH) - 1;
     assign cached_arsize = 3'b10; // 4
     assign cached_arburst = 2'b10; // WRAP
