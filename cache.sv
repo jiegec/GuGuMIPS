@@ -286,8 +286,10 @@ module cache #(
 
     // statistics
     integer requests_count = 0, uncached_count = 0, hit_count = 0, miss_count = 0, writeback_count = 0, read_count = 0;
+`ifdef XILINX_SIMULATOR
     real hit_rate;
     assign hit_rate = hit_count / real'(hit_count + miss_count);
+`endif
 
     always_ff @ (posedge clk) begin
         if (rst) begin
