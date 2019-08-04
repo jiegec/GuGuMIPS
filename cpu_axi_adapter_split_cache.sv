@@ -360,6 +360,7 @@ axi_crossbar_0 crossbar (
     .m_axi_awready   (awready   ),
 
     // w
+    .m_axi_wid       (wid       ),
     .m_axi_wdata     (wdata     ),
     .m_axi_wstrb     (wstrb     ),
     .m_axi_wlast     (wlast     ),
