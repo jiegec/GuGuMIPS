@@ -239,7 +239,7 @@ module cache #(
     wire cache_line_hit = cache_line_tag == cache_cpu_tag;
     wire [31:0] cache_line_data = r_data[cache_cpu_index];
 
-    assign w_data = current_cpu_wr ? current_cpu_wdata : rdata;
+    assign w_data = (current_cpu_wr && state == WAIT_WRITE) ? current_cpu_wdata : rdata;
     assign w_tag = cache_cpu_tag;
 
     wire need_writeback = cache_line_valid && cache_line_dirty && ~cache_line_hit;
@@ -264,9 +264,10 @@ module cache #(
     assign cached_awburst = 2'b10; // WRAP
     assign cached_awvalid = state == WRITEBACK_AW;
 
+    // assume that wready don't not go down in a burst transfer
     assign cached_wdata = cache_line_data;
     assign cached_wstrb = 4'b1111;
-    assign cached_wlast = cache_writeback_offset == cache_cpu_offset + {OFFSET_WIDTH{1'b1}};
+    assign cached_wlast = cache_writeback_offset == cache_cpu_offset;
     assign cached_wvalid = state == WRITEBACK_W;
 
     assign cached_bready = state == WRITEBACK_B;
@@ -394,7 +395,7 @@ module cache #(
                 end
                 WRITEBACK_AW: begin
                     if (awready) begin
-                        cache_writeback_offset <= cache_cpu_offset;
+                        cache_writeback_offset <= cache_cpu_offset + 1;
                         state <= WRITEBACK_W;
                     end
                 end
