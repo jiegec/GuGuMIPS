@@ -1,9 +1,6 @@
 module cache #(
     CACHE_LINE_WIDTH = 6,
     TAG_WIDTH = 20
-    `define INDEX_WIDTH (32 - CACHE_LINE_WIDTH - TAG_WIDTH)
-    `define NUM_CACHE_LINES (2 ** `INDEX_WIDTH)
-    `define OFFSET_WIDTH (CACHE_LINE_WIDTH - 2)
 ) (
     input clk,
     input rst,
@@ -63,6 +60,11 @@ module cache #(
     input bvalid,
     output logic bready
 );
+
+    localparam INDEX_WIDTH = 32 - CACHE_LINE_WIDTH - TAG_WIDTH;
+    localparam NUM_CACHE_LINES = 2 ** INDEX_WIDTH;
+    localparam OFFSET_WIDTH = CACHE_LINE_WIDTH - 2;
+
     enum {
         IDLE,
         QUERY_CACHE,
@@ -80,15 +82,15 @@ module cache #(
         UNCACHED_WRITE_B
     } state;
 
-    logic [`OFFSET_WIDTH-1:0] r_offset;
-    logic [31:0] r_data[`NUM_CACHE_LINES-1:0];
-    logic r_dirty[`NUM_CACHE_LINES-1:0];
-    logic r_valid[`NUM_CACHE_LINES-1:0];
-    logic [TAG_WIDTH-1:0] r_tag[`NUM_CACHE_LINES-1:0];
+    logic [OFFSET_WIDTH-1:0] r_offset;
+    logic [31:0] r_data[NUM_CACHE_LINES-1:0];
+    logic r_dirty[NUM_CACHE_LINES-1:0];
+    logic r_valid[NUM_CACHE_LINES-1:0];
+    logic [TAG_WIDTH-1:0] r_tag[NUM_CACHE_LINES-1:0];
 
-    logic w_en[`NUM_CACHE_LINES-1:0];
+    logic w_en[NUM_CACHE_LINES-1:0];
     logic [TAG_WIDTH-1:0] w_tag;
-    logic [`OFFSET_WIDTH-1:0] w_offset;
+    logic [OFFSET_WIDTH-1:0] w_offset;
     logic [31:0] w_data;
     logic [3:0] w_strb;
     logic w_dirty;
@@ -148,11 +150,11 @@ module cache #(
     logic [3:0] cached_wstrb;
     logic [3:0] uncached_wstrb;
     assign wstrb = uncached ? uncached_wstrb : cached_wstrb;
-    logic [2:0] cached_wlast;
-    logic [2:0] uncached_wlast;
+    logic cached_wlast;
+    logic uncached_wlast;
     assign wlast = uncached ? uncached_wlast : cached_wlast;
-    logic [1:0] cached_wvalid;
-    logic [1:0] uncached_wvalid;
+    logic cached_wvalid;
+    logic uncached_wvalid;
     assign wvalid = uncached ? uncached_wvalid : cached_wvalid;
 
     logic [1:0] cached_bready;
@@ -178,7 +180,7 @@ module cache #(
     assign uncached_cpu_addr_ok = (uncached_arvalid & arready) | (uncached_awvalid & awready);
 
     generate
-        for (genvar i = 0;i < `NUM_CACHE_LINES;i = i + 1) begin
+        for (genvar i = 0;i < NUM_CACHE_LINES;i = i + 1) begin
             cache_line #(
                 .TAG_WIDTH(TAG_WIDTH),
                 .CACHE_LINE_WIDTH(CACHE_LINE_WIDTH)
@@ -194,16 +196,16 @@ module cache #(
     endgenerate
 
     reg write_cache;
-    reg [`INDEX_WIDTH-1:0] write_index;
+    reg [INDEX_WIDTH-1:0] write_index;
     generate
-        for (genvar i = 0; i < `NUM_CACHE_LINES; i = i + 1) begin
+        for (genvar i = 0; i < NUM_CACHE_LINES; i = i + 1) begin
             assign w_en[i] = write_cache ? i == write_index : 1'b0;
         end
     endgenerate
 
     wire [TAG_WIDTH-1:0] cache_cpu_tag;
-    wire [`INDEX_WIDTH-1:0] cache_cpu_index;
-    wire [`OFFSET_WIDTH-1:0] cache_cpu_offset;
+    wire [INDEX_WIDTH-1:0] cache_cpu_index;
+    wire [OFFSET_WIDTH-1:0] cache_cpu_offset;
     wire [1:0] cache_cpu_byte;
 
     reg [31:0] saved_cpu_addr;
@@ -227,7 +229,7 @@ module cache #(
         cache_cpu_offset, cache_cpu_byte
     } = current_cpu_addr;
 
-    reg [`OFFSET_WIDTH-1:0] cache_writeback_offset;
+    reg [OFFSET_WIDTH-1:0] cache_writeback_offset;
 
     assign r_offset = state == WRITEBACK_W ? cache_writeback_offset : cache_cpu_offset;
     // after one cycle
@@ -249,7 +251,7 @@ module cache #(
     assign cached_cpu_rdata = state == MEMREAD_FIRST ? rdata : cache_line_data;
 
     assign cached_araddr = current_cpu_addr;
-    assign cached_arlen = (2 ** `OFFSET_WIDTH) - 1;
+    assign cached_arlen = (2 ** OFFSET_WIDTH) - 1;
     assign cached_arsize = 3'b10; // 4
     assign cached_arburst = 2'b10; // WRAP
     assign cached_arvalid = state == MEMREAD_WAIT;
@@ -257,14 +259,14 @@ module cache #(
     assign cached_rready = state == MEMREAD_FIRST || state == MEMREAD;
 
     assign cached_awaddr = current_cpu_addr;
-    assign cached_awlen = (2 ** `OFFSET_WIDTH) - 1;
+    assign cached_awlen = (2 ** OFFSET_WIDTH) - 1;
     assign cached_awsize = 3'b10; // 4
     assign cached_awburst = 2'b10; // WRAP
     assign cached_awvalid = state == WRITEBACK_AW;
 
     assign cached_wdata = cache_line_data;
     assign cached_wstrb = 4'b1111;
-    assign cached_wlast = (cache_writeback_offset + 1) == cache_cpu_offset;
+    assign cached_wlast = cache_writeback_offset == cache_cpu_offset + {OFFSET_WIDTH{1'b1}};
     assign cached_wvalid = state == WRITEBACK_W;
 
     assign cached_bready = state == WRITEBACK_B;
