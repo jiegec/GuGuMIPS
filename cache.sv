@@ -246,8 +246,8 @@ module cache #(
     wire need_memread = ~cache_line_valid || ~cache_line_hit;
 
     assign cached_cpu_addr_ok = cpu_req && state == IDLE;
-    assign cached_cpu_data_ok = state == QUERY_CACHE ? ~(need_memread || need_writeback) :
-        (~current_cpu_wr && state == MEMREAD_FIRST && rvalid && cached_rready);
+    assign cached_cpu_data_ok = state == QUERY_CACHE && ~(need_memread || need_writeback);
+    // (~current_cpu_wr && state == MEMREAD_FIRST && rvalid && cached_rready);
     assign cached_cpu_rdata = state == MEMREAD_FIRST ? rdata : cache_line_data;
 
     assign cached_araddr = current_cpu_addr;
@@ -258,7 +258,7 @@ module cache #(
 
     assign cached_rready = state == MEMREAD_FIRST || state == MEMREAD;
 
-    assign cached_awaddr = current_cpu_addr;
+    assign cached_awaddr = {cache_line_tag, cache_cpu_index, cache_cpu_offset, 2'b0};
     assign cached_awlen = (2 ** OFFSET_WIDTH) - 1;
     assign cached_awsize = 3'b10; // 4
     assign cached_awburst = 2'b10; // WRAP

@@ -108,7 +108,7 @@ endfunction
 string path=get_path_from_file(`__FILE__);
 
 task test(string name);
-    integer i, fans, pass, line, stop_on_error, debug, match;
+    integer i, fans, pass, line, stop_on_error, debug, match, res;
     string out, ans;
     string mem;
 
@@ -145,12 +145,12 @@ task test(string name);
         match = 0;
         if (debug_wb_rf_wen && debug_wb_rf_wnum != 0) begin
             $sformat(out, "$%0d=0x%x", debug_wb_rf_wnum, debug_wb_rf_wdata);
-            $fscanf(fans, "%s\n", ans);
+            res = $fscanf(fans, "%s\n", ans);
             match = 1;
         end
         if (test_ram0.data_req && test_ram0.data_wr && test_ram0.data_addr_ok) begin
             $sformat(out, "[0x%0x,%0d]=0x%x", test_ram0.data_addr, 1 + test_ram0.data_size, test_ram0.data_write);
-            $fscanf(fans, "%s\n", ans);
+            res = $fscanf(fans, "%s\n", ans);
             match = 1;
         end
         if (match) begin
