@@ -1,6 +1,6 @@
 module cache #(
     CACHE_LINE_WIDTH = 6,
-    TAG_WIDTH = 20
+    TAG_WIDTH = 18
 ) (
     input clk,
     input rst,
