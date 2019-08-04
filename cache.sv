@@ -283,6 +283,11 @@ module cache #(
     assign awqos = 3'b0;
     assign wid = 4'b0;
 
+    // statistics
+    integer requests_count = 0, uncached_count = 0, hit_count = 0, miss_count = 0, writeback_count = 0, read_count = 0;
+    real hit_rate;
+    assign hit_rate = hit_count / real'(hit_count + miss_count);
+
     always_ff @ (posedge clk) begin
         if (rst) begin
             state <= IDLE;
@@ -310,7 +315,9 @@ module cache #(
             case (state)
                 IDLE: begin
                     if (cpu_req) begin
+                        requests_count = requests_count + 1;
                         if (uncached) begin
+                            uncached_count = uncached_count + 1;
                             // uncached
                             if (cpu_wr) begin
                                 // uncached write
@@ -339,6 +346,7 @@ module cache #(
                 end
                 QUERY_CACHE: begin
                     if (cache_line_hit && cache_line_valid) begin
+                        hit_count = hit_count + 1;
                         if (current_cpu_wr) begin
                             // write
                             write_cache <= 1;
@@ -354,8 +362,12 @@ module cache #(
                             saved_cpu_addr <= 32'b0;
                         end
                     end else if (need_writeback) begin
+                        writeback_count = writeback_count + 1;
                         state <= WRITEBACK_AW;
                     end else if (need_memread) begin
+                        read_count = read_count + 1;
+                        miss_count = miss_count + 1;
+                        hit_count = hit_count - 1;
                         state <= MEMREAD_WAIT;
                     end
                 end
