@@ -1,7 +1,8 @@
 `include "define.vh"
 module cache_line #(
     TAG_WIDTH = 20,
-    CACHE_LINE_WIDTH = 6
+    CACHE_LINE_WIDTH = 6,
+    MEMORY_PRIMITIVE = "distributed"
     `define OFFSET_WIDTH (CACHE_LINE_WIDTH - 2)
 ) (
     input clk,
@@ -28,7 +29,7 @@ module cache_line #(
     logic valid;
 
     xpm_memory_sdpram #(
-        .MEMORY_PRIMITIVE("distributed"),
+        .MEMORY_PRIMITIVE(MEMORY_PRIMITIVE),
         .MEMORY_SIZE(32*(2**`OFFSET_WIDTH)),
         .WRITE_DATA_WIDTH_A(32),
         .READ_DATA_WIDTH_B(32),

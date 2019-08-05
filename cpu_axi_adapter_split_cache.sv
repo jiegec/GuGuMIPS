@@ -115,7 +115,9 @@ wire        icache_bready ;
 wire [1 :0] icache_bresp  ;
 wire        icache_bvalid ;
 
-cache icache(
+cache # (
+    .MEMORY_PRIMITIVE("block")
+) icache (
     .clk(clk),
     .rst(~resetn),
 
@@ -218,7 +220,9 @@ wire        dcache_bready ;
 wire [1 :0] dcache_bresp  ;
 wire        dcache_bvalid ;
 
-cache dcache(
+cache # (
+    .MEMORY_PRIMITIVE("distributed")
+) dcache (
     .clk(clk),
     .rst(~resetn),
 

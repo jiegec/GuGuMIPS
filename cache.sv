@@ -1,6 +1,7 @@
 module cache #(
     CACHE_LINE_WIDTH = 6,
-    TAG_WIDTH = 18
+    TAG_WIDTH = 18,
+    MEMORY_PRIMITIVE = "distributed"
 ) (
     input clk,
     input rst,
@@ -183,7 +184,8 @@ module cache #(
         for (genvar i = 0;i < NUM_CACHE_LINES;i = i + 1) begin
             cache_line #(
                 .TAG_WIDTH(TAG_WIDTH),
-                .CACHE_LINE_WIDTH(CACHE_LINE_WIDTH)
+                .CACHE_LINE_WIDTH(CACHE_LINE_WIDTH),
+                .MEMORY_PRIMITIVE(MEMORY_PRIMITIVE)
             ) cache_line_inst (
                 .clk(clk), .rst(rst),
                 .r_offset(r_offset), .r_data(r_data[i]),
@@ -246,8 +248,7 @@ module cache #(
     wire need_memread = ~cache_line_valid || ~cache_line_hit;
 
     assign cached_cpu_addr_ok = cpu_req && state == IDLE;
-    assign cached_cpu_data_ok = state == QUERY_CACHE && ~(need_memread || need_writeback);
-    // (~current_cpu_wr && state == MEMREAD_FIRST && rvalid && cached_rready);
+    assign cached_cpu_data_ok = state == QUERY_CACHE;
     assign cached_cpu_rdata = state == MEMREAD_FIRST ? rdata : cache_line_data;
 
     assign cached_araddr = {current_cpu_addr[31:2], 2'b0};
@@ -339,7 +340,18 @@ module cache #(
                             end
                         end else begin
                             // cached
-                            state <= QUERY_CACHE;
+                            if (need_writeback) begin
+                                miss_count = miss_count + 1;
+                                writeback_count = writeback_count + 1;
+                                state <= WRITEBACK_AW;
+                            end else if (need_memread) begin
+                                miss_count = miss_count + 1;
+                                read_count = read_count + 1;
+                                state <= MEMREAD_WAIT;
+                            end else begin
+                                hit_count = hit_count + 1;
+                                state <= QUERY_CACHE;
+                            end
                             saved_cpu_addr <= cpu_addr;
                             saved_cpu_wr <= cpu_wr;
                             saved_cpu_wdata <= cpu_wdata;
@@ -348,30 +360,19 @@ module cache #(
                     end
                 end
                 QUERY_CACHE: begin
-                    if (cache_line_hit && cache_line_valid) begin
-                        hit_count = hit_count + 1;
-                        if (current_cpu_wr) begin
-                            // write
-                            write_cache <= 1;
-                            write_index <= cache_cpu_index;
-                            w_offset <= cache_cpu_offset;
-                            w_strb <= current_cpu_strb;
-                            w_dirty <= 1'b1;
-                            w_valid <= 1'b1;
-                            state <= WAIT_WRITE;
-                        end else begin
-                            // read
-                            state <= IDLE;
-                            saved_cpu_addr <= 32'b0;
-                        end
-                    end else if (need_writeback) begin
-                        writeback_count = writeback_count + 1;
-                        state <= WRITEBACK_AW;
-                    end else if (need_memread) begin
-                        read_count = read_count + 1;
-                        miss_count = miss_count + 1;
-                        hit_count = hit_count - 1;
-                        state <= MEMREAD_WAIT;
+                    if (current_cpu_wr) begin
+                        // write
+                        write_cache <= 1;
+                        write_index <= cache_cpu_index;
+                        w_offset <= cache_cpu_offset;
+                        w_strb <= current_cpu_strb;
+                        w_dirty <= 1'b1;
+                        w_valid <= 1'b1;
+                        state <= WAIT_WRITE;
+                    end else begin
+                        // read
+                        state <= IDLE;
+                        saved_cpu_addr <= 32'b0;
                     end
                 end
                 MEMREAD_WAIT: begin
@@ -421,7 +422,11 @@ module cache #(
                 WRITEBACK_B: begin
                     write_cache <= 0;
                     if (bvalid) begin
-                        state <= QUERY_CACHE;
+                        if (need_memread) begin
+                            state <= MEMREAD_WAIT;
+                        end else begin
+                            state <= QUERY_CACHE;
+                        end
                     end
                 end
                 UNCACHED_READ_AR: begin
