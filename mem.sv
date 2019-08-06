@@ -241,7 +241,7 @@ module mem(
     assign data_wr = state == IDLE ? mem_we : (data_req & saved_data_wr);
     assign data_size = state == IDLE ? data_size_o : saved_data_size;
     assign data_uncached = state == IDLE ? data_uncached_o : saved_data_uncached;
-    assign mem_stall = data_req || ((state != 0) && !data_data_ok);
+    assign mem_stall = data_req || ((state != IDLE) && !data_data_ok);
     assign pc_o = data_data_ok ? saved_pc_i : pc_i;
     assign mem_load = state != IDLE && !saved_data_wr;
 

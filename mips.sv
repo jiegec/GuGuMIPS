@@ -271,7 +271,7 @@ module mips #(
         .tlb_r(wb_tlb_op == `TLB_OP_TLBR), .tlb_config_i(cp0_tlb_config_i)
     );
 
-    ifetch if0(.clk(clk), .rst(rst), .en(en_pc),
+    ifetch if0(.clk(clk), .rst(rst | flush), .en(en_pc),
         .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o), .except_type_o(if_except_type_o), .pc_valid_o(if_pc_valid),
         .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
         .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok),

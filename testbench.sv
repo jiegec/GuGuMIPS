@@ -128,7 +128,8 @@ task test(string name);
 
     begin
         rst = 1'b1;
-        #50 rst = 1'b0;
+        repeat (10) @ (posedge clk);
+        rst = 1'b0;
     end
 
     $display("Testing %0s", name);

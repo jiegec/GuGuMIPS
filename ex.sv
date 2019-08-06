@@ -452,7 +452,7 @@ module ex(
                         hilo_temp1 = {`ZeroWord, `ZeroWord};
                     end else if(cnt_i == 2'b01) begin
                         hilo_temp_o = {`ZeroWord, `ZeroWord};						
-                        cnt_o = 2'b10;
+                        cnt_o = 2'b00;
                         hilo_temp1 = hilo_temp_i + {hi, lo};
                         stallreq_for_madd_msub = `NoStop;
                     end
@@ -464,7 +464,7 @@ module ex(
                         stallreq_for_madd_msub = `Stop; //Stop
                     end else if (cnt_i == 2'b01)begin
                         hilo_temp_o = {`ZeroWord, `ZeroWord};						
-                        cnt_o = 2'b10;
+                        cnt_o = 2'b00;
                         hilo_temp1 = hilo_temp_i + {hi, lo};
                         stallreq_for_madd_msub = `NoStop;
                     end	
@@ -476,7 +476,7 @@ module ex(
                         stallreq_for_madd_msub = `Stop; //Stop
                     end else if (cnt_i == 2'b01) begin
                         hilo_temp_o = {`ZeroWord, `ZeroWord};
-                        cnt_o = 2'b10;
+                        cnt_o = 2'b00;
                         hilo_temp1 = hilo_temp_i;
                         stallreq_for_madd_msub = `NoStop;
                     end

@@ -116,7 +116,8 @@ wire [1 :0] icache_bresp  ;
 wire        icache_bvalid ;
 
 cache # (
-    .MEMORY_PRIMITIVE("block")
+    .MEMORY_PRIMITIVE("block"),
+    .TAG_WIDTH(19)
 ) icache (
     .clk(clk),
     .rst(~resetn),

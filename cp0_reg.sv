@@ -93,9 +93,12 @@ module cp0_reg #(
     logic [5:0] mmu_size;
     assign mmu_size = `TLB_ENTRIES - 1;
 
+    logic count_add;
+
     always_ff @ (posedge clk) begin
         if (rst == `RstEnable) begin
             count_o <= 0;
+            count_add <= 0;
             compare_o <= 0;
             // CU = 4'b0001, BEV = 1, ERL = 1
             status_o <= 32'b0001_0_0_0_00_1_0_0_0_000_00000000_000_0_0_1_0_0;
@@ -122,7 +125,8 @@ module cp0_reg #(
             // CPUNum = 0
             ebase_o <= 32'b10_000000000000000000_00_0000000000;
         end else begin
-            count_o <= count_o + 1;
+            count_add <= ~count_add;
+            count_o <= count_o + count_add;
             // IP[7:2] = I[5:0]
             // IP[1:2] left for software
             cause_o[15:10] <= int_i;

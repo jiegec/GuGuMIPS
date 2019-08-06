@@ -371,8 +371,12 @@ module cache #(
                         state <= WAIT_WRITE;
                     end else begin
                         // read
-                        state <= IDLE;
-                        saved_cpu_addr <= 32'b0;
+                        if (cpu_req & !uncached & !need_memread & !need_writeback) begin
+                            // continue
+                        end else begin
+                            state <= IDLE;
+                            saved_cpu_addr <= 32'b0;
+                        end
                     end
                 end
                 MEMREAD_WAIT: begin
