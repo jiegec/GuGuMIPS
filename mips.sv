@@ -213,6 +213,7 @@ module mips #(
     logic timer_int_o;
 
     logic en_pc;
+    logic en_if;
     logic en_if_id;
     logic en_id_ex;
     logic en_ex_mm;
@@ -242,15 +243,15 @@ module mips #(
         end
 
         if (mem_stall || ex_stall) begin
-            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00001;
+            {en_pc, en_if, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 6'b000001;
         end else if (mem_load && (mem_wd_o == reg1_addr || mem_wd_o == reg2_addr)) begin
-            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00001;
+            {en_pc, en_if, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 6'b000001;
         end else if (ex_alusel_i == `EXE_RES_LOAD_STORE && (ex_wd_o == reg1_addr || ex_wd_o == reg2_addr)) begin
-            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b00011;
+            {en_pc, en_if, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 6'b000011;
         end else if (if_stall) begin
-            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b01111;
+            {en_pc, en_if, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 6'b011111;
         end else begin
-            {en_pc, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 5'b11111;
+            {en_pc, en_if, en_if_id, en_id_ex, en_ex_mm, en_mm_wb} = 6'b111111;
         end
     end
 
@@ -271,7 +272,7 @@ module mips #(
         .tlb_r(wb_tlb_op == `TLB_OP_TLBR), .tlb_config_i(cp0_tlb_config_i)
     );
 
-    ifetch if0(.clk(clk), .rst(rst | flush), .en(en_pc),
+    ifetch if0(.clk(clk), .rst(rst), .en_pc(en_pc), .en_if(en_if), .flush(flush),
         .addr(pc), .inst(rom_data), .stall(if_stall), .pc_o(if_pc_o), .except_type_o(if_except_type_o), .pc_valid_o(if_pc_valid),
         .inst_req(inst_req), .inst_wr(inst_wr), .inst_size(inst_size),
         .inst_addr(inst_addr), .inst_wdata(inst_wdata), .inst_rdata(inst_rdata), .inst_addr_ok(inst_addr_ok), .inst_data_ok(inst_data_ok),

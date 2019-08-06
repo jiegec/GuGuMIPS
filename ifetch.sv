@@ -3,7 +3,9 @@
 module ifetch(
     input clk,
     input rst,
-    input en,
+    input en_pc,
+    input en_if,
+    input flush,
 
     // inst sram-like
     output logic inst_req,
@@ -40,17 +42,24 @@ module ifetch(
 
     wire [31:0] except_type;
     assign except_type = {15'b0, mmu_except_invalid, mmu_except_miss, misaligned_access | mmu_except_user, 14'b0};
-    logic exception_occurred;
+    wire exception_occurred;
     assign exception_occurred = |except_type;
+
+    wire time_to_request;
+    assign time_to_request = !rst && en_if && ~flush && (state == RESET || state == IDLE || inst_data_ok);
+    wire time_begin_request;
+    assign time_begin_request = time_to_request & inst_addr_ok;
+    wire time_begin_exception;
+    assign time_begin_exception = time_to_request & (state == IDLE && exception_occurred);
 
     assign inst_size = 2'b10; // 4
     assign inst_wr = 0;
     assign inst_wdata = 0;
 
     enum {
+        RESET,
         IDLE,
-        WAIT_ADDR,
-        WAIT_DATA
+        REQUEST
     } state;
 
     // if inst_addr change upon fetching (e.g. long delay with syscall), redo it
@@ -58,56 +67,54 @@ module ifetch(
     logic [`RegBus] saved_inst_rdata;
     logic [`InstAddrBus] last_inst_addr;
 
-    assign stall = rst ? 1'b1 : ((!inst_data_ok || state == WAIT_ADDR) && state != IDLE);
-    assign pc_valid_o = exception_occurred | ~stall;
+    reg saved_flush;
+    wire local_flush;
+    assign local_flush = flush | saved_flush;
+
+    assign stall = (rst || state != RESET) && ~(time_begin_request || time_begin_exception);
+    assign pc_valid_o = ~local_flush & (state != RESET && ~stall);
 
     // MMU
     assign mmu_en = 1'b1;
     assign mmu_virt_addr = addr;
     assign inst_addr = mmu_phys_addr;
     assign inst_uncached = mmu_uncached;
-    assign inst = inst_data_ok ? inst_rdata : saved_inst_rdata;
-    assign inst_req = !rst && en && (state == WAIT_ADDR || state == IDLE || inst_data_ok) && !exception_occurred;
+    assign inst = (pc_valid_o & ~local_flush) ? (inst_data_ok ? inst_rdata : saved_inst_rdata) : 0;
+    assign inst_req = time_to_request & ~exception_occurred;
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
-            state <= IDLE;
+            state <= RESET;
             saved_inst_rdata <= 0;
+            saved_flush <= 0;
             except_type_o <= 0;
+            pc_o <= 0;
         end else begin
-            if ((inst_req && inst_addr_ok) || exception_occurred) begin
+            if ((inst_req & inst_addr_ok) | (state == IDLE & exception_occurred)) begin
                 pc_o <= addr;
+            end
+            if (flush) begin
+                saved_flush <= flush;
+            end else if ((inst_req && inst_addr_ok) || exception_occurred) begin
+                saved_flush <= 0;
             end
             if (inst_data_ok) begin
                 saved_inst_rdata <= inst_rdata;
             end
-            except_type_o <= except_type;
+            if (time_to_request && time_begin_exception) begin
+                except_type_o <= except_type;
+            end else begin
+                except_type_o <= 0;
+            end
             unique case (state)
-                IDLE: begin
-                    if (inst_req) begin
-                        if (inst_addr_ok) begin
-                            //saved_inst_addr <= inst_addr;
-                            state <= WAIT_DATA;
-                        end else begin
-                            state <= WAIT_ADDR;
-                        end
+                RESET, IDLE: begin
+                    if (time_begin_request) begin
+                        state <= REQUEST;
                     end
                 end
-                WAIT_ADDR: begin
-                    if (inst_data_ok) begin
-                        // 1 cycle
+                REQUEST: begin
+                    if (inst_data_ok && ~inst_addr_ok) begin
                         state <= IDLE;
-                        //saved_inst_addr <= 0;
-                    end else if (inst_addr_ok) begin
-                        // >= 2 cycle
-                        state <= WAIT_DATA;
-                        //saved_inst_addr <= inst_addr;
-                    end
-                end
-                WAIT_DATA: begin
-                    if (inst_data_ok & ~inst_addr_ok) begin
-                        state <= IDLE;
-                        //saved_inst_addr <= 0;
                     end
                 end
             endcase
