@@ -5,23 +5,37 @@ import os
 import struct
 import serial
 import select
+import time
+import getopt
 
-n = 1024
-timeout = 0.01
+try:
+    optlist, args = getopt.getopt(sys.argv[1:], 's')
 
-if len(sys.argv) != 3:
-    print('Usage: send.py file tty')
-    sys.exit()
+    timeout = 0.01
+    n = 1024
+    slow = False
 
-out = serial.Serial(sys.argv[2], 115200, timeout=timeout)
+    for o, a in optlist:
+        if o == "-s":
+            slow = True
+            n = 16
+            print('Running in slow mode')
 
-size = os.path.getsize(sys.argv[1])
-out.write(struct.pack('>I', size))
-with open(sys.argv[1], 'rb') as f:
-    data = f.read()
-    for i in range(0, len(data), n):
-        out.write(data[i:i+n])
-        print('.', end='', flush=True)
+    out = serial.Serial(args[1], 115200, timeout=timeout)
 
-out.close()
-os.execlp('screen', 'screen', sys.argv[2], '115200')
+    size = os.path.getsize(args[0])
+    out.write(struct.pack('>I', size))
+    with open(args[0], 'rb') as f:
+        data = f.read()
+        for i in range(0, len(data), n):
+            out.write(data[i:i+n])
+            print('.', end='', flush=True)
+            if slow:
+                time.sleep(timeout)
+
+    out.close()
+    os.execlp('screen', 'screen', args[1], '115200')
+except getopt.GetoptError as err:
+    print(str(err))
+    print('Usage: send.py [-s] file tty')
+
